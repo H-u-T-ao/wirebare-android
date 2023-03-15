@@ -8,7 +8,7 @@ import android.net.Uri
 class WireBareInitializer : ContentProvider() {
 
     override fun onCreate(): Boolean {
-        WireBare.attachContext(context!!)
+        WireBare attach context!!
         return true
     }
 

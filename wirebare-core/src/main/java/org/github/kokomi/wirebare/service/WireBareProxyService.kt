@@ -7,6 +7,7 @@ import org.github.kokomi.wirebare.common.WireBare
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import org.github.kokomi.wirebare.service.ProxyLauncher.Companion.launchWith
 
 abstract class WireBareProxyService : VpnService(),
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
@@ -21,7 +22,7 @@ abstract class WireBareProxyService : VpnService(),
 
     override fun onCreate() {
         super.onCreate()
-        WireBare.notifyVpnStatusChanged(WireBare.WIREBARE_STATUS_SERVICE_CREATE)
+        WireBare notifyVpnStatusChanged WireBare.WIREBARE_STATUS_SERVICE_CREATE
     }
 
     final override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -35,9 +36,10 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun startWireBare() {
-        with(WireBare.configuration) {
+        val configuration = WireBare.configuration.apply {
             startForeground(notificationId, notification())
         }
+        this launchWith configuration
     }
 
     private fun stopWireBare() {
@@ -52,7 +54,7 @@ abstract class WireBareProxyService : VpnService(),
 
     override fun onDestroy() {
         super.onDestroy()
-        WireBare.notifyVpnStatusChanged(WireBare.WIREBARE_STATUS_SERVICE_DESTROY)
+        WireBare notifyVpnStatusChanged WireBare.WIREBARE_STATUS_SERVICE_DESTROY
         cancel()
     }
 

@@ -38,7 +38,7 @@ interface IProxyStatusListener {
      *
      * @see [WireBare.WIREBARE_STATUS_SERVICE_CREATE]
      * @see [WireBare.WIREBARE_STATUS_SERVICE_DESTROY]
-     * @see [WireBare.WIREBARE_STATUS_PROXY_PREPARE]
+     * @see [WireBare.WIREBARE_STATUS_PROXY_SERVER_PREPARED]
      * */
     @MainThread
     fun onStatusChanged(status: Int)

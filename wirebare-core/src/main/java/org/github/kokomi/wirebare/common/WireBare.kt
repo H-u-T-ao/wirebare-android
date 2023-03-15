@@ -27,7 +27,7 @@ object WireBare {
     /**
      * 表示代理服务器已经准备完毕
      * */
-    const val WIREBARE_STATUS_PROXY_PREPARE = 2
+    const val WIREBARE_STATUS_PROXY_SERVER_PREPARED = 2
 
     private lateinit var appContext: Context
 
@@ -87,7 +87,7 @@ object WireBare {
      * @see [WireBareConfiguration]
      * @see [stopProxy]
      * */
-    fun startProxy(configuration: WireBareConfiguration.() -> Unit) {
+    infix fun startProxy(configuration: WireBareConfiguration.() -> Unit) {
         if (alive) throw IllegalStateException("WireBare 代理服务正在运行中")
         _configuration = WireBareConfiguration().apply(configuration)
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_START).apply {
@@ -119,7 +119,7 @@ object WireBare {
      * @see [IProxyStatusListener]
      * @see [SimpleProxyStatusListener]
      * */
-    fun addProxyStatusListener(listener: IProxyStatusListener): Boolean {
+    infix fun addProxyStatusListener(listener: IProxyStatusListener): Boolean {
         return listeners.add(listener)
     }
 
@@ -132,7 +132,7 @@ object WireBare {
      * @see [IProxyStatusListener]
      * @see [SimpleProxyStatusListener]
      * */
-    fun removeProxyStatusListener(listener: IProxyStatusListener): Boolean {
+    infix fun removeProxyStatusListener(listener: IProxyStatusListener): Boolean {
         return listeners.remove(listener)
     }
 
@@ -148,11 +148,11 @@ object WireBare {
             WireBareLogger.LOG_LEVEL = level
         }
 
-    internal fun attachContext(context: Context) {
+    internal infix fun attach(context: Context) {
         appContext = context
     }
 
-    internal fun notifyVpnStatusChanged(status: Int) {
+    internal infix fun notifyVpnStatusChanged(status: Int) {
         Handler(Looper.getMainLooper()).post {
             WireBare.status = status
             if (status == WireBare.status) return@post
@@ -162,7 +162,7 @@ object WireBare {
                 when (status) {
                     WIREBARE_STATUS_SERVICE_CREATE -> it.onProxyServiceCreate()
                     WIREBARE_STATUS_SERVICE_DESTROY -> it.onProxyServerDestroy()
-                    WIREBARE_STATUS_PROXY_PREPARE -> it.onProxyServerPrepared()
+                    WIREBARE_STATUS_PROXY_SERVER_PREPARED -> it.onProxyServerPrepared()
                 }
                 it.onStatusChanged(status)
             }
