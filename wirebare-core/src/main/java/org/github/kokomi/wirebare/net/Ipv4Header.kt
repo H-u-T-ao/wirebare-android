@@ -10,17 +10,17 @@ import kotlin.experimental.and
  *    0               1               2               3
  *    0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  0 |Version|  IHL  |Type of Service|          Total Length         |
+ *    |Version|  IHL  |Type of Service|          Total Length         |  4
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  4 |         Identification        |Flags|      Fragment Offset    |
+ *    |         Identification        |Flags|      Fragment Offset    |  8
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  8 |  Time to Live |    Protocol   |         Header Checksum       |
+ *    |  Time to Live |    Protocol   |         Header Checksum       | 12
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * 12 |                       Source Address                          |
+ *    |                       Source Address                          | 16
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * 16 |                    Destination Address                        |
+ *    |                    Destination Address                        | 20
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * 20 |                    Options                    |    Padding    |
+ *    |                    Options                    |    Padding    | 24
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
  * IHL := IP Header Length
