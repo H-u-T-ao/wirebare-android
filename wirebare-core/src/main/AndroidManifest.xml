@@ -16,17 +16,6 @@
             android:name="org.github.kokomi.wirebare.common.WireBareInitializer"
             android:authorities="org.github.kokomi.wirebare.initializer"
             android:exported="false" />
-
-        <service
-            android:name=".service.SimpleWireBareProxyService"
-            android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-                <action android:name="com.kokomi.net.wirebare.action.Start" />
-                <action android:name="com.kokomi.net.wirebare.action.Stop" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

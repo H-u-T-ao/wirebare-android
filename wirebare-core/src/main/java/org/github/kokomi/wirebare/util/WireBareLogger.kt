@@ -29,7 +29,7 @@ internal object WireBareLogger {
     private const val TAG = "WireBare"
 
     @LogLevel
-    internal var LOG_LEVEL: Int = Level.DEBUG
+    internal var LOG_LEVEL: Int = Level.SILENT
 
     internal fun verbose(msg: String) {
         if (LOG_LEVEL <= Level.VERBOSE) {
