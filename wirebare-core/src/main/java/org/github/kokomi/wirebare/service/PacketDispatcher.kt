@@ -11,12 +11,17 @@ import org.github.kokomi.wirebare.common.WireBareConfiguration
 import org.github.kokomi.wirebare.net.Ipv4Header
 import org.github.kokomi.wirebare.net.Packet
 import org.github.kokomi.wirebare.net.Protocol
+import org.github.kokomi.wirebare.tcp.TcpInterceptor
+import org.github.kokomi.wirebare.udp.UdpInterceptor
 import org.github.kokomi.wirebare.util.WireBareLogger
 import org.github.kokomi.wirebare.util.closeSafely
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.concurrent.LinkedBlockingQueue
 
+/**
+ * ip 包调度者，负责从代理服务的输入流中获取 ip 包并根据 ip 头的信息分配给对应的 [PacketInterceptor]
+ * */
 internal class PacketDispatcher private constructor(
     configuration: WireBareConfiguration,
     private val proxyDescriptor: ParcelFileDescriptor,
@@ -34,15 +39,32 @@ internal class PacketDispatcher private constructor(
         }
     }
 
+    /**
+     * ip 包拦截器
+     * */
     private val interceptors = hashMapOf<Protocol, PacketInterceptor>(
+        Protocol.TCP to TcpInterceptor(configuration, proxyService),
+        Protocol.UDP to UdpInterceptor(configuration, proxyService)
     )
 
+    /**
+     * 代理服务输入流
+     * */
     private val inputStream = FileInputStream(proxyDescriptor.fileDescriptor)
 
+    /**
+     * 代理服务输出流
+     * */
     private val outputStream = FileOutputStream(proxyDescriptor.fileDescriptor)
 
+    /**
+     * 缓冲流
+     * */
     private var buffer = ByteArray(configuration.mtu)
 
+    /**
+     * 队列中等待处理的 ip 包
+     * */
     private val pendingBuffers = LinkedBlockingQueue<Packet>()
 
     private fun dispatch() {
@@ -72,8 +94,8 @@ internal class PacketDispatcher private constructor(
             while (isActive) {
                 val packet = pendingBuffers.take()
 
-                if (packet.length < Ipv4Header.MIN_HEADER_LENGTH) {
-                    WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_HEADER_LENGTH}")
+                if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
+                    WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")
                     continue
                 }
 

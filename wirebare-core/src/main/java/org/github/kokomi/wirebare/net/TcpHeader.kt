@@ -71,6 +71,11 @@ internal class TcpHeader(
     internal val headerLength: Int
         get() = packet.readByte(offset + OFFSET_OFFSET).toInt() and 0xFF ushr 4 shl 2
 
+    /**
+     * 计算 tcp 包的数据部分的长度
+     *
+     * 计算结果 = [Ipv4Header.totalLength] - [Ipv4Header.headerLength] - [headerLength]
+     * */
     internal val dataLength: Int
         get() = ipv4Header.totalLength - ipv4Header.headerLength - headerLength
 
@@ -100,6 +105,9 @@ internal class TcpHeader(
         get() = packet.readShort(offset + OFFSET_CHECK_SUM)
         private set(value) = packet.writeShort(value, offset + OFFSET_CHECK_SUM)
 
+    /**
+     * 先将 tcp 头中的校验和置为 0 ，然后重新计算校验和
+     * */
     internal fun notifyCheckSum() {
         checkSum = 0.toShort()
         checkSum = calculateChecksum()

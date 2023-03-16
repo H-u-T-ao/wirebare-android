@@ -3,7 +3,7 @@ package org.github.kokomi.wirebare.util
 /**
  * 将 [Int] 所代表的 IP 地址转换为 %s:%s:%s:%s 的形式
  * */
-internal val Int.convertIpString: String
+internal val Int.convertIpv4ToString: String
     get() = String.format(
         "%s.%s.%s.%s",
         this shr 24 and 0xFF,
@@ -12,7 +12,7 @@ internal val Int.convertIpString: String
         this and 0xFF
     )
 
-internal val String.convertIpInt: Int
+internal val String.convertIpv4ToInt: Int
     get() = split(".").let { numbers ->
         kotlin.runCatching {
             return@let (numbers[0].toInt() and 0xFF shl 24) or
@@ -23,8 +23,8 @@ internal val String.convertIpInt: Int
         throw IllegalArgumentException("IP 地址格式错误 $this")
     }
 
-internal val Short.convertPortString: String
+internal val Short.convertPortToString: String
     get() = (this.toInt() and 0xFFFF).toString()
 
-internal val Short.convertPortInt: Int
+internal val Short.convertPortToInt: Int
     get() = this.toInt() and 0xFFFF

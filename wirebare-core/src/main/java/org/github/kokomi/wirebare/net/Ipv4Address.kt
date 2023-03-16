@@ -3,8 +3,8 @@ package org.github.kokomi.wirebare.net
 import android.os.Parcel
 import android.os.Parcelable
 import android.os.Parcelable.Creator
-import org.github.kokomi.wirebare.util.convertIpInt
-import org.github.kokomi.wirebare.util.convertIpString
+import org.github.kokomi.wirebare.util.convertIpv4ToInt
+import org.github.kokomi.wirebare.util.convertIpv4ToString
 
 /**
  * ipv4 地址
@@ -17,12 +17,12 @@ class Ipv4Address : Parcelable {
 
     constructor(address: Int) {
         this.int = address
-        this.string = int.convertIpString
+        this.string = int.convertIpv4ToString
     }
 
     constructor(address: String) {
-        this.int = address.convertIpInt
-        this.string = int.convertIpString
+        this.int = address.convertIpv4ToInt
+        this.string = int.convertIpv4ToString
     }
 
     override fun toString(): String = string

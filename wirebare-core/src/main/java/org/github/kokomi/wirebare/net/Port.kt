@@ -1,6 +1,6 @@
 package org.github.kokomi.wirebare.net
 
-import org.github.kokomi.wirebare.util.convertPortString
+import org.github.kokomi.wirebare.util.convertPortToString
 
 /**
  * 端口号
@@ -10,7 +10,7 @@ internal data class Port(
 ) {
 
     override fun toString(): String {
-        return port.convertPortString
+        return port.convertPortToString
     }
 
 }

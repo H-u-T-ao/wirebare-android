@@ -45,6 +45,9 @@ internal class UdpHeader(
         get() = packet.readShort(offset + OFFSET_CHECK_SUM)
         private set(value) = packet.writeShort(value, offset + OFFSET_CHECK_SUM)
 
+    /**
+     * 复制一个与当前 udp 包的头一样的 udp 包，数据部分为空
+     * */
     internal val copyHeader: UdpHeader
         get() {
             val array = ByteArray(ipv4Header.headerLength + 8) { packet[it] }.apply {
@@ -57,9 +60,15 @@ internal class UdpHeader(
             )
         }
 
+    /**
+     * 返回 udp 包的数据部分
+     * */
     internal val data: ByteBuffer
         get() = ByteBuffer.wrap(packet, offset + 8, totalLength - 8)
 
+    /**
+     * 先将 udp 头中的校验和置为 0 ，然后重新计算校验和
+     * */
     internal fun notifyCheckSum() {
         checkSum = 0.toShort()
         checkSum = calculateChecksum()
