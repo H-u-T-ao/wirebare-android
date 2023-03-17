@@ -68,6 +68,7 @@ internal class TcpProxyTunnel(
         if (length < 0 || realTunnel.isClosed) {
             realTunnel.closeSafely()
             closeSafely()
+            virtualGateWay.onRequestFinished()
         } else {
             WireBareLogger.inet(session, "客户端 ${session.sourcePort} >> 代理服务器 $port $length 字节")
             virtualGateWay.onRequest(buffer)

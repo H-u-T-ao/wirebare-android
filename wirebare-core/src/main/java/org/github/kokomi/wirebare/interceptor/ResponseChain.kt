@@ -25,6 +25,13 @@ class ResponseChain(private val interceptors: List<ResponseInterceptor>) : Inter
         process(buffer)
     }
 
+    @Synchronized
+    internal fun stopProcessing() {
+        for (interceptor in interceptors) {
+            interceptor.onResponseFinished(response)
+        }
+    }
+
     override fun process(buffer: ByteBuffer) {
         index++
         if (index >= interceptors.size) return
