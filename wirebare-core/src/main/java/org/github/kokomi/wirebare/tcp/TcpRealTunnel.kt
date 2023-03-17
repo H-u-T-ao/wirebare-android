@@ -1,6 +1,7 @@
 package org.github.kokomi.wirebare.tcp
 
 import org.github.kokomi.wirebare.common.WireBareConfiguration
+import org.github.kokomi.wirebare.interceptor.VirtualGateWay
 import org.github.kokomi.wirebare.net.Session
 import org.github.kokomi.wirebare.nio.SocketNioTunnel
 import org.github.kokomi.wirebare.service.WireBareProxyService
@@ -25,6 +26,7 @@ internal class TcpRealTunnel(
     override val selector: Selector,
     private val session: Session,
     private val configuration: WireBareConfiguration,
+    private val virtualGateWay: VirtualGateWay,
     private val proxyService: WireBareProxyService
 ) : SocketNioTunnel() {
 
@@ -71,6 +73,7 @@ internal class TcpRealTunnel(
             closeSafely()
         } else {
             WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
+            virtualGateWay.onResponse(buffer)
             proxyTunnel.write(buffer)
         }
     }

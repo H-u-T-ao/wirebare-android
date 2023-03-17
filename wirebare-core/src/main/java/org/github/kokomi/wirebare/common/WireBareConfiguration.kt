@@ -2,9 +2,7 @@ package org.github.kokomi.wirebare.common
 
 import android.app.Notification
 import android.net.VpnService
-import org.github.kokomi.wirebare.interceptor.InterceptorFactory
-import org.github.kokomi.wirebare.interceptor.RequestChain
-import org.github.kokomi.wirebare.interceptor.RequestInterceptor
+import org.github.kokomi.wirebare.interceptor.*
 import org.github.kokomi.wirebare.service.WireBareProxyService
 import org.github.kokomi.wirebare.util.defaultNotification
 
@@ -73,25 +71,33 @@ class WireBareConfiguration internal constructor() {
     }
 
     /**
-     * 增加代理的应用，此函数与 [addDisallowedApplication] 只能二选一执行
+     * 增加代理的应用，此函数与 [addDisallowedApplications] 只能二选一执行
      *
      * 注意：母应用必须被代理，且无需您手动添加到代理应用列表
      *
-     * @see [addDisallowedApplication]
+     * @see [addDisallowedApplications]
      * */
     fun addAllowedApplications(vararg packageName: String) {
         allowedApplications.addAll(packageName)
     }
 
     /**
-     * 增加不允许代理的应用，此函数与 [addAllowedApplication] 只能二选一执行
+     * 增加不允许代理的应用，此函数与 [addAllowedApplications] 只能二选一执行
      *
      * 注意：母应用必须被代理，请不要在此函数中添加母应用的包名
      *
-     * @see [addAllowedApplication]
+     * @see [addAllowedApplications]
      * */
     fun addDisallowedApplications(vararg packageName: String) {
         disallowedApplications.addAll(packageName)
+    }
+
+    /**
+     * 清空当前请求拦截器，并设置新的请求拦截器
+     * */
+    fun setRequestInterceptors(factories: List<InterceptorFactory<RequestChain, RequestInterceptor>>) {
+        requestInterceptorFactories.clear()
+        requestInterceptorFactories.addAll(factories)
     }
 
     /**
@@ -114,6 +120,34 @@ class WireBareConfiguration internal constructor() {
         requestInterceptorFactories.addAll(list)
     }
 
+    /**
+     * 清空当前响应拦截器，并设置新的设置响应拦截器
+     * */
+    fun setResponseInterceptors(factories: List<InterceptorFactory<ResponseChain, ResponseInterceptor>>) {
+        responseInterceptorFactories.clear()
+        responseInterceptorFactories.addAll(factories)
+    }
+
+    /**
+     * 增加响应拦截器
+     * */
+    fun addResponseInterceptors(vararg factories: InterceptorFactory<ResponseChain, ResponseInterceptor>) {
+        responseInterceptorFactories.addAll(factories)
+    }
+
+    /**
+     * 增加响应拦截器
+     * */
+    fun addResponseInterceptors(vararg factories: () -> ResponseInterceptor) {
+        val list = mutableListOf<InterceptorFactory<ResponseChain, ResponseInterceptor>>()
+        for (factory in factories) {
+            list.add(object : InterceptorFactory<ResponseChain, ResponseInterceptor> {
+                override fun create(): ResponseInterceptor = factory()
+            })
+        }
+        responseInterceptorFactories.addAll(list)
+    }
+
     internal val routes: MutableSet<Pair<String, Int>> = hashSetOf()
 
     internal val dnsServers: MutableSet<String> = hashSetOf()
@@ -123,6 +157,9 @@ class WireBareConfiguration internal constructor() {
     internal val disallowedApplications: MutableSet<String> = hashSetOf()
 
     internal val requestInterceptorFactories: MutableList<InterceptorFactory<RequestChain, RequestInterceptor>> =
+        mutableListOf()
+
+    internal val responseInterceptorFactories: MutableList<InterceptorFactory<ResponseChain, ResponseInterceptor>> =
         mutableListOf()
 
 }

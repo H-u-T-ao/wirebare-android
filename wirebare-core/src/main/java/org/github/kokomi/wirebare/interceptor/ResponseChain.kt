@@ -3,15 +3,15 @@ package org.github.kokomi.wirebare.interceptor
 import java.nio.ByteBuffer
 
 /**
- * 请求责任链
+ * 响应责任链
  *
- * @param interceptors 请求责任链
+ * @param interceptors 响应责任链
  * */
-class RequestChain(private val interceptors: List<RequestInterceptor>) : InterceptorChain {
+class ResponseChain(private val interceptors: List<ResponseInterceptor>) : InterceptorChain {
 
     private var index: Int = -1
 
-    internal lateinit var request: Request
+    internal lateinit var response: Response
 
     /**
      * 开始处理
@@ -20,7 +20,7 @@ class RequestChain(private val interceptors: List<RequestInterceptor>) : Interce
      * */
     @Synchronized
     internal fun startProcessing(buffer: ByteBuffer) {
-        request = Request()
+        response = Response()
         index = -1
         process(buffer)
     }
