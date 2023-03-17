@@ -18,10 +18,22 @@ class VirtualGateWay {
         }
     )
 
-    //    private val responseChain =
+    private val responseChain: ResponseChain = ResponseChain(
+        mutableListOf<ResponseInterceptor>().apply {
+            // 请求头格式化拦截器
+            add(ResponseHeaderParseInterceptor())
+            WireBare.configuration.responseInterceptorFactories.forEach {
+                add(it.create())
+            }
+        }
+    )
 
     internal fun onRequest(buffer: ByteBuffer) {
         requestChain.startProcessing(buffer)
+    }
+
+    internal fun onResponse(buffer: ByteBuffer) {
+        responseChain.startProcessing(buffer)
     }
 
 }

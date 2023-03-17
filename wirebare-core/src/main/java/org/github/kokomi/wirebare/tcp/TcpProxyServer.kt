@@ -80,6 +80,7 @@ internal class TcpProxyServer(
             selector,
             session,
             configuration,
+            virtualGateWay,
             proxyService
         )
 
