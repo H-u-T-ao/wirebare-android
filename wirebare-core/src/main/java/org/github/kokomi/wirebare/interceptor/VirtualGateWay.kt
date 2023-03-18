@@ -32,8 +32,16 @@ class VirtualGateWay {
         requestChain.startProcessing(buffer)
     }
 
+    internal fun onRequestFinished() {
+        requestChain.stopProcessing()
+    }
+
     internal fun onResponse(buffer: ByteBuffer) {
         responseChain.startProcessing(buffer)
+    }
+
+    internal fun onResponseFinished() {
+        responseChain.stopProcessing()
     }
 
 }

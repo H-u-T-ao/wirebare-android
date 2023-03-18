@@ -13,7 +13,9 @@ abstract class ResponseInterceptor : Interceptor<ResponseChain> {
      * @param response 格式化完成的响应信息
      * @param buffer 响应字节流
      * */
-    protected abstract fun onResponse(response: Response, buffer: ByteBuffer)
+    internal abstract fun onResponse(response: Response, buffer: ByteBuffer)
+
+    internal abstract fun onResponseFinished(response: Response)
 
     final override fun intercept(buffer: ByteBuffer, chain: ResponseChain) {
         onResponse(chain.response, buffer)

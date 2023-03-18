@@ -71,6 +71,7 @@ internal class TcpRealTunnel(
             session.active = false
             proxyTunnel.closeSafely()
             closeSafely()
+            virtualGateWay.onResponseFinished()
         } else {
             WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
             virtualGateWay.onResponse(buffer)
