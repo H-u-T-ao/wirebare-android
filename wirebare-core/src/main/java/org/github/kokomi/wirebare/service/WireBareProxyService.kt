@@ -1,5 +1,6 @@
 package org.github.kokomi.wirebare.service
 
+import android.app.Notification
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -8,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import org.github.kokomi.wirebare.service.ProxyLauncher.Companion.launchWith
+import org.github.kokomi.wirebare.util.defaultNotification
 
 abstract class WireBareProxyService : VpnService(),
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
@@ -19,6 +21,25 @@ abstract class WireBareProxyService : VpnService(),
         internal const val WIREBARE_ACTION_PROXY_VPN_STOP =
             "org.github.kokomi.wirebare.action.Stop"
     }
+
+    /**
+     * 通知通道 ID ，默认 WireBareProxyService
+     * */
+    protected open var channelId: String = "WireBareProxyService"
+
+    /**
+     * 通知 ID ，默认 222
+     * */
+    protected open var notificationId: Int = 222
+
+    /**
+     * 创建通知，默认 [VpnService.defaultNotification]
+     *
+     * 代理抓包对于用户来说有危险性，因此前台服务并显示通知用户是必须的
+     * */
+    protected open var notification: WireBareProxyService.() -> Notification =
+        { defaultNotification(channelId) }
+
 
     override fun onCreate() {
         super.onCreate()

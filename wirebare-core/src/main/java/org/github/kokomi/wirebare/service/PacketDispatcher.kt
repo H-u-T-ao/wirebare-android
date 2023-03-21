@@ -23,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue
  * ip 包调度者，负责从代理服务的输入流中获取 ip 包并根据 ip 头的信息分配给对应的 [PacketInterceptor]
  * */
 internal class PacketDispatcher private constructor(
-    configuration: WireBareConfiguration,
+    private val configuration: WireBareConfiguration,
     private val proxyDescriptor: ParcelFileDescriptor,
     private val proxyService: WireBareProxyService
 ) : CoroutineScope by proxyService {
@@ -84,7 +84,7 @@ internal class PacketDispatcher private constructor(
 
                 // 添加到处理队列
                 pendingBuffers.offer(Packet(buffer, length))
-                buffer = ByteArray(WireBare.configuration.mtu)
+                buffer = ByteArray(configuration.mtu)
             }
             closeSafely(proxyDescriptor, inputStream, outputStream)
             WireBare.stopProxy()
