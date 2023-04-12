@@ -25,6 +25,9 @@ class RequestHeaderParseInterceptor : RequestInterceptor() {
         }
     }
 
+    override fun onRequestFinished(request: Request) {
+    }
+
     private val ByteBuffer.isHttp: Boolean?
         get() {
             return when (get(position()).toInt()) {
