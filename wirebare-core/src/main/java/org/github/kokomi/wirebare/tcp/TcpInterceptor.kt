@@ -33,7 +33,7 @@ internal class TcpInterceptor(
 
     private val ports = hashSetOf<Port>()
 
-    private val virtualGateWay: VirtualGateWay = VirtualGateWay()
+    private val virtualGateWay: VirtualGateWay = VirtualGateWay(configuration)
 
     private val servers = mutableListOf<TcpProxyServer>().apply {
         for (i in 1..5) {

@@ -88,7 +88,6 @@ object WireBare {
      * @see [stopProxy]
      * */
     infix fun startProxy(configuration: WireBareConfiguration.() -> Unit) {
-        if (alive) throw IllegalStateException("WireBare 代理服务正在运行中")
         _configuration = WireBareConfiguration().apply(configuration)
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_START).apply {
             `package` = appContext.packageName
@@ -102,8 +101,6 @@ object WireBare {
      * @see [startProxy]
      * */
     fun stopProxy() {
-        if (!alive) throw IllegalStateException("WireBare 代理服务尚未运行")
-        _configuration = null
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_STOP).apply {
             `package` = appContext.packageName
         }

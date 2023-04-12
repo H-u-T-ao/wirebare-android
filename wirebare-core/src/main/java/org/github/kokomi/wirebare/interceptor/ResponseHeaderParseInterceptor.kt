@@ -10,4 +10,7 @@ class ResponseHeaderParseInterceptor : ResponseInterceptor() {
     override fun onResponse(response: Response, buffer: ByteBuffer) {
     }
 
+    override fun onResponseFinished(response: Response) {
+    }
+
 }

@@ -1,18 +1,20 @@
 package org.github.kokomi.wirebare.interceptor
 
-import org.github.kokomi.wirebare.common.WireBare
+import org.github.kokomi.wirebare.common.WireBareConfiguration
 import java.nio.ByteBuffer
 
 /**
  * 虚拟网关
  * */
-class VirtualGateWay {
+class VirtualGateWay(
+    configuration: WireBareConfiguration
+) {
 
     private val requestChain: RequestChain = RequestChain(
         mutableListOf<RequestInterceptor>().apply {
             // 请求头格式化拦截器
             add(RequestHeaderParseInterceptor())
-            WireBare.configuration.requestInterceptorFactories.forEach {
+            configuration.requestInterceptorFactories.forEach {
                 add(it.create())
             }
         }
@@ -22,7 +24,7 @@ class VirtualGateWay {
         mutableListOf<ResponseInterceptor>().apply {
             // 请求头格式化拦截器
             add(ResponseHeaderParseInterceptor())
-            WireBare.configuration.responseInterceptorFactories.forEach {
+            configuration.responseInterceptorFactories.forEach {
                 add(it.create())
             }
         }

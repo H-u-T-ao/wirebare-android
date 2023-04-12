@@ -1,10 +1,6 @@
 package org.github.kokomi.wirebare.common
 
-import android.app.Notification
-import android.net.VpnService
 import org.github.kokomi.wirebare.interceptor.*
-import org.github.kokomi.wirebare.service.WireBareProxyService
-import org.github.kokomi.wirebare.util.defaultNotification
 
 class WireBareConfiguration internal constructor() {
 
@@ -36,23 +32,6 @@ class WireBareConfiguration internal constructor() {
             address = proxyAddress.first
             prefixLength - proxyAddress.second
         }
-
-    /**
-     * 通知通道 ID ，默认 WireBareProxyService
-     * */
-    var channelId: String = "WireBareProxyService"
-
-    /**
-     * 通知 ID ，默认 222
-     * */
-    var notificationId: Int = 222
-
-    /**
-     * 创建通知，默认 [VpnService.defaultNotification]
-     *
-     * 代理抓包对于用户来说有危险性，因此前台服务并显示通知用户是必须的
-     * */
-    var notification: WireBareProxyService.() -> Notification = { defaultNotification(channelId) }
 
     /**
      * 增加路由地址，增加路由地址可以对 ip 包进行过滤，只允许指定路由地址列表中的流量通过代理
