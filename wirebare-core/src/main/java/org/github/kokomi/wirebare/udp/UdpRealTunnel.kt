@@ -29,7 +29,7 @@ internal class UdpRealTunnel(
     private val vpnService: VpnService
 ) : DatagramSocketNioTunnel() {
 
-    private val header: UdpHeader = udpHeader.copyHeader.let {
+    private val header: UdpHeader = udpHeader.copyHeader.also {
         val localAddress = it.ipv4Header.sourceAddress
         val localPort = it.sourcePort
         val remoteAddress = it.ipv4Header.destinationAddress
@@ -38,7 +38,6 @@ internal class UdpRealTunnel(
         it.sourcePort = remotePort
         it.ipv4Header.destinationAddress = localAddress
         it.destinationPort = localPort
-        it
     }
 
     internal fun connectRemoteServer(address: String, port: Int) {

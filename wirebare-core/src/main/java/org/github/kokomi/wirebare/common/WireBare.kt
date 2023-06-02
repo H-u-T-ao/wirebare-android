@@ -151,8 +151,8 @@ object WireBare {
 
     internal infix fun notifyVpnStatusChanged(status: Int) {
         Handler(Looper.getMainLooper()).post {
-            WireBare.status = status
             if (status == WireBare.status) return@post
+            WireBare.status = status
             if (status == WIREBARE_STATUS_SERVICE_CREATE) alive = true
             else if (status == WIREBARE_STATUS_SERVICE_DESTROY) alive = false
             listeners.forEach {
