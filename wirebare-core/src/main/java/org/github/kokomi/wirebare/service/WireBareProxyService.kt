@@ -35,7 +35,9 @@ abstract class WireBareProxyService : VpnService(),
     /**
      * 创建通知，默认 [VpnService.defaultNotification]
      *
-     * 代理抓包对于用户来说有危险性，因此前台服务并显示通知用户是必须的
+     * 代理抓包对于用户来说有危险性，因此前台服务并显示通知来通知用户网络正在被代理是必须的
+     *
+     * 其次需要前台服务来保证服务的稳定，避免太容易因为系统资源不足而导致销毁
      * */
     protected open var notification: WireBareProxyService.() -> Notification =
         { defaultNotification(channelId) }
@@ -57,9 +59,8 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun startWireBare() {
-        val configuration = WireBare.configuration.apply {
-            startForeground(notificationId, notification())
-        }
+        val configuration = WireBare.configuration
+        startForeground(notificationId, notification())
         this launchWith configuration
     }
 
