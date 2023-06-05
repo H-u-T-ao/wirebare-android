@@ -20,6 +20,12 @@ class RequestHeaderParseInterceptor : RequestInterceptor() {
             request._path = headers[0].replace(requestLine[0], "")
                 .replace(requestLine[requestLine.size - 1], "")
                 .trim()
+            headers.forEach { msg->
+                val hostIndex = msg.indexOf("Host: ")
+                if(hostIndex != -1) {
+                    request._host = msg.substring(hostIndex + 6)
+                }
+            }
         }.onFailure {
             WireBareLogger.error("构造 HTTP 请求时出现错误")
         }
