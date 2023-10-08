@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'org.github.kokomi.wirebare.ui'
+    namespace 'top.sankokomi.wirebare.ui'
     compileSdk 33
 
     defaultConfig {
-        applicationId "org.github.kokomi.wirebare.ui"
+        applicationId "top.sankokomi.wirebare.ui"
         minSdk 21
         targetSdk 33
         versionCode 1

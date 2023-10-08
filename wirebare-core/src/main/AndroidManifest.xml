@@ -13,8 +13,8 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <provider
-            android:name="org.github.kokomi.wirebare.common.WireBareInitializer"
-            android:authorities="org.github.kokomi.wirebare.initializer"
+            android:name="top.sankokomi.wirebare.core.common.WireBareInitializer"
+            android:authorities="top.sankokomi.wirebare.core.initializer"
             android:exported="false" />
     </application>
 
