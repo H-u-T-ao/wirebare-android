@@ -13,9 +13,9 @@ abstract class RequestInterceptor : Interceptor<RequestChain> {
      * @param request 格式化完成的请求信息
      * @param buffer 请求字节流
      * */
-    internal abstract fun onRequest(request: Request, buffer: ByteBuffer)
+    abstract fun onRequest(request: Request, buffer: ByteBuffer)
 
-    internal abstract fun onRequestFinished(request: Request)
+    abstract fun onRequestFinished(request: Request)
 
     final override fun intercept(buffer: ByteBuffer, chain: RequestChain) {
         onRequest(chain.request, buffer)
