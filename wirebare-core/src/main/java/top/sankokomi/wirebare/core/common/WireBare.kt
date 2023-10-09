@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.activity.ComponentActivity
@@ -27,7 +26,7 @@ object WireBare {
 
     private var _configuration: WireBareConfiguration? = null
 
-    private val listeners: MutableSet<WeakReference<IProxyStatusListener>> = hashSetOf()
+    private val listenerRefs: MutableSet<WeakReference<IProxyStatusListener>> = hashSetOf()
 
     /**
      * 准备代理服务
@@ -40,7 +39,7 @@ object WireBare {
     ) {
         val intent = VpnService.prepare(appContext) ?: return onResult(true)
         activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-             onResult(it.resultCode == Activity.RESULT_OK)
+            onResult(it.resultCode == Activity.RESULT_OK)
         }.launch(intent)
     }
 
@@ -80,7 +79,7 @@ object WireBare {
      * @see [SimpleProxyStatusListener]
      * */
     fun addVpnProxyStatusListener(listener: IProxyStatusListener) {
-        listeners.add(WeakReference(listener))
+        listenerRefs.add(WeakReference(listener))
     }
 
     /**
@@ -104,8 +103,14 @@ object WireBare {
             if (newStatus == vpnProxyServiceStatus) return@post
             val oldStatus = vpnProxyServiceStatus
             vpnProxyServiceStatus = newStatus
-            listeners.forEach {
-                it.get()?.onVpnStatusChanged(oldStatus, newStatus)
+            listenerRefs.removeAll {
+                val listener = it.get()
+                if (listener == null) {
+                    true
+                } else {
+                    listener.onVpnStatusChanged(oldStatus, newStatus)
+                    false
+                }
             }
         }
     }

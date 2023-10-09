@@ -44,26 +44,26 @@ class SimpleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple)
 
-        // 准备 VPN 服务
-        if (WireBare.prepareProxy(this, VPN_REQUEST_CODE)) {
-            // 已经准备好
-            // ...
+        WireBare.prepareVpnProxyService(this) {
+            if (it) {
+                startProxy()
+            } else {
+                Toast.makeText(this, "未授权 VPN 服务", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    @Suppress("Deprecation")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        // 未准备好会进行准备并在这里回调结果
-        WireBare.handlePrepareResult(requestCode, resultCode, VPN_REQUEST_CODE) {
-            // 对准备结果的处理
-            if (it) {
-                // 准备成功
-                // ...
-            } else {
-                // 准备失败
-                // ...
-            }
+    private fun startProxy() {
+        // 可以在这里调整日志等级
+        WireBare.logLevel = Level.SILENT
+        WireBare.startProxy {
+            mtu = 7000
+            proxyAddress = "10.1.10.1" to 32
+            addRoutes("0.0.0.0" to 0)
+            // 增加要被抓包的应用的包名
+            addAllowedApplications("com.tencent.mm")
+            // 在这里加入拦截器，即可进行抓包
+            // addRequestInterceptors(...)
         }
     }
 
@@ -74,15 +74,15 @@ class SimpleActivity : AppCompatActivity() {
 
 ### 配置和启动代理服务
 
-准备过后即可随时启动 WireBare 代理服务，使用以下代码来配置并启动服务
+准备过后即可随时启动 WireBare 代理服务，上面已经有启动 WireBare 代理服务的简单例子，下面是更加详细的说明
 
 ```kotlin
 fun start() {
-    // 增加和移除代理服务状态监听器，可以监听代理服务的启动和销毁以及代理服务器的启动
-    WireBare.addProxyStatusListener(...)
-    WireBare.removeProxyStatusListener(...)
+    // 注册代理服务状态监听器，可以监听代理服务的启动和销毁以及代理服务器的启动
+    // 无需注销，内部使用弱引用
+    WireBare.addVpnProxyStatusListener(...)
     // 直接访问以下变量也可以随时获取代理服务的运行状态
-    val active = WireBare.alive
+    val vpnProxyServiceStatus = WireBare.vpnProxyServiceStatus
     
     // 配置 WireBare 日志等级
     WireBare.logLevel = Level.SILENT
