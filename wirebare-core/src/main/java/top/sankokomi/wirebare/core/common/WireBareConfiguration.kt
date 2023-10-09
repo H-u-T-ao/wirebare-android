@@ -38,6 +38,11 @@ class WireBareConfiguration internal constructor() {
         }
 
     /**
+     * TCP 代理服务器的数量，默认 5 个
+     * */
+    var tcpProxyServerCount: Int = 5
+
+    /**
      * 增加路由地址，增加路由地址可以对 ip 包进行过滤，只允许指定路由地址列表中的流量通过代理
      *
      * 若希望代理全部流量，设置为 0.0.0.0/0 即可

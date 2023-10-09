@@ -39,7 +39,7 @@ internal class TcpInterceptor(
     private val virtualGateWay: VirtualGateWay = VirtualGateWay(configuration)
 
     private val servers = mutableListOf<TcpProxyServer>().apply {
-        for (i in 1..5) {
+        for (i in 1..configuration.tcpProxyServerCount) {
             val server = TcpProxyServer(
                 sessionStore, virtualGateWay, configuration, proxyService
             )
