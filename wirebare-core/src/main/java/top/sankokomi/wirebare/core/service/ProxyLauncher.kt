@@ -6,6 +6,9 @@ import kotlinx.coroutines.*
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.service.PacketDispatcher.Companion.dispatchWith
 
+/**
+ * VPN 代理服务的启动器
+ * */
 internal class ProxyLauncher private constructor(
     internal val configuration: WireBareConfiguration,
     internal val proxyService: WireBareProxyService

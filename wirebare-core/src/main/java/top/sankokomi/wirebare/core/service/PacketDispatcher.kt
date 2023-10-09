@@ -29,11 +29,9 @@ internal class PacketDispatcher private constructor(
 ) : CoroutineScope by proxyService {
 
     companion object {
-        internal infix fun ProxyLauncher.dispatchWith(
-            builder: VpnService.Builder
-        ) {
+        internal infix fun ProxyLauncher.dispatchWith(builder: VpnService.Builder) {
             val proxyDescriptor = builder.establish() ?: throw IllegalStateException(
-                "请先调用 WireBare.prepareProxy() 准备代理服务"
+                "请先准备代理服务"
             )
             PacketDispatcher(configuration, proxyDescriptor, proxyService).dispatch()
         }
@@ -74,16 +72,17 @@ internal class PacketDispatcher private constructor(
             while (isActive) {
                 var length = 0
                 kotlin.runCatching {
-                    // 读取输入流
+                    // 从 VPN 服务中读取输入流
                     length = inputStream.read(buffer)
                 }.onFailure {
                     WireBareLogger.error(it)
                 }
 
-                if (length == 0) continue
+                if (length <= 0) continue
 
                 // 添加到处理队列
                 pendingBuffers.offer(Packet(buffer, length))
+                // 新建新的缓冲区准备接收下一个字节包
                 buffer = ByteArray(configuration.mtu)
             }
             closeSafely(proxyDescriptor, inputStream, outputStream)
@@ -101,13 +100,13 @@ internal class PacketDispatcher private constructor(
 
                 val ipv4Header = Ipv4Header(packet.packet, 0)
                 if (!ipv4Header.isIpv4) {
-                    WireBareLogger.warn("未知的 ip 版本号 ${ipv4Header.version.toString(2)}")
+                    WireBareLogger.warn("未知的 ip 版本号 0b${ipv4Header.version.toString(2)}")
                     continue
                 }
 
                 val interceptor = interceptors[Protocol.parse(ipv4Header.protocol)]
                 if (interceptor == null) {
-                    WireBareLogger.warn("未知的协议代号 ${ipv4Header.protocol.toString(2)}")
+                    WireBareLogger.warn("未知的协议代号 0b${ipv4Header.protocol.toString(2)}")
                     continue
                 }
 

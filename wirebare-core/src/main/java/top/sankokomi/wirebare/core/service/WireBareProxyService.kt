@@ -6,12 +6,15 @@ import android.net.VpnService
 import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import top.sankokomi.wirebare.core.common.VpnProxyServiceStatus
+import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.service.ProxyLauncher.Companion.launchWith
 import top.sankokomi.wirebare.core.util.defaultNotification
 
 abstract class WireBareProxyService : VpnService(),
-    CoroutineScope by CoroutineScope(Dispatchers.IO) {
+    CoroutineScope by CoroutineScope(Job() + Dispatchers.IO) {
 
     companion object {
         internal const val WIREBARE_ACTION_PROXY_VPN_START =
@@ -44,7 +47,7 @@ abstract class WireBareProxyService : VpnService(),
 
     override fun onCreate() {
         super.onCreate()
-        top.sankokomi.wirebare.core.common.WireBare notifyVpnStatusChanged top.sankokomi.wirebare.core.common.WireBare.WIREBARE_STATUS_SERVICE_CREATE
+        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.ACTIVE)
     }
 
     final override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -58,24 +61,19 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun startWireBare() {
-        val configuration = top.sankokomi.wirebare.core.common.WireBare.configuration
+        val configuration = WireBare.configuration.copy()
         startForeground(notificationId, notification())
         this launchWith configuration
     }
 
     private fun stopWireBare() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        top.sankokomi.wirebare.core.common.WireBare notifyVpnStatusChanged top.sankokomi.wirebare.core.common.WireBare.WIREBARE_STATUS_SERVICE_DESTROY
+        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.DEAD)
         cancel()
     }
 

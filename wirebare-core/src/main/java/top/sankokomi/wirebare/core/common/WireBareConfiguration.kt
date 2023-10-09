@@ -145,4 +145,19 @@ class WireBareConfiguration internal constructor() {
     internal val responseInterceptorFactories: MutableList<InterceptorFactory<ResponseChain, ResponseInterceptor>> =
         mutableListOf()
 
+    internal fun copy(): WireBareConfiguration {
+        return WireBareConfiguration().also {
+            it.mtu = mtu
+            it.address = address
+            it.prefixLength = prefixLength
+            it.proxyAddress = proxyAddress
+            it.routes.addAll(routes)
+            it.dnsServers.addAll(dnsServers)
+            it.allowedApplications.addAll(allowedApplications)
+            it.disallowedApplications.addAll(disallowedApplications)
+            it.requestInterceptorFactories.addAll(requestInterceptorFactories)
+            it.responseInterceptorFactories.addAll(responseInterceptorFactories)
+        }
+    }
+
 }

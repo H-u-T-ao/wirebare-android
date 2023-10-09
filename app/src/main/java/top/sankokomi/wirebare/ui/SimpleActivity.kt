@@ -1,9 +1,8 @@
 package top.sankokomi.wirebare.ui
 
-import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.HttpRequestUrlInterceptor
 import top.sankokomi.wirebare.core.interceptor.Request
@@ -15,18 +14,12 @@ class SimpleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simple)
 
-        val rv = findViewById<RecyclerView>(R.id.rv_simple_list)
-
-        if (WireBare.prepareProxy(this, 2222)) {
-            startProxy()
-        }
-    }
-
-    @Suppress("Deprecation")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        WireBare.handlePrepareResult(requestCode, resultCode, 2222) {
-            if (it) startProxy()
+        WireBare.prepareVpnProxyService(this) {
+            if (it) {
+                startProxy()
+            } else {
+                Toast.makeText(this, "未授权 VPN 服务", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
