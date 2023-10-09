@@ -19,13 +19,13 @@ class SimpleWireBareProxyService : WireBareProxyService()
 ```xml
 <application>
     <service
-        android:name="org.github.kokomi.wirebare.service.SimpleWireBareProxyService"
+        android:name="top.sankokomi.wirebare.core.service.SimpleWireBareProxyService"
         android:exported="false"
         android:permission="android.permission.BIND_VPN_SERVICE">
         <intent-filter>
             <action android:name="android.net.VpnService" />
-            <action android:name="org.github.kokomi.wirebare.action.Start" />
-            <action android:name="org.github.kokomi.wirebare.action.Stop" />
+            <action android:name="top.sankokomi.wirebare.core.action.Start" />
+            <action android:name="top.sankokomi.wirebare.core.action.Stop" />
         </intent-filter>
     </service>
 </application>
