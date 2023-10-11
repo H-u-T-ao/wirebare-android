@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WireBare</string>
+    <string name="title_activity_wire_bare_ui">WireBareUI</string>
 </resources>

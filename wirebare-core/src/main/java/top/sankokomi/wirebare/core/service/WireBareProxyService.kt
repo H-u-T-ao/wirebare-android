@@ -47,7 +47,6 @@ abstract class WireBareProxyService : VpnService(),
 
     override fun onCreate() {
         super.onCreate()
-        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.ACTIVE)
     }
 
     final override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -61,6 +60,7 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun startWireBare() {
+        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.ACTIVE)
         val configuration = WireBare.configuration.copy()
         startForeground(notificationId, notification())
         this launchWith configuration
@@ -69,12 +69,12 @@ abstract class WireBareProxyService : VpnService(),
     private fun stopWireBare() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.DEAD)
+        cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.DEAD)
-        cancel()
     }
 
 }

@@ -79,6 +79,7 @@ object WireBare {
      * @see [SimpleProxyStatusListener]
      * */
     fun addVpnProxyStatusListener(listener: IProxyStatusListener) {
+        listener.onVpnStatusChanged(VpnProxyServiceStatus.DEAD, vpnProxyServiceStatus)
         listenerRefs.add(WeakReference(listener))
     }
 
