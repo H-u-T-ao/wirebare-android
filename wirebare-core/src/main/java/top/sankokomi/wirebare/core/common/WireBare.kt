@@ -1,13 +1,9 @@
 package top.sankokomi.wirebare.core.common
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.VpnService
 import android.os.Handler
 import android.os.Looper
-import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.LogLevel
@@ -19,29 +15,14 @@ object WireBare {
     /**
      * [WireBareProxyService] 的实时状态
      * */
-    var vpnProxyServiceStatus: VpnProxyServiceStatus = VpnProxyServiceStatus.DEAD
+    var proxyStatus: ProxyStatus = ProxyStatus.DEAD
         private set
 
     private lateinit var appContext: Context
 
     private var _configuration: WireBareConfiguration? = null
 
-    private val listenerRefs: MutableSet<WeakReference<IProxyStatusListener>> = hashSetOf()
-
-    /**
-     * 准备代理服务
-     *
-     * @param onResult true 表示用户授权，准备成功，否则表示用户拒绝
-     * */
-    fun prepareVpnProxyService(
-        activity: ComponentActivity,
-        onResult: (Boolean) -> Unit
-    ) {
-        val intent = VpnService.prepare(appContext) ?: return onResult(true)
-        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            onResult(it.resultCode == Activity.RESULT_OK)
-        }.launch(intent)
-    }
+    private val listeners: MutableSet<IProxyStatusListener> = hashSetOf()
 
     /**
      * 启动代理服务
@@ -52,6 +33,7 @@ object WireBare {
      * @see [stopProxy]
      * */
     fun startProxy(configuration: WireBareConfiguration.() -> Unit) {
+        if (proxyStatus == ProxyStatus.ACTIVE) return
         _configuration = WireBareConfiguration()
             .apply(configuration)
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_START).apply {
@@ -66,6 +48,7 @@ object WireBare {
      * @see [startProxy]
      * */
     fun stopProxy() {
+        if (proxyStatus == ProxyStatus.DEAD) return
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_STOP).apply {
             `package` = appContext.packageName
         }
@@ -79,8 +62,12 @@ object WireBare {
      * @see [SimpleProxyStatusListener]
      * */
     fun addVpnProxyStatusListener(listener: IProxyStatusListener) {
-        listener.onVpnStatusChanged(VpnProxyServiceStatus.DEAD, vpnProxyServiceStatus)
-        listenerRefs.add(WeakReference(listener))
+        listener.onVpnStatusChanged(ProxyStatus.DEAD, proxyStatus)
+        listeners.add(listener)
+    }
+
+    fun removeVpnProxyStatusListener(listener: IProxyStatusListener): Boolean {
+        return listeners.remove(listener)
     }
 
     /**
@@ -99,19 +86,14 @@ object WireBare {
         appContext = context
     }
 
-    internal fun notifyVpnStatusChanged(newStatus: VpnProxyServiceStatus) {
+    internal fun notifyVpnStatusChanged(newStatus: ProxyStatus) {
         Handler(Looper.getMainLooper()).post {
-            if (newStatus == vpnProxyServiceStatus) return@post
-            val oldStatus = vpnProxyServiceStatus
-            vpnProxyServiceStatus = newStatus
-            listenerRefs.removeAll {
-                val listener = it.get()
-                if (listener == null) {
-                    true
-                } else {
-                    listener.onVpnStatusChanged(oldStatus, newStatus)
-                    false
-                }
+            WireBareLogger.info("statusChange: old = $proxyStatus, new = $newStatus")
+            if (newStatus == proxyStatus) return@post
+            val oldStatus = proxyStatus
+            proxyStatus = newStatus
+            listeners.forEach { listener ->
+                listener.onVpnStatusChanged(oldStatus, newStatus)
             }
         }
     }

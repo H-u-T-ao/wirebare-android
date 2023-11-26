@@ -3,12 +3,11 @@ package top.sankokomi.wirebare.core.service
 import android.app.Notification
 import android.content.Intent
 import android.net.VpnService
-import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import top.sankokomi.wirebare.core.common.VpnProxyServiceStatus
+import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.service.ProxyLauncher.Companion.launchWith
 import top.sankokomi.wirebare.core.util.defaultNotification
@@ -44,11 +43,6 @@ abstract class WireBareProxyService : VpnService(),
     protected open var notification: WireBareProxyService.() -> Notification =
         { defaultNotification(channelId) }
 
-
-    override fun onCreate() {
-        super.onCreate()
-    }
-
     final override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent ?: return START_NOT_STICKY
         when (intent.action) {
@@ -60,21 +54,21 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun startWireBare() {
-        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.ACTIVE)
-        val configuration = WireBare.configuration.copy()
+        WireBare.notifyVpnStatusChanged(ProxyStatus.ACTIVE)
         startForeground(notificationId, notification())
+        val configuration = WireBare.configuration.copy()
         this launchWith configuration
     }
 
     private fun stopWireBare() {
+        WireBare.notifyVpnStatusChanged(ProxyStatus.DYING)
+        cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
-        WireBare.notifyVpnStatusChanged(VpnProxyServiceStatus.DEAD)
-        cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        WireBare.notifyVpnStatusChanged(ProxyStatus.DEAD)
     }
-
 }
