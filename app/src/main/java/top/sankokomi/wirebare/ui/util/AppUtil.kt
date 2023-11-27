@@ -9,14 +9,19 @@ data class AppData(
     val isSystemApp: Boolean
 )
 
-fun requireAppDataList(): List<AppData> {
+fun requireAppDataList(filter: (AppData) -> Boolean = { true }): List<AppData> {
     return Global.appContext.packageManager.getInstalledApplications(
         PackageManager.MATCH_UNINSTALLED_PACKAGES
     ).mapNotNull {
-        AppData(
+        val appData = AppData(
             Global.appContext.packageManager.getApplicationLabel(it).toString(),
             it.packageName,
             it.flags and ApplicationInfo.FLAG_SYSTEM != 0
         )
+        if (filter(appData)) {
+            appData
+        } else {
+            null
+        }
     }
 }

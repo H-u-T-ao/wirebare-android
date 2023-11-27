@@ -61,7 +61,6 @@ abstract class WireBareProxyService : VpnService(),
     }
 
     private fun stopWireBare() {
-        WireBare.notifyVpnStatusChanged(ProxyStatus.DYING)
         cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

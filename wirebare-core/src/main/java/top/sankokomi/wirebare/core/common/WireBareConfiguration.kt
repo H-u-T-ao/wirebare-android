@@ -1,10 +1,10 @@
 package top.sankokomi.wirebare.core.common
 
 import top.sankokomi.wirebare.core.interceptor.InterceptorFactory
-import top.sankokomi.wirebare.core.interceptor.RequestChain
-import top.sankokomi.wirebare.core.interceptor.RequestInterceptor
-import top.sankokomi.wirebare.core.interceptor.ResponseChain
-import top.sankokomi.wirebare.core.interceptor.ResponseInterceptor
+import top.sankokomi.wirebare.core.interceptor.request.RequestChain
+import top.sankokomi.wirebare.core.interceptor.request.RequestInterceptor
+import top.sankokomi.wirebare.core.interceptor.response.ResponseChain
+import top.sankokomi.wirebare.core.interceptor.response.ResponseInterceptor
 
 class WireBareConfiguration internal constructor() {
 
@@ -38,9 +38,9 @@ class WireBareConfiguration internal constructor() {
         }
 
     /**
-     * TCP 代理服务器的数量，默认 5 个
+     * TCP 代理服务器的数量，默认 1 个，多个代理服务器会构建多个拦截器
      * */
-    var tcpProxyServerCount: Int = 5
+    var tcpProxyServerCount: Int = 1
 
     /**
      * 增加路由地址，增加路由地址可以对 ip 包进行过滤，只允许指定路由地址列表中的流量通过代理
@@ -99,13 +99,11 @@ class WireBareConfiguration internal constructor() {
      * 增加请求拦截器
      * */
     fun addRequestInterceptors(vararg factories: () -> RequestInterceptor) {
-        val list = mutableListOf<InterceptorFactory<RequestChain, RequestInterceptor>>()
-        for (factory in factories) {
-            list.add(object : InterceptorFactory<RequestChain, RequestInterceptor> {
-                override fun create(): RequestInterceptor = factory()
-            })
-        }
-        requestInterceptorFactories.addAll(list)
+        requestInterceptorFactories.add(
+            object : InterceptorFactory<RequestChain, RequestInterceptor> {
+                override fun create(): List<RequestInterceptor> = factories.map { it() }
+            }
+        )
     }
 
     /**
@@ -127,13 +125,11 @@ class WireBareConfiguration internal constructor() {
      * 增加响应拦截器
      * */
     fun addResponseInterceptors(vararg factories: () -> ResponseInterceptor) {
-        val list = mutableListOf<InterceptorFactory<ResponseChain, ResponseInterceptor>>()
-        for (factory in factories) {
-            list.add(object : InterceptorFactory<ResponseChain, ResponseInterceptor> {
-                override fun create(): ResponseInterceptor = factory()
-            })
-        }
-        responseInterceptorFactories.addAll(list)
+        responseInterceptorFactories.add(
+            object : InterceptorFactory<ResponseChain, ResponseInterceptor> {
+                override fun create(): List<ResponseInterceptor> = factories.map { it() }
+            }
+        )
     }
 
     internal val routes: MutableSet<Pair<String, Int>> = hashSetOf()

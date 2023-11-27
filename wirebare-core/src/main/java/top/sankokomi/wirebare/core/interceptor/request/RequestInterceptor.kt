@@ -1,5 +1,6 @@
-package top.sankokomi.wirebare.core.interceptor
+package top.sankokomi.wirebare.core.interceptor.request
 
+import top.sankokomi.wirebare.core.interceptor.Interceptor
 import java.nio.ByteBuffer
 
 /**
@@ -17,7 +18,7 @@ abstract class RequestInterceptor : Interceptor<RequestChain> {
 
     abstract fun onRequestFinished(request: Request)
 
-    final override fun intercept(buffer: ByteBuffer, chain: RequestChain) {
+    final override fun intercept(chain: RequestChain, buffer: ByteBuffer) {
         onRequest(chain.request, buffer)
         chain.process(buffer)
     }

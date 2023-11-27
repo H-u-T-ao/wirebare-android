@@ -1,4 +1,4 @@
-package top.sankokomi.wirebare.core.interceptor
+package top.sankokomi.wirebare.core.interceptor.request
 
 import java.nio.ByteBuffer
 

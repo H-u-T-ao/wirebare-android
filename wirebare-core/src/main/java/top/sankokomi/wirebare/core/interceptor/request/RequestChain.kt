@@ -1,5 +1,7 @@
-package top.sankokomi.wirebare.core.interceptor
+package top.sankokomi.wirebare.core.interceptor.request
 
+import top.sankokomi.wirebare.core.interceptor.InterceptorChain
+import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.ByteBuffer
 
 /**
@@ -7,7 +9,9 @@ import java.nio.ByteBuffer
  *
  * @param interceptors 请求责任链
  * */
-class RequestChain(private val interceptors: List<RequestInterceptor>) : InterceptorChain {
+class RequestChain internal constructor(
+    private val interceptors: List<RequestInterceptor>
+) : InterceptorChain {
 
     private var index: Int = -1
 
@@ -27,15 +31,19 @@ class RequestChain(private val interceptors: List<RequestInterceptor>) : Interce
 
     @Synchronized
     internal fun stopProcessing() {
-        for(interceptor in interceptors) {
-            interceptor.onRequestFinished(request)
+        if (::request.isInitialized) {
+            for (interceptor in interceptors) {
+                interceptor.onRequestFinished(request)
+            }
+        } else {
+            WireBareLogger.warn("没有收到开始请求的信息")
         }
     }
 
     override fun process(buffer: ByteBuffer) {
         index++
         if (index >= interceptors.size) return
-        interceptors[index].intercept(buffer, this)
+        interceptors[index].intercept(this, buffer)
     }
 
 }

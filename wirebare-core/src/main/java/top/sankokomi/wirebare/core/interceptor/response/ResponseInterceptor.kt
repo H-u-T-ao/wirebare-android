@@ -1,5 +1,6 @@
-package top.sankokomi.wirebare.core.interceptor
+package top.sankokomi.wirebare.core.interceptor.response
 
+import top.sankokomi.wirebare.core.interceptor.Interceptor
 import java.nio.ByteBuffer
 
 /**
@@ -17,7 +18,7 @@ abstract class ResponseInterceptor : Interceptor<ResponseChain> {
 
     abstract fun onResponseFinished(response: Response)
 
-    final override fun intercept(buffer: ByteBuffer, chain: ResponseChain) {
+    final override fun intercept(chain: ResponseChain, buffer: ByteBuffer) {
         onResponse(chain.response, buffer)
         chain.process(buffer)
     }

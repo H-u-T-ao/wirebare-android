@@ -8,58 +8,32 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.common.IProxyStatusListener
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.ui.datastore.AppProxyAccessControlDataStore
+import top.sankokomi.wirebare.core.interceptor.request.Request
+import top.sankokomi.wirebare.ui.datastore.AppProxyDataStore
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 import top.sankokomi.wirebare.ui.util.requireAppDataList
 
 class LauncherUI : VpnPrepareActivity() {
 
-    override val onResult: (Boolean) -> Unit = {
-        if (it) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                val proxyAppList = runBlocking {
-                    AppProxyAccessControlDataStore.collect(
-                        requireAppDataList().map { app -> app.packageName }.toSet(),
-                        false
-                    ).filter { data ->
-                        data.access
-                    }.map { data ->
-                        data.packageName
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    LauncherModel.startProxy(
-                        *proxyAppList.toTypedArray(),
-                        onInterceptUrl = urlListCallback
-                    )
-                }
-            }
-        }
-    }
+    private val _proxyStatusFlow = MutableStateFlow(ProxyStatus.DEAD)
 
-    private val wireBareStatusListener = object : IProxyStatusListener {
-        override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus) {
-            proxyStatusListener(oldStatus, newStatus)
-        }
-    }
+    private val _requestFlow = MutableSharedFlow<Request>()
 
-    private var proxyStatusListener: (ProxyStatus, ProxyStatus) -> Unit = { _, _ -> }
+    val proxyStatusFlow = _proxyStatusFlow.asStateFlow()
 
-    private var urlListCallback: (String) -> Unit = {}
+    val requestFlow = _requestFlow.asSharedFlow()
 
-    fun startProxy(
-        statusListener: ((ProxyStatus, ProxyStatus) -> Unit)? = null,
-        urlCallback: ((String) -> Unit)? = null
-    ) {
-        proxyStatusListener = statusListener ?: proxyStatusListener
-        urlListCallback = urlCallback ?: urlListCallback
+    fun startProxy() {
         prepareProxy()
     }
 
@@ -67,8 +41,39 @@ class LauncherUI : VpnPrepareActivity() {
         WireBare.stopProxy()
     }
 
+    override fun onPrepareSuccess() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            // 提前设定状态为正在启动
+            _proxyStatusFlow.value = ProxyStatus.STARTING
+            val proxyAppList = AppProxyDataStore.first(
+                requireAppDataList().map { app -> app.packageName },
+                false
+            ).filter { data ->
+                data.access
+            }.map { data ->
+                data.packageName
+            }
+            withContext(Dispatchers.Main) {
+                LauncherModel.startProxy(
+                    proxyAppList.toTypedArray()
+                ) {
+                    lifecycleScope.launch {
+                        _requestFlow.emit(it)
+                    }
+                }
+            }
+        }
+    }
+
+    private val wireBareStatusListener = object : IProxyStatusListener {
+        override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus) {
+            _proxyStatusFlow.value = newStatus
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 添加 WireBare 状态监听器
         WireBare.addVpnProxyStatusListener(wireBareStatusListener)
         setContent {
             WirebareUITheme {
@@ -83,6 +88,7 @@ class LauncherUI : VpnPrepareActivity() {
     }
 
     override fun onDestroy() {
+        // 解除监听，防止内存泄露
         WireBare.removeVpnProxyStatusListener(wireBareStatusListener)
         super.onDestroy()
     }

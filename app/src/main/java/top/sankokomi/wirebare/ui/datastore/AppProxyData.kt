@@ -1,6 +1,6 @@
 package top.sankokomi.wirebare.ui.datastore
 
-data class AppProxyAccessControl(
+data class AppProxyData(
     /**
      * 应用包名
      * */

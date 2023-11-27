@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 
 object Global {
 
+    @Suppress("StaticFieldLeak")
     lateinit var appContext: Context
         private set
 

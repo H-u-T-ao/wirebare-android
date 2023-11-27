@@ -4,17 +4,28 @@ import android.net.VpnService
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 
-abstract class VpnPrepareActivity : ComponentActivity() {
+open class VpnPrepareActivity : ComponentActivity() {
 
     private val resultCallback =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            onResult(it.resultCode == RESULT_OK)
+            if (it.resultCode == RESULT_OK) {
+                onPrepareSuccess()
+            } else {
+                onPrepareFail()
+            }
         }
 
-    abstract val onResult: (Boolean) -> Unit
+    open fun onPrepareSuccess() {
+    }
 
+    open fun onPrepareFail() {
+    }
+
+    /**
+     * 准备 VPN 服务，若准备成功（用户授权），则回调 [onPrepareSuccess] 否则回调 [onPrepareFail]
+     * */
     fun prepareProxy() {
-        val intent = VpnService.prepare(this) ?: return onResult(true)
+        val intent = VpnService.prepare(this) ?: return onPrepareSuccess()
         this.resultCallback.launch(intent)
     }
 

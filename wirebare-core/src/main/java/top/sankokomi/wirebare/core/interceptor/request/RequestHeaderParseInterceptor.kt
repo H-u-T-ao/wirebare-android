@@ -1,4 +1,4 @@
-package top.sankokomi.wirebare.core.interceptor
+package top.sankokomi.wirebare.core.interceptor.request
 
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.ByteBuffer
@@ -13,7 +13,7 @@ class RequestHeaderParseInterceptor : RequestInterceptor() {
         if (request._isHttp == false || request._isHttp == null) return
         kotlin.runCatching {
             val headerString = String(buffer.array(), buffer.position(), buffer.remaining())
-            val headers = headerString.split("\r\n")
+            val headers = headerString.split(System.lineSeparator())
             val requestLine = headers[0].split(" ".toRegex())
             request._method = requestLine[0]
             request._httpVersion = requestLine[requestLine.size - 1]

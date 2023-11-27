@@ -14,11 +14,10 @@ import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
 
 /**
- * [TcpProxyTunnel] 会接收来自 [TcpProxyTunnel] 的请求字节流，
+ * [TcpRealTunnel] 会接收来自 [TcpProxyTunnel] 的请求字节流，
  * 将请求字节流发送到远程服务器中，接收远程服务器的响应字节流，
  * 并将响应字节流转发给 [TcpProxyTunnel] 进行处理
  *
- * @see TcpProxyServer
  * @see TcpProxyServer
  * */
 internal class TcpRealTunnel(

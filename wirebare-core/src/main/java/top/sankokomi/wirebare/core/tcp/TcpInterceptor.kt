@@ -36,12 +36,10 @@ internal class TcpInterceptor(
 
     private val ports = hashSetOf<Port>()
 
-    private val virtualGateWay: VirtualGateWay = VirtualGateWay(configuration)
-
     private val servers = mutableListOf<TcpProxyServer>().apply {
         for (i in 1..configuration.tcpProxyServerCount) {
             val server = TcpProxyServer(
-                sessionStore, virtualGateWay, configuration, proxyService
+                sessionStore, VirtualGateWay(configuration), configuration, proxyService
             )
             server.dispatch()
             ports.add(server.proxyServerPort)

@@ -1,28 +1,28 @@
 package top.sankokomi.wirebare.ui.launcher
 
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.interceptor.HttpRequestUrlInterceptor
-import top.sankokomi.wirebare.core.interceptor.Request
+import top.sankokomi.wirebare.core.interceptor.request.Request
+import top.sankokomi.wirebare.core.interceptor.request.RequestInterceptor
 import top.sankokomi.wirebare.core.util.Level
+import java.nio.ByteBuffer
 
 object LauncherModel {
 
     fun startProxy(
-        vararg pkg: String,
-        onInterceptUrl: (String) -> Unit = {}
+        targetPackageNameArray: Array<String>,
+        onRequest: (Request) -> Unit
     ) {
         WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
             mtu = 7000
+            tcpProxyServerCount = 10
             proxyAddress = "10.1.10.1" to 32
             addRoutes("0.0.0.0" to 0)
-            addAllowedApplications(*pkg)
-            // 在这里加入拦截器，即可进行抓包
-            // addRequestInterceptors(...)
+            addAllowedApplications(*targetPackageNameArray)
             addRequestInterceptors({
-                object : HttpRequestUrlInterceptor() {
-                    override fun onRequest(url: String) {
-                        onInterceptUrl(url)
+                object : RequestInterceptor() {
+                    override fun onRequest(request: Request, buffer: ByteBuffer) {
+                        onRequest(request)
                     }
 
                     override fun onRequestFinished(request: Request) {
