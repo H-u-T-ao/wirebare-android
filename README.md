@@ -1,6 +1,10 @@
 # WireBare
 
-​	WireBare 是一个基于 Andoird VPN Service 开发的 Android 抓包框架
+WireBare 是一个基于 Andoird VPN Service 开发的 Android 抓包框架
+
+目前支持拦截抓取 Http 请求包，正在持续更新，后续计划支持 Https 以及支持拦截抓取响应包
+
+在高本版的 Android 系统中的 Https 的拦截抓包功能需要先获取 ROOT 权限
 
 
 
@@ -38,30 +42,23 @@ class SimpleWireBareProxyService : WireBareProxyService()
 在启动 WireBare 代理服务前需要先进行准备，第一次准备时将会弹出一个用户授权对话框，用户授权后即可启动代理服务
 
 ```kotlin
-class SimpleActivity : AppCompatActivity() {
+class SimpleActivity : VpnPrepareActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_simple)
-
-        WireBare.prepareVpnProxyService(this) {
-            if (it) {
-                startProxy()
-            } else {
-                Toast.makeText(this, "未授权 VPN 服务", Toast.LENGTH_SHORT).show()
-            }
-        }
+        // 若授权成功，则会回调 onPrepareSuccess()
+        prepareProxy()
     }
-
-    private fun startProxy() {
+    
+    override fun onPrepareSuccess() {
         // 可以在这里调整日志等级
-        WireBare.logLevel = Level.SILENT
+        WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
             mtu = 7000
             proxyAddress = "10.1.10.1" to 32
             addRoutes("0.0.0.0" to 0)
             // 增加要被抓包的应用的包名
-            addAllowedApplications("com.tencent.mm")
+            // addAllowedApplications(...)
             // 在这里加入拦截器，即可进行抓包
             // addRequestInterceptors(...)
         }
@@ -79,13 +76,13 @@ class SimpleActivity : AppCompatActivity() {
 ```kotlin
 fun start() {
     // 注册代理服务状态监听器，可以监听代理服务的启动和销毁以及代理服务器的启动
-    // 无需注销，内部使用弱引用
+    // 需要注销，调用 WireBare.removeVpnProxyStatusListener(...)
     WireBare.addVpnProxyStatusListener(...)
     // 直接访问以下变量也可以随时获取代理服务的运行状态
-    val vpnProxyServiceStatus = WireBare.vpnProxyServiceStatus
+    val vpnProxyServiceStatus = WireBare.proxyStatus
     
     // 配置 WireBare 日志等级
-    WireBare.logLevel = Level.SILENT
+    WireBare.logLevel = Level.DEBUG
     // 配置并启动代理服务
     WireBare.startProxy {
         // 代理服务传输单元大小，单位：字节（默认 4096）
@@ -93,6 +90,9 @@ fun start() {
         
         // 代理服务 TUN 网卡 ip 地址（默认 10.1.10.1/32）
         proxyAddress = "10.1.10.1" to 32
+        
+        // 代理服务器数量
+        tcpProxyServerCount = 10
         
         // 代理服务的前台服务通知通道 ID（默认 WireBareProxyService）
         channelId = "WireBareProxyService"
@@ -120,7 +120,7 @@ fun start() {
         setRequestInterceptors(...)
         addRequestInterceptors(...)
         
-        // 设置响应拦截器，拦截响应数据包
+        // 设置响应拦截器，拦截响应数据包（目前未支持）
         setResponseInterceptors(...)
         addResponseInterceptors(...)
     }
