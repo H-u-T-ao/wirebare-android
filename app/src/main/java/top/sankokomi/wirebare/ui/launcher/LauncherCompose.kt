@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,9 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
@@ -67,14 +65,8 @@ fun LauncherUI.WireBareUIPage() {
 @Composable
 private fun LauncherUI.PageControlCenter() {
     var wireBareStatus by remember { mutableStateOf(ProxyStatus.DEAD) }
-    var isBanFilter by remember { mutableStateOf(false) }
-    val rememberScope = rememberCoroutineScope()
+    val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            isBanFilter = ProxyPolicyDataStore.load(
-                ProxyPolicyDataStore.BAN_AUTO_FILTER
-            ) ?: false
-        }
         proxyStatusFlow.collect {
             wireBareStatus = it
         }
@@ -176,15 +168,7 @@ private fun LauncherUI.PageControlCenter() {
             modifier = Modifier
                 .clip(RoundedCornerShape(6.dp))
                 .clickable {
-                    isBanFilter = !isBanFilter
-                    rememberScope.launch {
-                        withContext(Dispatchers.IO) {
-                            ProxyPolicyDataStore.save(
-                                ProxyPolicyDataStore.BAN_AUTO_FILTER,
-                                isBanFilter
-                            )
-                        }
-                    }
+                    ProxyPolicyDataStore.banAutoFilter.value = !isBanFilter
                 }
         ) {
             LargeColorfulText(
@@ -201,15 +185,12 @@ private fun LauncherUI.PageControlCenter() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LauncherUI.PageProxyResult() {
-    var isBanFilter by remember { mutableStateOf(false) }
+    val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
     val urlList = remember { mutableStateListOf<String>() }
     LaunchedEffect(Unit) {
         proxyStatusFlow.collect {
             if (it == ProxyStatus.ACTIVE) {
                 urlList.clear()
-                isBanFilter = withContext(Dispatchers.IO) {
-                    ProxyPolicyDataStore.load(ProxyPolicyDataStore.BAN_AUTO_FILTER)
-                } ?: false
             }
         }
     }
