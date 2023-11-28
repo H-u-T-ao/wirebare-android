@@ -2,10 +2,12 @@
 
 package top.sankokomi.wirebare.core.interceptor.request
 
+import java.io.Serializable
+
 /**
  * 请求信息
  * */
-class Request internal constructor() {
+class Request internal constructor(): Serializable {
 
     companion object {
         const val UNKNOWN_METHOD = "%unknown_method"

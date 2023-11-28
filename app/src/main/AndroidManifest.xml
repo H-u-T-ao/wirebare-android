@@ -28,6 +28,10 @@
             android:name="top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI"
             android:exported="false">
         </activity>
+        <activity
+            android:name="top.sankokomi.wirebare.ui.wireinfo.WireInfoUI"
+            android:exported="false">
+        </activity>
 
         <service
             android:name="top.sankokomi.wirebare.core.service.SimpleWireBareProxyService"

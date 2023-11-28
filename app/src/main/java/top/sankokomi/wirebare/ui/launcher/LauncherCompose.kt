@@ -2,8 +2,8 @@ package top.sankokomi.wirebare.ui.launcher
 
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -23,15 +24,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
@@ -41,8 +45,8 @@ import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple40
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.PurpleGrey40
-import top.sankokomi.wirebare.ui.util.copyTextToClipBoard
-import top.sankokomi.wirebare.ui.util.showToast
+import top.sankokomi.wirebare.ui.resources.SmallColorfulText
+import top.sankokomi.wirebare.ui.wireinfo.WireInfoUI
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -77,6 +81,7 @@ private fun LauncherUI.PageControlCenter() {
             .clip(RoundedCornerShape(6.dp))
             .scrollable(rememberScrollState(), Orientation.Vertical)
             .padding(horizontal = 24.dp)
+            .padding(top = 4.dp)
     ) {
         val mainText: String
         val subText: String
@@ -182,15 +187,14 @@ private fun LauncherUI.PageControlCenter() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LauncherUI.PageProxyResult() {
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
-    val urlList = remember { mutableStateListOf<String>() }
+    val requestList = remember { mutableStateListOf<Request>() }
     LaunchedEffect(Unit) {
         proxyStatusFlow.collect {
             if (it == ProxyStatus.ACTIVE) {
-                urlList.clear()
+                requestList.clear()
             }
         }
     }
@@ -200,28 +204,58 @@ private fun LauncherUI.PageProxyResult() {
                 if (it.host == Request.UNKNOWN_HOST) return@collect
                 if (it.path == Request.UNKNOWN_PATH) return@collect
             }
-            urlList.add(it.url)
+            requestList.add(it)
         }
     }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
     ) {
-        items(urlList.size) {
-            Text(
-                text = urlList[it],
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(
-                        onLongClick = {
-                            if (copyTextToClipBoard(urlList[it])) {
-                                showToast("已复制到剪贴板")
-                            }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            items(requestList.size) { index ->
+                val request = requestList[index]
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            startActivity(
+                                Intent(
+                                    this@PageProxyResult,
+                                    WireInfoUI::class.java
+                                ).apply {
+                                    putExtra("request", request)
+                                }
+                            )
                         }
-                    ) {
-                        showToast("长按以复制到剪贴板")
-                    }
-                    .padding(8.dp)
-            )
+                ) {
+                    SmallColorfulText(
+                        mainText = request.url,
+                        subText = request.method,
+                        backgroundColor = Purple80,
+                        textColor = Color.Black
+                    )
+                }
+            }
         }
+        Text(
+            text = "清空",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(28.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(PurpleGrey40)
+                .clickable {
+                    requestList.clear()
+                }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            fontSize = 18.sp,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
     }
 }
