@@ -4,7 +4,7 @@ WireBare 是一个基于 Andoird VPN Service 开发的 Android 抓包框架
 
 目前支持拦截抓取 Http 请求包，正在持续更新，后续计划支持 Https 以及支持拦截抓取响应包
 
-在高本版的 Android 系统中的 Https 的拦截抓包功能需要先获取 ROOT 权限
+在高版本的 Android 系统中的 Https 的拦截抓包功能需要先获取 ROOT 权限
 
 
 
