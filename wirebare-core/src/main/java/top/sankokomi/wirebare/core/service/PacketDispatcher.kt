@@ -86,7 +86,6 @@ internal class PacketDispatcher private constructor(
                 buffer = ByteArray(configuration.mtu)
             }
             closeSafely(proxyDescriptor, inputStream, outputStream)
-            WireBare.stopProxy()
         }
         // 启动协程对接收到的输入流进行处理并进行输出
         launch(Dispatchers.IO) {
@@ -110,11 +109,14 @@ internal class PacketDispatcher private constructor(
                     continue
                 }
 
-                kotlin.runCatching {
-                    // 拦截器拦截输入流
-                    interceptor.intercept(ipv4Header, packet, outputStream)
-                }.onFailure {
-                    WireBareLogger.error(it)
+                // 异步处理 ip 包
+                launch(Dispatchers.IO) {
+                    kotlin.runCatching {
+                        // 拦截器拦截输入流
+                        interceptor.intercept(ipv4Header, packet, outputStream)
+                    }.onFailure {
+                        WireBareLogger.error(it)
+                    }
                 }
             }
         }

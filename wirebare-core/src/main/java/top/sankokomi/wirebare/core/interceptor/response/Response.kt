@@ -1,3 +1,22 @@
 package top.sankokomi.wirebare.core.interceptor.response
 
-open class Response
+import top.sankokomi.wirebare.core.interceptor.request.Request
+import java.io.Serializable
+
+class Response internal constructor() : Serializable {
+
+    var request: Request? = null
+
+    var isHttp: Boolean? = null
+
+    var httpVersion: String? = null
+
+    var rspStatus: String? = null
+
+    var originHead: String? = null
+
+    var formatHead: List<String>? = null
+
+    var originRsp: String? = null
+
+}

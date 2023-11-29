@@ -45,7 +45,7 @@ class VirtualGateWay internal constructor(
     }
 
     internal fun onResponse(buffer: ByteBuffer) {
-        responseChain.startProcessing(buffer)
+        responseChain.startProcessing(buffer, requestChain.request)
     }
 
     internal fun onResponseFinished() {

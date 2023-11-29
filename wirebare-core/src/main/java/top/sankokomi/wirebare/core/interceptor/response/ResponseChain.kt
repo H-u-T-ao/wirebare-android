@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.core.interceptor.response
 
 import top.sankokomi.wirebare.core.interceptor.InterceptorChain
+import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.ByteBuffer
 
@@ -23,8 +24,10 @@ class ResponseChain internal constructor(
      * @param buffer 要处理的缓冲流
      * */
     @Synchronized
-    internal fun startProcessing(buffer: ByteBuffer) {
-        response = Response()
+    internal fun startProcessing(buffer: ByteBuffer, request: Request? = null) {
+        response = Response().also {
+            it.request = request
+        }
         index = -1
         process(buffer)
     }

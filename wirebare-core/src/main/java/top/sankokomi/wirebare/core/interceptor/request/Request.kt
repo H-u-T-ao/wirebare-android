@@ -7,67 +7,59 @@ import java.io.Serializable
 /**
  * 请求信息
  * */
-class Request internal constructor(): Serializable {
-
-    companion object {
-        const val UNKNOWN_METHOD = "%unknown_method"
-        const val UNKNOWN_HTTP_VERSION = "%unknown_http_version%"
-        const val UNKNOWN_HOST = "%unknown_host%"
-        const val UNKNOWN_PATH = "%unknown_path%"
-        const val UNKNOWN_PROTOCOL = "%unknown_protocol%"
-    }
+class Request internal constructor() : Serializable {
 
     /**
      * 请求的方法，需要是 HTTP 协议才可以解析
      * */
-    val method: String get() = _method ?: UNKNOWN_METHOD
+    var method: String? = null
 
     /**
      * true 表示当前请求为 HTTP 请求，false 表示当前请求为 HTTPS 请求，null 表示未知协议
      * */
-    val isHttp: Boolean? get() = _isHttp
+    var isHttp: Boolean? = null
 
     /**
      * 若为 HTTP 请求，则为 HTTP 版本，否则为 null
      * */
-    val httpVersion: String get() = _httpVersion ?: UNKNOWN_HTTP_VERSION
+    var httpVersion: String? = null
 
     /**
      * 请求的域名，需要是 HTTP 协议才可以解析
      * */
-    val host: String get() = _host ?: UNKNOWN_HOST
+    var host: String? = null
 
     /**
      * 请求的路径，需要是 HTTP 协议才可以解析
      * */
-    val path: String get() = _path ?: UNKNOWN_PATH
+    var path: String? = null
+
+    /**
+     * 原始的请求头，包含的是最原始的请求头信息
+     * */
+    var originHead: String? = null
+
+    /**
+     * 整个请求头，已经以 \r\n 为间隔分隔好
+     * */
+    var formatHead: List<String>? = null
 
     /**
      * 请求的 URL ，需要是 HTTP 协议才可以解析
      * */
-    val url: String
-        get() = when (isHttp) {
+    val url: String?
+        get() = when (this.isHttp) {
             true -> {
-                "http://$host$path"
+                "http://${this.host}${this.path}"
             }
 
             false -> {
-                "https://$host$path"
+                "https://${this.host}${this.path}"
             }
 
             else -> {
-                UNKNOWN_PROTOCOL
+                null
             }
         }
-
-    internal var _method: String? = null
-
-    internal var _isHttp: Boolean? = null
-
-    internal var _httpVersion: String? = null
-
-    internal var _host: String? = null
-
-    internal var _path: String? = null
 
 }

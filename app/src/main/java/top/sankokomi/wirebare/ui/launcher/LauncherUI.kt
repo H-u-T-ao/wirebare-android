@@ -19,6 +19,7 @@ import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.request.Request
+import top.sankokomi.wirebare.core.interceptor.response.Response
 import top.sankokomi.wirebare.ui.datastore.AppProxyDataStore
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 import top.sankokomi.wirebare.ui.util.requireAppDataList
@@ -29,9 +30,13 @@ class LauncherUI : VpnPrepareActivity() {
 
     private val _requestFlow = MutableSharedFlow<Request>()
 
+    private val _responseFlow = MutableSharedFlow<Response>()
+
     val proxyStatusFlow = _proxyStatusFlow.asStateFlow()
 
     val requestFlow = _requestFlow.asSharedFlow()
+
+    val responseFlow = _responseFlow.asSharedFlow()
 
     fun startProxy() {
         prepareProxy()
@@ -55,12 +60,18 @@ class LauncherUI : VpnPrepareActivity() {
             }
             withContext(Dispatchers.Main) {
                 LauncherModel.startProxy(
-                    proxyAppList.toTypedArray()
-                ) {
-                    lifecycleScope.launch {
-                        _requestFlow.emit(it)
+                    proxyAppList.toTypedArray(),
+                    onRequest = {
+                        lifecycleScope.launch {
+                            _requestFlow.emit(it)
+                        }
+                    },
+                    onResponse = {
+                        lifecycleScope.launch {
+                            _responseFlow.emit(it)
+                        }
                     }
-                }
+                )
             }
         }
     }

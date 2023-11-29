@@ -13,18 +13,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.interceptor.request.Request
+import top.sankokomi.wirebare.core.interceptor.response.Response
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
@@ -55,12 +55,13 @@ fun LauncherUI.WireBareUIPage() {
         AppTitleBar {
         }
         HorizontalPager(
-            state = rememberPagerState { 2 },
-            beyondBoundsPageCount = 2
+            state = rememberPagerState { 3 },
+            beyondBoundsPageCount = 3
         ) {
             when (it) {
                 0 -> PageControlCenter()
-                1 -> PageProxyResult()
+                1 -> PageProxyRequestResult()
+                2 -> PageProxyResponseResult()
             }
         }
     }
@@ -75,145 +76,138 @@ private fun LauncherUI.PageControlCenter() {
             wireBareStatus = it
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(6.dp))
-            .scrollable(rememberScrollState(), Orientation.Vertical)
-            .padding(horizontal = 24.dp)
-            .padding(top = 4.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        val mainText: String
-        val subText: String
-        val backgroundColor: Color
-        val textColor: Color
-        val onClick: () -> Unit
-        when (wireBareStatus) {
-            ProxyStatus.DEAD -> {
-                mainText = "已停止"
-                subText = "点此启动"
-                backgroundColor = PurpleGrey40
-                textColor = Color.White
-                onClick = ::startProxy
-            }
-
-            ProxyStatus.STARTING -> {
-                mainText = "正在启动"
-                subText = "请稍后"
-                backgroundColor = Purple40
-                textColor = Color.White
-                onClick = ::stopProxy
-            }
-
-            ProxyStatus.ACTIVE -> {
-                mainText = "已启动"
-                subText = "点此停止"
-                backgroundColor = Purple80
-                textColor = Color.Black
-                onClick = ::stopProxy
-            }
-
-            ProxyStatus.DYING -> {
-                mainText = "正在停止"
-                subText = "请稍后"
-                backgroundColor = Purple40
-                textColor = Color.White
-                onClick = ::stopProxy
-            }
-        }
-        Box(
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .clip(RoundedCornerShape(6.dp))
-                .clickable(onClick = onClick)
+                .padding(horizontal = 24.dp, vertical = 4.dp)
         ) {
-            LargeColorfulText(
-                mainText = mainText,
-                subText = subText,
-                backgroundColor = backgroundColor,
-                textColor = textColor
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .clickable {
-                    startActivity(
-                        Intent(
-                            this@PageControlCenter,
-                            AccessControlUI::class.java
+            val mainText: String
+            val subText: String
+            val backgroundColor: Color
+            val textColor: Color
+            val onClick: () -> Unit
+            when (wireBareStatus) {
+                ProxyStatus.DEAD -> {
+                    mainText = "已停止"
+                    subText = "点此启动"
+                    backgroundColor = PurpleGrey40
+                    textColor = Color.White
+                    onClick = ::startProxy
+                }
+
+                ProxyStatus.STARTING -> {
+                    mainText = "正在启动"
+                    subText = "请稍后"
+                    backgroundColor = Purple40
+                    textColor = Color.White
+                    onClick = ::stopProxy
+                }
+
+                ProxyStatus.ACTIVE -> {
+                    mainText = "已启动"
+                    subText = "点此停止"
+                    backgroundColor = Purple80
+                    textColor = Color.Black
+                    onClick = ::stopProxy
+                }
+
+                ProxyStatus.DYING -> {
+                    mainText = "正在停止"
+                    subText = "请稍后"
+                    backgroundColor = Purple40
+                    textColor = Color.White
+                    onClick = ::stopProxy
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(onClick = onClick)
+            ) {
+                LargeColorfulText(
+                    mainText = mainText,
+                    subText = subText,
+                    backgroundColor = backgroundColor,
+                    textColor = textColor
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        startActivity(
+                            Intent(
+                                this@PageControlCenter,
+                                AccessControlUI::class.java
+                            )
                         )
-                    )
-                }
-        ) {
-            LargeColorfulText(
-                mainText = "访问控制",
-                subText = "配置代理应用",
-                backgroundColor = Purple80,
-                textColor = Color.Black
-            )
+                    }
+            ) {
+                LargeColorfulText(
+                    mainText = "访问控制",
+                    subText = "配置代理应用",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            val afMainText: String
+            val afSubText: String
+            val afBackgroundColor: Color
+            val afTextColor: Color
+            if (isBanFilter) {
+                afMainText = "自动过滤已停用"
+                afSubText = "将显示代理到的所有请求"
+                afBackgroundColor = PurpleGrey40
+                afTextColor = Color.White
+            } else {
+                afMainText = "自动过滤已启用"
+                afSubText = "将会自动过滤无法解析的请求"
+                afBackgroundColor = Purple80
+                afTextColor = Color.Black
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        ProxyPolicyDataStore.banAutoFilter.value = !isBanFilter
+                    }
+            ) {
+                LargeColorfulText(
+                    mainText = afMainText,
+                    subText = afSubText,
+                    backgroundColor = afBackgroundColor,
+                    textColor = afTextColor
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        val afMainText: String
-        val afSubText: String
-        val afBackgroundColor: Color
-        val afTextColor: Color
-        if (isBanFilter) {
-            afMainText = "自动过滤已停用"
-            afSubText = "将显示代理到的所有请求"
-            afBackgroundColor = PurpleGrey40
-            afTextColor = Color.White
-        } else {
-            afMainText = "自动过滤已启用"
-            afSubText = "将会自动过滤无法解析的请求"
-            afBackgroundColor = Purple80
-            afTextColor = Color.Black
-        }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .clickable {
-                    ProxyPolicyDataStore.banAutoFilter.value = !isBanFilter
-                }
-        ) {
-            LargeColorfulText(
-                mainText = afMainText,
-                subText = afSubText,
-                backgroundColor = afBackgroundColor,
-                textColor = afTextColor
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-private fun LauncherUI.PageProxyResult() {
+private fun LauncherUI.PageProxyRequestResult() {
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
     val requestList = remember { mutableStateListOf<Request>() }
     LaunchedEffect(Unit) {
-        proxyStatusFlow.collect {
-            if (it == ProxyStatus.ACTIVE) {
-                requestList.clear()
-            }
-        }
-    }
-    LaunchedEffect(Unit) {
         requestFlow.collect {
             if (!isBanFilter) {
-                if (it.host == Request.UNKNOWN_HOST) return@collect
-                if (it.path == Request.UNKNOWN_PATH) return@collect
+                if (it.isHttp != true) return@collect
             }
             requestList.add(it)
         }
     }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             items(requestList.size) { index ->
                 val request = requestList[index]
@@ -225,7 +219,7 @@ private fun LauncherUI.PageProxyResult() {
                         .clickable {
                             startActivity(
                                 Intent(
-                                    this@PageProxyResult,
+                                    this@PageProxyRequestResult,
                                     WireInfoUI::class.java
                                 ).apply {
                                     putExtra("request", request)
@@ -234,8 +228,8 @@ private fun LauncherUI.PageProxyResult() {
                         }
                 ) {
                     SmallColorfulText(
-                        mainText = request.url,
-                        subText = request.method,
+                        mainText = request.url ?: "",
+                        subText = request.method ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black
                     )
@@ -251,6 +245,69 @@ private fun LauncherUI.PageProxyResult() {
                 .background(PurpleGrey40)
                 .clickable {
                     requestList.clear()
+                }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            fontSize = 18.sp,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun LauncherUI.PageProxyResponseResult() {
+    val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
+    val responseList = remember { mutableStateListOf<Response>() }
+    LaunchedEffect(Unit) {
+        responseFlow.collect {
+            if (!isBanFilter) {
+                if (it.isHttp != true) return@collect
+            }
+            responseList.add(it)
+        }
+    }
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(responseList.size) { index ->
+                val response = responseList[index]
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            startActivity(
+                                Intent(
+                                    this@PageProxyResponseResult,
+                                    WireInfoUI::class.java
+                                ).apply {
+                                    putExtra("response", response)
+                                }
+                            )
+                        }
+                ) {
+                    SmallColorfulText(
+                        mainText = response.request?.url ?: "",
+                        subText = response.formatHead?.getOrNull(0) ?: "",
+                        backgroundColor = Purple80,
+                        textColor = Color.Black
+                    )
+                }
+            }
+        }
+        Text(
+            text = "清空",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(28.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(PurpleGrey40)
+                .clickable {
+                    responseList.clear()
                 }
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             fontSize = 18.sp,

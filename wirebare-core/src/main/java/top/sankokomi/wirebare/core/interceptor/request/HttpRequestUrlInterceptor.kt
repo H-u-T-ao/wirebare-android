@@ -12,10 +12,10 @@ abstract class HttpRequestUrlInterceptor : RequestInterceptor() {
      *
      * @param url HTTP 请求的 URL
      * */
-    abstract fun onRequest(url: String)
+    abstract fun onRequest(url: String?)
 
     final override fun onRequest(request: Request, buffer: ByteBuffer) {
-        if (request._path?.isBlank() != false) return
+        if (request.path?.isBlank() != false) return
         onRequest(request.url)
     }
 

@@ -3,11 +3,13 @@ package top.sankokomi.wirebare.ui.accesscontrol
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +31,7 @@ import top.sankokomi.wirebare.ui.datastore.AppProxyData
 import top.sankokomi.wirebare.ui.datastore.AppProxyDataStore
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
 import top.sankokomi.wirebare.ui.resources.Purple80
+import top.sankokomi.wirebare.ui.resources.RealColumn
 import top.sankokomi.wirebare.ui.resources.RealRow
 import top.sankokomi.wirebare.ui.resources.SmallColorfulText
 import top.sankokomi.wirebare.ui.util.AppData
@@ -66,7 +69,7 @@ fun AccessControlUI.AccessControlUIPage() {
             }
         )
     }
-    Column {
+    RealColumn {
         AppTitleBar(
             text = "访问控制"
         ) {
@@ -82,6 +85,13 @@ fun AccessControlUI.AccessControlUIPage() {
                     onCheckedChange = null
                 )
             }
+        }
+        if (appProxyList.isEmpty()) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = Purple80,
+                trackColor = Color.Transparent
+            )
         }
         LazyColumn(
             modifier = Modifier.fillMaxWidth()
