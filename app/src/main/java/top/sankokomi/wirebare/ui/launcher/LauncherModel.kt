@@ -25,20 +25,20 @@ object LauncherModel {
             addRequestInterceptors({
                 object : RequestInterceptor() {
                     override fun onRequest(request: Request, buffer: ByteBuffer) {
-                        onRequest(request)
                     }
 
                     override fun onRequestFinished(request: Request) {
+                        onRequest(request)
                     }
                 }
             })
             addResponseInterceptors({
                 object : ResponseInterceptor() {
                     override fun onResponse(response: Response, buffer: ByteBuffer) {
-                        onResponse(response)
                     }
 
                     override fun onResponseFinished(response: Response) {
+                        onResponse(response)
                     }
                 }
             })

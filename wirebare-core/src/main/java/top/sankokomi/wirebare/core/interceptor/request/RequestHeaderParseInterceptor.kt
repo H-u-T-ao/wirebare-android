@@ -9,14 +9,17 @@ import java.nio.ByteBuffer
 class RequestHeaderParseInterceptor : RequestInterceptor() {
 
     override fun onRequest(request: Request, buffer: ByteBuffer) {
-        request.isHttp = buffer.isHttp
-        if (request.isHttp == false || request.isHttp == null) return
         kotlin.runCatching {
-            val headerString = String(buffer.array(), buffer.position(), buffer.remaining())
-            val headers = headerString.split("\r\n")
+            val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
+            val reqString = request.reqString
+            request.reqString = (reqString ?: "") + requestString
+            if (reqString != null) return
+            request.isHttp = buffer.isHttp
+            if (request.isHttp != true) return
+            val headers = requestString.split("\r\n")
             val requestLine = headers[0].split(" ".toRegex())
-            request.originHead = headerString
-            request.formatHead = headers.toList()
+            request.originHead = requestString
+            request.formatHead = headers.filter { it.isNotBlank() }
             request.method = requestLine[0]
             request.httpVersion = requestLine[requestLine.size - 1]
             request.path = headers[0].replace(requestLine[0], "")

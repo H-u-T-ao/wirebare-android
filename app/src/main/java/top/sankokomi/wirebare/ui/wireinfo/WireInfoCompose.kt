@@ -1,14 +1,11 @@
 package top.sankokomi.wirebare.ui.wireinfo
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -76,8 +73,20 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
-                    mainText = "ORIGIN REQUEST MESSAGE",
+                    mainText = "REQUEST HEADER",
                     subText = request.formatHead?.joinToString("\n\n") ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "ORIGIN REQUEST MESSAGE",
+                    subText = request.reqString ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )
@@ -152,7 +161,7 @@ fun WireInfoUI.WireInfoUIPage(
             ) {
                 LargeColorfulText(
                     mainText = "ORIGIN RESPONSE MESSAGE",
-                    subText = response.originRsp ?: "",
+                    subText = response.rspString ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )

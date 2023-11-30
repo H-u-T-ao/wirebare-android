@@ -2,7 +2,9 @@ package top.sankokomi.wirebare.ui.accesscontrol
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,9 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import top.sankokomi.wirebare.ui.datastore.AppProxyData
-import top.sankokomi.wirebare.ui.datastore.AppProxyDataStore
+import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.AppCheckBoxItemMenuPopup
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
@@ -40,8 +42,8 @@ import top.sankokomi.wirebare.ui.util.requireAppDataList
 @Composable
 fun AccessControlUI.AccessControlUIPage() {
     val appList = remember { mutableStateListOf<AppData>() }
-    val appProxyList = remember { mutableStateListOf<AppProxyData>() }
-    var accessCount by remember { mutableIntStateOf(-1) }
+    val accessControlList = remember { mutableStateListOf<Boolean>() }
+    var accessCount by remember { mutableIntStateOf(0) }
     val showSystemAppItem = remember {
         mutableStateOf("显示系统应用")
     } to remember {
@@ -52,68 +54,75 @@ fun AccessControlUI.AccessControlUIPage() {
     } to remember {
         mutableStateOf(false)
     }
+    val listOperateMutex = remember { Mutex(false) }
     val rememberScope = rememberCoroutineScope()
-    LaunchedEffect(showSystemAppItem.second.value) {
-        accessCount = -1
-        val showSystemApp = showSystemAppItem.second.value
-        ProxyPolicyDataStore.showSystemApp.value = showSystemApp
-        appList.clear()
-        appProxyList.clear()
-        appList.addAll(
-            withContext(Dispatchers.Default) {
-                requireAppDataList {
-                    if (it.packageName == Global.appContext.packageName) {
-                        false
-                    } else if (!showSystemApp) {
-                        !it.isSystemApp
-                    } else {
-                        true
-                    }
-                }
-            }
-        )
-        val proxyList = withContext(Dispatchers.IO) {
-            AppProxyDataStore.first(
-                appList.map { it.packageName },
-                false
-            )
-        }
-        accessCount = 0
-        proxyList.onEach {
-            if (it.access) accessCount++
-        }
-        appProxyList.addAll(proxyList)
-    }
     LaunchedEffect(selectAllAppItem.second.value) {
+        listOperateMutex.lock()
+        // 当全选选项被修改时
         val isSelectAllApp = selectAllAppItem.second.value
-        if (isSelectAllApp) {
-            for (index in appProxyList.indices) {
-                val appProxyData = appProxyList[index]
-                if (!appProxyData.access) {
-                    val copy = appProxyData.copy(
-                        access = true
-                    )
-                    appProxyList[index] = copy
-                    AppProxyDataStore.save(copy)
-                }
+        if (isSelectAllApp && accessCount < accessControlList.size) {
+            // 若新选项是全选且当前没有全选
+            withContext(Dispatchers.IO) {
+                AccessControlDataStore.emitAll(
+                    appList.map {
+                        it.packageName to true
+                    }
+                )
             }
-            accessCount = appProxyList.size
-        } else {
-            for (index in appProxyList.indices) {
-                val appProxyData = appProxyList[index]
-                if (appProxyData.access) {
-                    val copy = appProxyData.copy(
-                        access = false
-                    )
-                    appProxyList[index] = copy
-                    AppProxyDataStore.save(copy)
-                }
+            accessControlList.replaceAll { true }
+            accessCount = accessControlList.size
+        } else if (!isSelectAllApp && accessCount >= accessControlList.size) {
+            // 若新选项是全不选且当前不是全不选
+            withContext(Dispatchers.IO) {
+                AccessControlDataStore.emitAll(
+                    appList.map {
+                        it.packageName to false
+                    }
+                )
             }
+            accessControlList.replaceAll { false }
             accessCount = 0
         }
+        listOperateMutex.unlock()
+    }
+    LaunchedEffect(showSystemAppItem.second.value) {
+        listOperateMutex.lock()
+        // 当是否显示系统应用选项被修改时
+        val showSystemApp = showSystemAppItem.second.value
+        // 持久化当前是否显示系统应用
+        ProxyPolicyDataStore.showSystemApp.value = showSystemApp
+        accessCount = 0
+        appList.clear()
+        accessControlList.clear()
+        val aList = withContext(Dispatchers.Default) {
+            requireAppDataList {
+                if (it.packageName == Global.appContext.packageName) {
+                    false
+                } else if (!showSystemApp) {
+                    !it.isSystemApp
+                } else {
+                    true
+                }
+            }
+        }
+        val acList = withContext(Dispatchers.IO) {
+            AccessControlDataStore.collectAll(
+                aList.map { it.packageName }
+            )
+        }
+        var count = 0
+        acList.onEach {
+            if (it) count++
+        }
+        accessCount = count
+        appList.addAll(aList)
+        accessControlList.addAll(acList)
+        listOperateMutex.unlock()
     }
     LaunchedEffect(accessCount) {
-        selectAllAppItem.second.value = accessCount == appProxyList.size
+        listOperateMutex.lock()
+        selectAllAppItem.second.value = accessCount == accessControlList.size
+        listOperateMutex.unlock()
     }
     RealColumn {
         AppTitleBar(
@@ -122,11 +131,11 @@ fun AccessControlUI.AccessControlUIPage() {
             AppCheckBoxItemMenuPopup(
                 itemList = listOf(
                     showSystemAppItem,
-//                    selectAllAppItem
+                    selectAllAppItem
                 )
             )
         }
-        if (appProxyList.isEmpty()) {
+        if (accessControlList.isEmpty()) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
                 color = Purple80,
@@ -136,9 +145,12 @@ fun AccessControlUI.AccessControlUIPage() {
         LazyColumn(
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(appProxyList.size) { index ->
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+            items(accessControlList.size) { index ->
                 val appData = appList[index]
-                val appProxyData = appProxyList[index]
+                val accessControl = accessControlList[index]
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,11 +158,13 @@ fun AccessControlUI.AccessControlUIPage() {
                         .clip(RoundedCornerShape(6.dp))
                         .clickable {
                             rememberScope.launch(Dispatchers.IO) {
-                                appProxyList[index] = appProxyData.copy(
-                                    access = !appProxyData.access
-                                )
-                                AppProxyDataStore.save(appProxyList[index])
-                                accessCount++
+                                listOperateMutex.lock()
+                                AccessControlDataStore.emit(appData.packageName to !accessControl)
+                                withContext(Dispatchers.Main) {
+                                    accessControlList[index] = !accessControl
+                                    if (!accessControl) accessCount++ else accessCount--
+                                }
+                                listOperateMutex.unlock()
                             }
                         }
                 ) {
@@ -161,13 +175,16 @@ fun AccessControlUI.AccessControlUIPage() {
                         textColor = Color.Black
                     )
                     Checkbox(
-                        checked = appProxyData.access,
+                        checked = accessControl,
                         onCheckedChange = null,
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
                             .padding(end = 16.dp)
                     )
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }

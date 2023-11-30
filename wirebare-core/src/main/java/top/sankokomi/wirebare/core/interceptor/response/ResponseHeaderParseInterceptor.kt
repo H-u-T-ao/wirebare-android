@@ -9,18 +9,20 @@ import java.nio.ByteBuffer
 class ResponseHeaderParseInterceptor : ResponseInterceptor() {
 
     override fun onResponse(response: Response, buffer: ByteBuffer) {
-        response.isHttp = response.request?.isHttp
-        if (response.isHttp != true) return
         kotlin.runCatching {
-            val rspString = String(buffer.array(), buffer.position(), buffer.remaining())
-            response.isHttp = rspString.isHttp
+            val responseString = String(buffer.array(), buffer.position(), buffer.remaining())
+            val rspString = response.rspString
+            response.rspString = (rspString ?: "") + responseString
+            if (rspString != null) return
+            response.isHttp = response.request?.isHttp
             if (response.isHttp != true) return
-            val headerString = rspString.substringBeforeLast("\r\n\r\n")
+            response.isHttp = responseString.isHttp
+            if (response.isHttp != true) return
+            val headerString = responseString.substringBeforeLast("\r\n\r\n")
             val headers = headerString.split("\r\n")
             val responseLine = headers[0].split(" ".toRegex())
-            response.originRsp = rspString
             response.originHead = headerString
-            response.formatHead = headers.toList()
+            response.formatHead = headers.filter { it.isNotBlank() }
             response.httpVersion = responseLine[0]
             response.rspStatus = responseLine[1]
         }.onFailure {

@@ -104,9 +104,7 @@ fun AppCheckBoxItemMenuPopup(
     size: Int = itemList.size
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
-    Box(
-//        contentAlignment = Alignment.TopEnd
-    ) {
+    Box {
         Image(
             painter = painterResource(id = R.drawable.ic_more),
             modifier = Modifier
@@ -131,6 +129,7 @@ fun AppCheckBoxItemMenuPopup(
                 val checked = itemList[i].second
                 RealRow(
                     modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
                         .clickable {
                             checked.value = !checked.value
                             isMenuExpanded = false
@@ -146,7 +145,7 @@ fun AppCheckBoxItemMenuPopup(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = item.value,
-                        maxLines = 8,
+                        modifier = Modifier.fillMaxWidth(),
                         color = Color.Black
                     )
                 }

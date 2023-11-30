@@ -2,12 +2,15 @@
 
 package top.sankokomi.wirebare.core.interceptor.request
 
+import top.sankokomi.wirebare.core.interceptor.response.Response
 import java.io.Serializable
 
 /**
  * 请求信息
  * */
 class Request internal constructor() : Serializable {
+
+    var response: Response? = null
 
     /**
      * 请求的方法，需要是 HTTP 协议才可以解析
@@ -43,6 +46,8 @@ class Request internal constructor() : Serializable {
      * 整个请求头，已经以 \r\n 为间隔分隔好
      * */
     var formatHead: List<String>? = null
+
+    var reqString: String? = null
 
     /**
      * 请求的 URL ，需要是 HTTP 协议才可以解析

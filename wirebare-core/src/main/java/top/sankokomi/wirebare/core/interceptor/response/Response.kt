@@ -17,6 +17,6 @@ class Response internal constructor() : Serializable {
 
     var formatHead: List<String>? = null
 
-    var originRsp: String? = null
+    var rspString: String? = null
 
 }

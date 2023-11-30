@@ -20,7 +20,8 @@ import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.core.interceptor.response.Response
-import top.sankokomi.wirebare.ui.datastore.AppProxyDataStore
+import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
+import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 import top.sankokomi.wirebare.ui.util.requireAppDataList
 
@@ -50,17 +51,20 @@ class LauncherUI : VpnPrepareActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             // 提前设定状态为正在启动
             _proxyStatusFlow.value = ProxyStatus.STARTING
-            val proxyAppList = AppProxyDataStore.first(
-                requireAppDataList().map { app -> app.packageName },
-                false
-            ).filter { data ->
-                data.access
-            }.map { data ->
-                data.packageName
+            val showSystemApp = ProxyPolicyDataStore.showSystemApp.value
+            val appList = requireAppDataList {
+                if (!showSystemApp) {
+                    !it.isSystemApp
+                } else {
+                    true
+                }
             }
+            val accessList = AccessControlDataStore.collectAll(
+                appList.map { app -> app.packageName }
+            ).mapIndexedNotNull { index, b -> if (b) appList[index].packageName else null }
             withContext(Dispatchers.Main) {
                 LauncherModel.startProxy(
-                    proxyAppList.toTypedArray(),
+                    accessList.toTypedArray(),
                     onRequest = {
                         lifecycleScope.launch {
                             _requestFlow.emit(it)
