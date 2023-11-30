@@ -4,8 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +17,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,15 +29,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.core.interceptor.response.Response
+import top.sankokomi.wirebare.ui.R
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.resources.AppNavigationBar
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
+import top.sankokomi.wirebare.ui.resources.ImageButton
 import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple40
 import top.sankokomi.wirebare.ui.resources.Purple80
@@ -51,12 +50,17 @@ import top.sankokomi.wirebare.ui.wireinfo.WireInfoUI
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LauncherUI.WireBareUIPage() {
+    val pagerState = rememberPagerState { 3 }
+    val painterControlRes = painterResource(R.drawable.ic_wirebare)
+    val painterRequestRes = painterResource(R.drawable.ic_request)
+    val painterResponseRes = painterResource(R.drawable.ic_response)
     Column {
         AppTitleBar {
         }
         HorizontalPager(
-            state = rememberPagerState { 3 },
-            beyondBoundsPageCount = 3
+            state = pagerState,
+            beyondBoundsPageCount = 3,
+            modifier = Modifier.weight(1F)
         ) {
             when (it) {
                 0 -> PageControlCenter()
@@ -64,6 +68,14 @@ fun LauncherUI.WireBareUIPage() {
                 2 -> PageProxyResponseResult()
             }
         }
+        AppNavigationBar(
+            pagerState = pagerState,
+            navigationItems = listOf(
+                (painterControlRes to "控制中心") to (painterControlRes to "控制中心"),
+                (painterRequestRes to "REQUEST") to (painterRequestRes to "REQUEST"),
+                (painterResponseRes to "RESPONSE") to (painterResponseRes to "RESPONSE")
+            )
+        )
     }
 }
 
@@ -84,7 +96,7 @@ private fun LauncherUI.PageControlCenter() {
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .clip(RoundedCornerShape(6.dp))
-                .padding(horizontal = 24.dp, vertical = 4.dp)
+                .padding(horizontal = 24.dp, vertical = 8.dp)
         ) {
             val mainText: String
             val subText: String
@@ -209,6 +221,9 @@ private fun LauncherUI.PageProxyRequestResult() {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             items(requestList.size) { index ->
                 val request = requestList[index]
                 Box(
@@ -235,22 +250,27 @@ private fun LauncherUI.PageProxyRequestResult() {
                     )
                 }
             }
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
-        Text(
-            text = "清空",
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
+                .padding(24.dp)
                 .align(Alignment.BottomEnd)
-                .padding(28.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(PurpleGrey40)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Purple80)
                 .clickable {
                     requestList.clear()
                 }
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            fontSize = 18.sp,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            ImageButton(
+                painter = painterResource(id = R.drawable.ic_clear),
+                str = "清空"
+            )
+        }
     }
 }
 
@@ -272,6 +292,9 @@ private fun LauncherUI.PageProxyResponseResult() {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             items(responseList.size) { index ->
                 val response = responseList[index]
                 Box(
@@ -298,21 +321,26 @@ private fun LauncherUI.PageProxyResponseResult() {
                     )
                 }
             }
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
-        Text(
-            text = "清空",
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
+                .padding(24.dp)
                 .align(Alignment.BottomEnd)
-                .padding(28.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(PurpleGrey40)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Purple80)
                 .clickable {
                     responseList.clear()
                 }
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            fontSize = 18.sp,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            ImageButton(
+                painter = painterResource(id = R.drawable.ic_clear),
+                str = "清空"
+            )
+        }
     }
 }

@@ -58,7 +58,12 @@ fun WirebareUITheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+            }
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            //设置状态栏颜色为透明
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
         }
     }
 

@@ -30,7 +30,7 @@ abstract class AppDataStore(
 
 class AppBooleanPref(
     keyName: String,
-    default: Boolean
+    default: Boolean = false
 ) : AppPreferenceProperty<Boolean>(default) {
     override val prefKey: Preferences.Key<Boolean> = booleanPreferencesKey(keyName)
     override fun getValue(
@@ -43,7 +43,7 @@ class AppBooleanPref(
 
 class AppStringPref(
     keyName: String,
-    default: String
+    default: String = ""
 ) : AppPreferenceProperty<String>(default) {
     override val prefKey: Preferences.Key<String> = stringPreferencesKey(keyName)
     override fun getValue(
