@@ -13,6 +13,6 @@ interface InterceptorFactory<C : InterceptorChain, I : Interceptor<C>> {
      *
      * @return 返回拦截器
      * */
-    fun create(): List<I>
+    fun create(): I
 
 }

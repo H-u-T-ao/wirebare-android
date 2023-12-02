@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.VirtualGateway
+import top.sankokomi.wirebare.core.interceptor.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
 import top.sankokomi.wirebare.core.service.WireBareProxyService
@@ -25,7 +25,7 @@ internal class TcpRealTunnel(
     override val selector: Selector,
     private val session: Session,
     private val configuration: WireBareConfiguration,
-    private val virtualGateway: VirtualGateway,
+    private val httpVirtualGateway: HttpVirtualGateway,
     private val proxyService: WireBareProxyService
 ) : SocketNioTunnel() {
 
@@ -62,28 +62,28 @@ internal class TcpRealTunnel(
 
     override fun onRead() {
         if (isClosed) {
-            virtualGateway.onRequestFinished()
+            httpVirtualGateway.onRequestFinished()
             return
         }
         val buffer = ByteBuffer.allocate(configuration.mtu)
         val length = read(buffer)
         if (length < 0 || proxyTunnel.isClosed) {
             closeSafely()
-            virtualGateway.onRequestFinished()
+            httpVirtualGateway.onRequestFinished()
             return
         }
         WireBareLogger.inet(
             session,
             "远程服务器 >> 代理客户端 $length 字节"
         )
-        virtualGateway.onResponse(buffer)
+        httpVirtualGateway.onResponse(buffer)
         proxyTunnel.write(buffer)
     }
 
     override fun onException(t: Throwable) {
         closeSafely(this, proxyTunnel)
-        virtualGateway.onRequestFinished()
-        virtualGateway.onResponseFinished()
+        httpVirtualGateway.onRequestFinished()
+        httpVirtualGateway.onResponseFinished()
     }
 
 }

@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
@@ -109,13 +108,11 @@ internal class PacketDispatcher private constructor(
                     continue
                 }
 
-                launch(Dispatchers.IO) {
-                    kotlin.runCatching {
-                        // 拦截器拦截输入流
-                        interceptor.intercept(ipv4Header, packet, outputStream)
-                    }.onFailure {
-                        WireBareLogger.error(it)
-                    }
+                kotlin.runCatching {
+                    // 拦截器拦截输入流
+                    interceptor.intercept(ipv4Header, packet, outputStream)
+                }.onFailure {
+                    WireBareLogger.error(it)
                 }
             }
         }

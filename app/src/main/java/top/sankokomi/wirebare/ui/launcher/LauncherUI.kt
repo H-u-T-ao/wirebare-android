@@ -18,8 +18,8 @@ import top.sankokomi.wirebare.core.common.IProxyStatusListener
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.interceptor.request.Request
-import top.sankokomi.wirebare.core.interceptor.response.Response
+import top.sankokomi.wirebare.core.interceptor.http.Request
+import top.sankokomi.wirebare.core.interceptor.http.Response
 import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.Purple80

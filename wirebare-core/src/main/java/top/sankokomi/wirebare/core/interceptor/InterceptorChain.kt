@@ -8,8 +8,23 @@ import java.nio.ByteBuffer
 interface InterceptorChain {
 
     /**
-     * 继续处理责任链中的下一拦截器
+     * 处理请求体
      * */
-    fun process(buffer: ByteBuffer)
+    fun processRequestNext(buffer: ByteBuffer)
+
+    /**
+     * 请求体处理完毕
+     * */
+    fun processRequestFinishedNext()
+
+    /**
+     * 处理响应体
+     * */
+    fun processResponseNext(buffer: ByteBuffer)
+
+    /**
+     * 响应体处理完毕
+     * */
+    fun processResponseFinishedNext()
 
 }

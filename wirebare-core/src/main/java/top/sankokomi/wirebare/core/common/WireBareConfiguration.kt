@@ -1,10 +1,7 @@
 package top.sankokomi.wirebare.core.common
 
-import top.sankokomi.wirebare.core.interceptor.InterceptorFactory
-import top.sankokomi.wirebare.core.interceptor.request.RequestChain
-import top.sankokomi.wirebare.core.interceptor.request.RequestInterceptor
-import top.sankokomi.wirebare.core.interceptor.response.ResponseChain
-import top.sankokomi.wirebare.core.interceptor.response.ResponseInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptorFactory
+import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
 
 class WireBareConfiguration internal constructor() {
 
@@ -12,6 +9,11 @@ class WireBareConfiguration internal constructor() {
      * 代理服务的传输单元大小，默认 4096 字节，建议不要设置得太小
      * */
     var mtu: Int = 4096
+
+    /**
+     * TCP 代理服务器的数量，默认 1 个，多个代理服务器会构建多个拦截器
+     * */
+    var tcpProxyServerCount: Int = 1
 
     /**
      * TUN 网卡 ip 地址
@@ -36,11 +38,6 @@ class WireBareConfiguration internal constructor() {
             address = proxyAddress.first
             prefixLength - proxyAddress.second
         }
-
-    /**
-     * TCP 代理服务器的数量，默认 1 个，多个代理服务器会构建多个拦截器
-     * */
-    var tcpProxyServerCount: Int = 1
 
     /**
      * 增加路由地址，增加路由地址可以对 ip 包进行过滤，只允许指定路由地址列表中的流量通过代理
@@ -80,54 +77,28 @@ class WireBareConfiguration internal constructor() {
         disallowedApplications.addAll(packageName)
     }
 
-    /**
-     * 清空当前请求拦截器，并设置新的请求拦截器
-     * */
-    fun setRequestInterceptors(factories: List<InterceptorFactory<RequestChain, RequestInterceptor>>) {
-        requestInterceptorFactories.clear()
-        requestInterceptorFactories.addAll(factories)
+    fun setHttpInterceptorFactories(factories: List<HttpInterceptorFactory>) {
+        httpInterceptorFactories.clear()
+        httpInterceptorFactories.addAll(factories)
     }
 
-    /**
-     * 增加请求拦截器
-     * */
-    fun addRequestInterceptors(vararg factories: InterceptorFactory<RequestChain, RequestInterceptor>) {
-        requestInterceptorFactories.addAll(factories)
+    fun setHttpInterceptorFactories(vararg factories: HttpInterceptorFactory) {
+        httpInterceptorFactories.clear()
+        httpInterceptorFactories.addAll(factories)
     }
 
-    /**
-     * 增加请求拦截器
-     * */
-    fun addRequestInterceptors(vararg factories: () -> RequestInterceptor) {
-        requestInterceptorFactories.add(
-            object : InterceptorFactory<RequestChain, RequestInterceptor> {
-                override fun create(): List<RequestInterceptor> = factories.map { it() }
-            }
-        )
+    fun setHttpInterceptorFactory(factory: HttpInterceptorFactory) {
+        httpInterceptorFactories.clear()
+        httpInterceptorFactories.add(factory)
     }
 
-    /**
-     * 清空当前响应拦截器，并设置新的设置响应拦截器
-     * */
-    fun setResponseInterceptors(factories: List<InterceptorFactory<ResponseChain, ResponseInterceptor>>) {
-        responseInterceptorFactories.clear()
-        responseInterceptorFactories.addAll(factories)
-    }
-
-    /**
-     * 增加响应拦截器
-     * */
-    fun addResponseInterceptors(vararg factories: InterceptorFactory<ResponseChain, ResponseInterceptor>) {
-        responseInterceptorFactories.addAll(factories)
-    }
-
-    /**
-     * 增加响应拦截器
-     * */
-    fun addResponseInterceptors(vararg factories: () -> ResponseInterceptor) {
-        responseInterceptorFactories.add(
-            object : InterceptorFactory<ResponseChain, ResponseInterceptor> {
-                override fun create(): List<ResponseInterceptor> = factories.map { it() }
+    fun setHttpInterceptorFactory(factory: () -> HttpInterceptor) {
+        httpInterceptorFactories.clear()
+        httpInterceptorFactories.add(
+            object : HttpInterceptorFactory {
+                override fun create(): HttpInterceptor {
+                    return factory()
+                }
             }
         )
     }
@@ -140,11 +111,7 @@ class WireBareConfiguration internal constructor() {
 
     internal val disallowedApplications: MutableSet<String> = hashSetOf()
 
-    internal val requestInterceptorFactories: MutableList<InterceptorFactory<RequestChain, RequestInterceptor>> =
-        mutableListOf()
-
-    internal val responseInterceptorFactories: MutableList<InterceptorFactory<ResponseChain, ResponseInterceptor>> =
-        mutableListOf()
+    internal val httpInterceptorFactories: MutableList<HttpInterceptorFactory> = mutableListOf()
 
     internal fun copy(): WireBareConfiguration {
         return WireBareConfiguration().also {
@@ -156,8 +123,7 @@ class WireBareConfiguration internal constructor() {
             it.dnsServers.addAll(dnsServers)
             it.allowedApplications.addAll(allowedApplications)
             it.disallowedApplications.addAll(disallowedApplications)
-            it.requestInterceptorFactories.addAll(requestInterceptorFactories)
-            it.responseInterceptorFactories.addAll(responseInterceptorFactories)
+            it.httpInterceptorFactories.addAll(httpInterceptorFactories)
         }
     }
 

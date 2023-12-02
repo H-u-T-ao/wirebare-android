@@ -7,8 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
-import top.sankokomi.wirebare.core.interceptor.request.Request
-import top.sankokomi.wirebare.core.interceptor.response.Response
+import top.sankokomi.wirebare.core.interceptor.http.Request
+import top.sankokomi.wirebare.core.interceptor.http.Response
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 
 class WireInfoUI : VpnPrepareActivity() {

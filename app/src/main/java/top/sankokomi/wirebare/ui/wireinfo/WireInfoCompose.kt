@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import top.sankokomi.wirebare.core.interceptor.request.Request
-import top.sankokomi.wirebare.core.interceptor.response.Response
+import top.sankokomi.wirebare.core.interceptor.http.Request
+import top.sankokomi.wirebare.core.interceptor.http.Response
 import top.sankokomi.wirebare.ui.resources.AppStatusBar
 import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple80
@@ -101,7 +101,7 @@ fun WireInfoUI.WireInfoUIPage(
             ) {
                 LargeColorfulText(
                     mainText = "URL",
-                    subText = response.request?.url ?: "",
+                    subText = response.url ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )

@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.VirtualGateway
+import top.sankokomi.wirebare.core.interceptor.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.Ipv4Address
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
@@ -49,7 +49,7 @@ internal class TcpInterceptor(
         for (i in 1..configuration.tcpProxyServerCount) {
             val server = TcpProxyServer(
                 sessionStore,
-                VirtualGateway(configuration),
+                HttpVirtualGateway(configuration),
                 configuration,
                 proxyService
             )

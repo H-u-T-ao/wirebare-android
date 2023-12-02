@@ -1,7 +1,6 @@
 package top.sankokomi.wirebare.ui.datastore
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -61,13 +60,11 @@ abstract class AppPreferenceProperty<T>(
             }
             dataStore.coroutineScope.launch(Dispatchers.IO) {
                 dataStore.dataStoreFlow.collect {
-                    Log.i("TAG", prefKey.name + " collect " + it[prefKey])
                     _keyFlow!!.value = it[prefKey] ?: default
                 }
             }
             dataStore.coroutineScope.launch(Dispatchers.IO) {
                 _keyFlow!!.collect { value ->
-                    Log.i("TAG", prefKey.name + " edit " + value)
                     dataStore.edit {
                         it[prefKey] = value
                     }

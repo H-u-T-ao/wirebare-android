@@ -1,8 +1,7 @@
 @file:Suppress("PropertyName")
 
-package top.sankokomi.wirebare.core.interceptor.request
+package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.interceptor.response.Response
 import java.io.Serializable
 
 /**

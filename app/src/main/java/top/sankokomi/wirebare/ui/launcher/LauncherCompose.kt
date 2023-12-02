@@ -33,8 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import top.sankokomi.wirebare.core.common.ProxyStatus
-import top.sankokomi.wirebare.core.interceptor.request.Request
-import top.sankokomi.wirebare.core.interceptor.response.Response
+import top.sankokomi.wirebare.core.interceptor.http.Request
+import top.sankokomi.wirebare.core.interceptor.http.Response
 import top.sankokomi.wirebare.ui.R
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
@@ -314,7 +314,7 @@ private fun LauncherUI.PageProxyResponseResult() {
                         }
                 ) {
                     SmallColorfulText(
-                        mainText = response.request?.url ?: "",
+                        mainText = response.url ?: "",
                         subText = response.formatHead?.getOrNull(0) ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black
