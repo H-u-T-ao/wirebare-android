@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.VirtualGateWay
+import top.sankokomi.wirebare.core.interceptor.VirtualGateway
 import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
 import top.sankokomi.wirebare.core.service.WireBareProxyService
@@ -25,7 +25,7 @@ internal class TcpRealTunnel(
     override val selector: Selector,
     private val session: Session,
     private val configuration: WireBareConfiguration,
-    private val virtualGateWay: VirtualGateWay,
+    private val virtualGateway: VirtualGateway,
     private val proxyService: WireBareProxyService
 ) : SocketNioTunnel() {
 
@@ -37,9 +37,7 @@ internal class TcpRealTunnel(
 
     internal fun connectRemoteServer(address: String, port: Int) {
         if (proxyService.protect(channel.socket())) {
-            if (channel.isBlocking) {
-                channel.configureBlocking(false)
-            }
+            channel.configureBlocking(false)
             channel.register(selector, SelectionKey.OP_CONNECT, this)
             channel.connect(InetSocketAddress(address, port))
         } else {
@@ -63,24 +61,29 @@ internal class TcpRealTunnel(
     }
 
     override fun onRead() {
-        if (isClosed) return
+        if (isClosed) {
+            virtualGateway.onRequestFinished()
+            return
+        }
         val buffer = ByteBuffer.allocate(configuration.mtu)
         val length = read(buffer)
         if (length < 0 || proxyTunnel.isClosed) {
-            session.active = false
-            proxyTunnel.closeSafely()
             closeSafely()
-            virtualGateWay.onResponseFinished()
-        } else {
-            WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
-            virtualGateWay.onResponse(buffer)
-            proxyTunnel.write(buffer)
+            virtualGateway.onRequestFinished()
+            return
         }
+        WireBareLogger.inet(
+            session,
+            "远程服务器 >> 代理客户端 $length 字节"
+        )
+        virtualGateway.onResponse(buffer)
+        proxyTunnel.write(buffer)
     }
 
-    override fun close() {
-        super.close()
-        WireBareLogger.inet(session, "代理客户端套接字关闭")
+    override fun onException(t: Throwable) {
+        closeSafely(this, proxyTunnel)
+        virtualGateway.onRequestFinished()
+        virtualGateway.onResponseFinished()
     }
 
 }

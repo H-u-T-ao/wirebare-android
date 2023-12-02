@@ -2,7 +2,7 @@ package top.sankokomi.wirebare.core.tcp
 
 import kotlinx.coroutines.CoroutineScope
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.VirtualGateWay
+import top.sankokomi.wirebare.core.interceptor.VirtualGateway
 import top.sankokomi.wirebare.core.net.Port
 import top.sankokomi.wirebare.core.net.SessionStore
 import top.sankokomi.wirebare.core.nio.NioCallback
@@ -39,7 +39,7 @@ import java.nio.channels.SocketChannel
  * */
 internal class TcpProxyServer(
     private val sessionStore: SessionStore,
-    private val virtualGateWay: VirtualGateWay,
+    private val virtualGateWay: VirtualGateway,
     private val configuration: WireBareConfiguration,
     private val proxyService: WireBareProxyService
 ) : NioProxyServer(), NioCallback, CoroutineScope by proxyService {
@@ -103,7 +103,7 @@ internal class TcpProxyServer(
         return -1
     }
 
-    override fun onClosed() {
+    override fun onException(t: Throwable) {
     }
 
     override fun release() {

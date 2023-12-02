@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.VirtualGateWay
+import top.sankokomi.wirebare.core.interceptor.VirtualGateway
 import top.sankokomi.wirebare.core.net.Ipv4Address
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
@@ -32,14 +32,26 @@ internal class TcpInterceptor(
 
     private val sessionStore: SessionStore = SessionStore()
 
+    /**
+     * 虚拟网卡的 ip 地址，也就是代理服务器的 ip 地址
+     * */
     private val tunIpv4Address = Ipv4Address(configuration.address)
 
+    /**
+     * 代理服务器的端口集合
+     * */
     private val ports = hashSetOf<Port>()
 
+    /**
+     * 代理服务器
+     * */
     private val servers = mutableListOf<TcpProxyServer>().apply {
         for (i in 1..configuration.tcpProxyServerCount) {
             val server = TcpProxyServer(
-                sessionStore, VirtualGateWay(configuration), configuration, proxyService
+                sessionStore,
+                VirtualGateway(configuration),
+                configuration,
+                proxyService
             )
             server.dispatch()
             ports.add(server.proxyServerPort)
@@ -65,19 +77,21 @@ internal class TcpInterceptor(
         } else if (tcpHeader.fin) {
             "[FIN]"
         } else if (tcpHeader.ack) {
-            "[ACK] SEQ ${tcpHeader.sequenceNumber} ACK ${tcpHeader.acknowledgmentNumber}"
+            "[ACK]"
         } else {
             "[---]"
         }
 
         if (!ports.contains(sourcePort)) {
+            // 来源不是代理服务器，说明该数据包是被代理客户端发出来的请求包
             sessionStore.insert(
                 Protocol.TCP, sourcePort, destinationAddress, destinationPort
             )
 
             // 根据端口号分配给固定的服务器
-            val proxyServerPort =
-                servers[sourcePort.port.convertPortToInt % servers.size].proxyServerPort
+            val proxyServerPort = servers[
+                sourcePort.port.convertPortToInt % servers.size
+            ].proxyServerPort
 
             // 将被代理客户端的请求数据包转发给代理服务器
             ipv4Header.sourceAddress = destinationAddress
@@ -85,28 +99,26 @@ internal class TcpInterceptor(
             ipv4Header.destinationAddress = tunIpv4Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.error("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort ${tcpHeader.dataLength} 字节 PSH ${tcpHeader.psh}")
+            WireBareLogger.debug("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort ${tcpHeader.dataLength} 字节")
         } else {
-            val session = sessionStore.query(destinationPort)
-                ?: throw IllegalStateException("发现一个未建立会话但有响应的连接")
+            // 来源是代理服务器，说明该数据包是响应包
+            val session = sessionStore.query(
+                destinationPort
+            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接")
 
-//            if (!session.active) session.drop()
+            session.tryDrop()
 
-            // 将远程服务器的响应数据包转发给被代理客户端
+            // 将远程服务器的响应包转发给被代理客户端
             ipv4Header.sourceAddress = destinationAddress
             tcpHeader.sourcePort = session.destinationPort
 
             ipv4Header.destinationAddress = tunIpv4Address
 
-            WireBareLogger.error("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort ${tcpHeader.dataLength} 字节 PSH ${tcpHeader.psh}")
+            WireBareLogger.debug("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort ${tcpHeader.dataLength} 字节")
         }
 
         ipv4Header.notifyCheckSum()
         tcpHeader.notifyCheckSum()
-
-        WireBareLogger.verbose(
-            "$sourceAddress:$sourcePort >> $destinationAddress:$destinationPort\n" + "${ipv4Header.sourceAddress}:${tcpHeader.sourcePort} >> " + "${ipv4Header.destinationAddress}:${tcpHeader.destinationPort}"
-        )
 
         outputStream.write(packet.packet, 0, packet.length)
     }

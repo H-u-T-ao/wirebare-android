@@ -10,10 +10,13 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import top.sankokomi.wirebare.ui.util.hideNavigationBar
+import top.sankokomi.wirebare.ui.util.hideStatusBar
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -42,6 +45,10 @@ fun WirebareUITheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    isShowStatusBar: Boolean = false,
+    statusBarColor: Color = Color.Transparent,
+    isShowNavigationBar: Boolean = true,
+    navigationBarColor: Color = Color.Transparent,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -57,13 +64,13 @@ fun WirebareUITheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
             }
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            //设置状态栏颜色为透明
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            if (!isShowStatusBar) window.hideStatusBar()
+            if (!isShowNavigationBar) window.hideNavigationBar()
+            window.statusBarColor = statusBarColor.toArgb()
+            window.navigationBarColor = navigationBarColor.toArgb()
         }
     }
 

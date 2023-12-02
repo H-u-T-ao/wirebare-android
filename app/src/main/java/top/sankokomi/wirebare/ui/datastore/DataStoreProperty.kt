@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.ui.datastore
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -12,7 +13,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import top.sankokomi.wirebare.ui.util.Global
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -33,12 +36,6 @@ class AppBooleanPref(
     default: Boolean = false
 ) : AppPreferenceProperty<Boolean>(default) {
     override val prefKey: Preferences.Key<Boolean> = booleanPreferencesKey(keyName)
-    override fun getValue(
-        thisRef: AppDataStore,
-        property: KProperty<*>
-    ): MutableStateFlow<Boolean> {
-        return keyFlow(thisRef)
-    }
 }
 
 class AppStringPref(
@@ -46,12 +43,6 @@ class AppStringPref(
     default: String = ""
 ) : AppPreferenceProperty<String>(default) {
     override val prefKey: Preferences.Key<String> = stringPreferencesKey(keyName)
-    override fun getValue(
-        thisRef: AppDataStore,
-        property: KProperty<*>
-    ): MutableStateFlow<String> {
-        return keyFlow(thisRef)
-    }
 }
 
 abstract class AppPreferenceProperty<T>(
@@ -59,18 +50,24 @@ abstract class AppPreferenceProperty<T>(
 ) : ReadOnlyProperty<AppDataStore, MutableStateFlow<T>> {
     abstract val prefKey: Preferences.Key<T>
     private var _keyFlow: MutableStateFlow<T>? = null
-    protected fun keyFlow(dataStore: AppDataStore): MutableStateFlow<T> {
+    private fun keyFlow(dataStore: AppDataStore): MutableStateFlow<T> {
         _keyFlow?.let { return@keyFlow _keyFlow!! }
         return synchronized(Unit) {
             _keyFlow?.let { return@keyFlow _keyFlow!! }
-            _keyFlow = MutableStateFlow(default)
+            _keyFlow = runBlocking {
+                MutableStateFlow(
+                    dataStore.dataStoreFlow.first()[prefKey] ?: default
+                )
+            }
             dataStore.coroutineScope.launch(Dispatchers.IO) {
                 dataStore.dataStoreFlow.collect {
+                    Log.i("TAG", prefKey.name + " collect " + it[prefKey])
                     _keyFlow!!.value = it[prefKey] ?: default
                 }
             }
             dataStore.coroutineScope.launch(Dispatchers.IO) {
                 _keyFlow!!.collect { value ->
+                    Log.i("TAG", prefKey.name + " edit " + value)
                     dataStore.edit {
                         it[prefKey] = value
                     }
@@ -78,5 +75,12 @@ abstract class AppPreferenceProperty<T>(
             }
             _keyFlow!!
         }
+    }
+
+    override fun getValue(
+        thisRef: AppDataStore,
+        property: KProperty<*>
+    ): MutableStateFlow<T> {
+        return keyFlow(thisRef)
     }
 }

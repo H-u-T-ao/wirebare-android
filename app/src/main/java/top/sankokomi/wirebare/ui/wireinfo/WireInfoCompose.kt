@@ -25,13 +25,13 @@ fun WireInfoUI.WireInfoUIPage(
     request: Request
 ) {
     Column {
-        AppStatusBar()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 4.dp)
         ) {
+            AppStatusBar()
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -79,18 +79,6 @@ fun WireInfoUI.WireInfoUIPage(
                     textColor = Color.Black
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-            ) {
-                LargeColorfulText(
-                    mainText = "ORIGIN REQUEST MESSAGE",
-                    subText = request.reqString ?: "",
-                    backgroundColor = Purple80,
-                    textColor = Color.Black
-                )
-            }
         }
     }
 }
@@ -100,13 +88,13 @@ fun WireInfoUI.WireInfoUIPage(
     response: Response
 ) {
     Column {
-        AppStatusBar()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 4.dp)
         ) {
+            AppStatusBar()
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -150,18 +138,6 @@ fun WireInfoUI.WireInfoUIPage(
                 LargeColorfulText(
                     mainText = "RESPONSE HEADER",
                     subText = response.formatHead?.joinToString("\n\n") ?: "",
-                    backgroundColor = Purple80,
-                    textColor = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-            ) {
-                LargeColorfulText(
-                    mainText = "ORIGIN RESPONSE MESSAGE",
-                    subText = response.rspString ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )

@@ -67,6 +67,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
         var length = 0
         var buffer = pendingBuffers.poll()
         while (buffer != null) {
+            // 将放入缓冲队列中的数据包通过套接字写出去
             val flush = writeByteBuffer(buffer)
             length += flush
             if (buffer.remaining() > 0) {
@@ -75,12 +76,12 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
             }
             buffer = pendingBuffers.poll()
         }
+        // 写完了，切为读操作，等待下一次读数据
         interestRead()
         return length
     }
 
-    override fun onClosed() {
-        close()
+    override fun onException(t: Throwable) {
     }
 
     /**
@@ -135,9 +136,9 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
      * 关闭此 NIO 隧道，回收资源
      * */
     override fun close() {
-        isClosed = true
         pendingBuffers.clear()
         channel.close()
+        isClosed = true
     }
 
 }

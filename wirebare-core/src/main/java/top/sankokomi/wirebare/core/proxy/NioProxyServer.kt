@@ -35,7 +35,7 @@ internal abstract class NioProxyServer : ProxyServer() {
                 else if (key.isWritable) callback.onWrite()
             }.onFailure {
                 WireBareLogger.error(it)
-                callback.onClosed()
+                callback.onException(it)
             }
         }
     }

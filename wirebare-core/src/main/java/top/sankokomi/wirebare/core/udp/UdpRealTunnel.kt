@@ -93,6 +93,10 @@ internal class UdpRealTunnel(
         return packet
     }
 
+    override fun onException(t: Throwable) {
+        close()
+    }
+
     override fun close() {
         super.close()
         WireBareLogger.inet(session, "UDP 代理结束")

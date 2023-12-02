@@ -11,12 +11,10 @@ class RequestHeaderParseInterceptor : RequestInterceptor() {
     override fun onRequest(request: Request, buffer: ByteBuffer) {
         kotlin.runCatching {
             val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
-            val reqString = request.reqString
-            request.reqString = (reqString ?: "") + requestString
-            if (reqString != null) return
-            request.isHttp = buffer.isHttp
-            if (request.isHttp != true) return
-            val headers = requestString.split("\r\n")
+            request.isHttp = requestString.isHttp
+            if (!request.isHttp) return
+            val headerString = requestString.substringBeforeLast("\r\n\r\n")
+            val headers = headerString.split("\r\n")
             val requestLine = headers[0].split(" ".toRegex())
             request.originHead = requestString
             request.formatHead = headers.filter { it.isNotBlank() }
@@ -36,22 +34,32 @@ class RequestHeaderParseInterceptor : RequestInterceptor() {
         }
     }
 
-    override fun onRequestFinished(request: Request) {
+    override fun onRequestFinished() {
     }
 
-    private val ByteBuffer.isHttp: Boolean?
+    private val String.isHttp: Boolean
         get() {
-            return when (get(position()).toInt()) {
-                71/* G */,
-                72/* H */,
-                80/* P */,
-                68/* D */,
-                79/* O */,
-                84/* T */,
-                67/* C */ -> true
-                in 20..24 -> false
-                else -> null
+            if (length < 3) return false
+            when (substring(0, 3)) {
+                "GET", "PUT" -> return true
             }
+            if (length < 4) return false
+            when (substring(0, 4)) {
+                "HEAD", "POST" -> return true
+            }
+            if (length < 5) return false
+            when (substring(0, 5)) {
+                "TRACE" -> return true
+            }
+            if (length < 6) return false
+            when(substring(0, 6)) {
+                "DELETE" -> return true
+            }
+            if (length < 7) return false
+            when(substring(0, 7)) {
+                "OPTIONS", "CONNECT" -> return true
+            }
+            return false
         }
 
 }

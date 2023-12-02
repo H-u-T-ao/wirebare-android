@@ -22,6 +22,7 @@ import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.core.interceptor.response.Response
 import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 import top.sankokomi.wirebare.ui.util.requireAppDataList
 
@@ -91,7 +92,9 @@ class LauncherUI : VpnPrepareActivity() {
         // 添加 WireBare 状态监听器
         WireBare.addVpnProxyStatusListener(wireBareStatusListener)
         setContent {
-            WirebareUITheme {
+            WirebareUITheme(
+                navigationBarColor = Purple80
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

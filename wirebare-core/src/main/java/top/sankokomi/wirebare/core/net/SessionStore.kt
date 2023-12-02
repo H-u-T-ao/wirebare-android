@@ -27,7 +27,7 @@ internal class SessionStore {
         destinationPort: Port
     ): Session {
         return Session(
-            protocol, sourcePort, destinationAddress, destinationPort, this, true
+            protocol, sourcePort, destinationAddress, destinationPort, this
         ).also { sessions[sourcePort] = it }
     }
 

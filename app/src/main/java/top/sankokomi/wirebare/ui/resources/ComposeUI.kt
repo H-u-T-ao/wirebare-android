@@ -64,7 +64,7 @@ fun AppStatusBar(color: Color = Color.Transparent) {
 fun AppTitleBar(
     icon: Any = R.mipmap.ic_wirebare,
     text: String = stringResource(id = R.string.app_name),
-    endContent: @Composable BoxScope.() -> Unit
+    endContent: @Composable BoxScope.() -> Unit = {}
 ) {
     RealColumn(
         modifier = Modifier.shadow(2.dp)
@@ -74,7 +74,7 @@ fun AppTitleBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(horizontal = 24.dp, vertical = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             RealRow(
@@ -83,12 +83,12 @@ fun AppTitleBar(
                 AsyncImage(
                     model = icon,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .clip(RoundedCornerShape(12.dp)),
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
             RealBox(
                 modifier = Modifier.align(Alignment.CenterEnd),

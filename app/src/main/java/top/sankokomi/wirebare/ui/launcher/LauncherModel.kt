@@ -1,5 +1,6 @@
 package top.sankokomi.wirebare.ui.launcher
 
+import android.util.Log
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.request.Request
 import top.sankokomi.wirebare.core.interceptor.request.RequestInterceptor
@@ -17,17 +18,15 @@ object LauncherModel {
     ) {
         WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
-            mtu = 7000
-            tcpProxyServerCount = 10
+            mtu = 10000
+            tcpProxyServerCount = 1
             proxyAddress = "10.1.10.1" to 32
             addRoutes("0.0.0.0" to 0)
             addAllowedApplications(*targetPackageNameArray)
             addRequestInterceptors({
                 object : RequestInterceptor() {
                     override fun onRequest(request: Request, buffer: ByteBuffer) {
-                    }
-
-                    override fun onRequestFinished(request: Request) {
+                        Log.i("TAG", request.toString())
                         onRequest(request)
                     }
                 }
@@ -35,9 +34,7 @@ object LauncherModel {
             addResponseInterceptors({
                 object : ResponseInterceptor() {
                     override fun onResponse(response: Response, buffer: ByteBuffer) {
-                    }
-
-                    override fun onResponseFinished(response: Response) {
+                        Log.i("TAG", response.toString())
                         onResponse(response)
                     }
                 }

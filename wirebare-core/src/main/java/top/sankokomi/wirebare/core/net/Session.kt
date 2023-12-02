@@ -8,22 +8,31 @@ package top.sankokomi.wirebare.core.net
  * @param destinationAddress 会话的目的 ipv4 地址
  * @param destinationPort 会话的目的端口号
  * @param sessionStore 会话所对应的 [SessionStore]
- * @param active 会话是否仍然存活
  * */
-internal data class Session(
+internal data class Session constructor(
     internal val protocol: Protocol,
     internal val sourcePort: Port,
     internal val destinationAddress: Ipv4Address,
     internal val destinationPort: Port,
-    private val sessionStore: SessionStore,
-    internal var active: Boolean
+    private val sessionStore: SessionStore
 ) {
 
+    private var dying: Boolean = false
+
     /**
-     * 若此会话已经死亡，则丢弃此会话
+     * 标记此会话已经濒死，下一次被转发时即可抛弃
      * */
-    internal fun drop() {
-        sessionStore.drop(this)
+    internal fun markDying() {
+        dying = true
+    }
+
+    /**
+     * 若此会话已经濒死，则抛弃此会话
+     * */
+    internal fun tryDrop() {
+        if (dying) {
+            sessionStore.drop(this)
+        }
     }
 
 }

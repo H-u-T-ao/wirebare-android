@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 /**
  * 虚拟网关
  * */
-class VirtualGateWay internal constructor(
+class VirtualGateway internal constructor(
     configuration: WireBareConfiguration
 ) {
 
@@ -37,19 +37,19 @@ class VirtualGateWay internal constructor(
     )
 
     internal fun onRequest(buffer: ByteBuffer) {
-        requestChain.startProcessing(buffer)
+        requestChain.onRequest(buffer)
     }
 
     internal fun onRequestFinished() {
-        requestChain.stopProcessing()
+        requestChain.onRequestFinished()
     }
 
     internal fun onResponse(buffer: ByteBuffer) {
-        responseChain.startProcessing(buffer, requestChain.request)
+        responseChain.onResponse(buffer, requestChain.request)
     }
 
     internal fun onResponseFinished() {
-        responseChain.stopProcessing()
+        responseChain.onResponseFinished()
     }
 
 }

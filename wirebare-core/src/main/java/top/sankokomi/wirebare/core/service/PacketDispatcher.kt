@@ -99,7 +99,7 @@ internal class PacketDispatcher private constructor(
 
                 val ipv4Header = Ipv4Header(packet.packet, 0)
                 if (!ipv4Header.isIpv4) {
-                    WireBareLogger.warn("未知的 ip 版本号 0b${ipv4Header.version.toString(2)}")
+                    WireBareLogger.debug("未知的 ip 版本号 0b${ipv4Header.version.toString(2)}")
                     continue
                 }
 
@@ -109,7 +109,6 @@ internal class PacketDispatcher private constructor(
                     continue
                 }
 
-                // 异步处理 ip 包
                 launch(Dispatchers.IO) {
                     kotlin.runCatching {
                         // 拦截器拦截输入流

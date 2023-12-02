@@ -18,7 +18,9 @@ class WireInfoUI : VpnPrepareActivity() {
         val request = intent.getSerializableExtra("request") as? Request
         val response = intent.getSerializableExtra("response") as? Response
         setContent {
-            WirebareUITheme {
+            WirebareUITheme(
+                isShowNavigationBar = false
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

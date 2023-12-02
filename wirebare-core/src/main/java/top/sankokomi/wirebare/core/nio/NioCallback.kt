@@ -25,8 +25,8 @@ interface NioCallback {
     fun onWrite(): Int
 
     /**
-     * 关闭时回调
+     * 抛出异常时回调
      * */
-    fun onClosed()
+    fun onException(t: Throwable)
 
 }

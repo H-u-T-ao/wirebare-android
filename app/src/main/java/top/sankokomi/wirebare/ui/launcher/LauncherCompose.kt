@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -55,8 +56,7 @@ fun LauncherUI.WireBareUIPage() {
     val painterRequestRes = painterResource(R.drawable.ic_request)
     val painterResponseRes = painterResource(R.drawable.ic_response)
     Column {
-        AppTitleBar {
-        }
+        AppTitleBar()
         HorizontalPager(
             state = pagerState,
             beyondBoundsPageCount = 3,
@@ -210,7 +210,7 @@ private fun LauncherUI.PageProxyRequestResult() {
     LaunchedEffect(Unit) {
         requestFlow.collect {
             if (!isBanFilter) {
-                if (it.isHttp != true) return@collect
+                if (!it.isHttp) return@collect
             }
             requestList.add(it)
         }
@@ -259,7 +259,7 @@ private fun LauncherUI.PageProxyRequestResult() {
             modifier = Modifier
                 .padding(24.dp)
                 .align(Alignment.BottomEnd)
-                .clip(RoundedCornerShape(6.dp))
+                .shadow(1.dp, RoundedCornerShape(6.dp), true)
                 .background(Purple80)
                 .clickable {
                     requestList.clear()
@@ -281,7 +281,7 @@ private fun LauncherUI.PageProxyResponseResult() {
     LaunchedEffect(Unit) {
         responseFlow.collect {
             if (!isBanFilter) {
-                if (it.isHttp != true) return@collect
+                if (!it.isHttp) return@collect
             }
             responseList.add(it)
         }
@@ -330,7 +330,7 @@ private fun LauncherUI.PageProxyResponseResult() {
             modifier = Modifier
                 .padding(24.dp)
                 .align(Alignment.BottomEnd)
-                .clip(RoundedCornerShape(6.dp))
+                .shadow(1.dp, RoundedCornerShape(6.dp), true)
                 .background(Purple80)
                 .clickable {
                     responseList.clear()
