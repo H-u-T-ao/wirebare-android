@@ -1,62 +1,65 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
 import top.sankokomi.wirebare.core.interceptor.InterceptorChain
+import top.sankokomi.wirebare.core.net.Session
 import java.nio.ByteBuffer
 
 class HttpInterceptChain(
     private val interceptors: List<HttpInterceptor>
 ) : InterceptorChain {
 
-    var request: Request = Request()
-        private set
-
-    var response: Response = Response()
-        private set
-
     private var interceptorIndex = -1
 
-    override fun processRequestNext(buffer: ByteBuffer) {
+    private val mapReqRsp = hashMapOf<Session, Pair<Request, Response>>()
+
+    fun getReqRsp(session: Session): Pair<Request, Response>? {
+        return mapReqRsp[session]
+    }
+
+    override fun processRequestNext(buffer: ByteBuffer, session: Session) {
         interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onRequest(this, buffer)
+        interceptors.getOrNull(interceptorIndex)?.onRequest(this, buffer, session)
     }
 
-    override fun processRequestFinishedNext() {
+    override fun processRequestFinishedNext(session: Session) {
         interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onRequestFinished(this) ?: let {
-            request = Request()
-        }
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onRequestFinished(this, session)
     }
 
-    override fun processResponseNext(buffer: ByteBuffer) {
+    override fun processResponseNext(buffer: ByteBuffer, session: Session) {
         interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onResponse(this, buffer)
+        interceptors.getOrNull(interceptorIndex)?.onResponse(this, buffer, session)
     }
 
-    override fun processResponseFinishedNext() {
+    override fun processResponseFinishedNext(session: Session) {
         interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onResponseFinished(this) ?: let {
-            response = Response()
-        }
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onResponseFinished(this, session)
     }
 
-    internal fun processRequest(buffer: ByteBuffer) {
+    internal fun processRequest(buffer: ByteBuffer, session: Session) {
         interceptorIndex = -1
-        processRequestNext(buffer)
+        this.mapReqRsp[session] = Request() to Response()
+        processRequestNext(buffer, session)
     }
 
-    internal fun processRequestFinished() {
+    internal fun processRequestFinished(session: Session) {
         interceptorIndex = -1
-        processRequestFinishedNext()
+        processRequestFinishedNext(session)
     }
 
-    internal fun processResponse(buffer: ByteBuffer) {
+    internal fun processResponse(buffer: ByteBuffer, session: Session) {
         interceptorIndex = -1
-        processResponseNext(buffer)
+        processResponseNext(buffer, session)
     }
 
-    internal fun processResponseFinished() {
+    internal fun processResponseFinished(session: Session) {
         interceptorIndex = -1
-        processResponseFinishedNext()
+        processResponseFinishedNext(session)
+        this.mapReqRsp.remove(session)
     }
 
 }

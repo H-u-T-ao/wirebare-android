@@ -1,11 +1,11 @@
 package top.sankokomi.wirebare.ui.launcher
 
-import android.util.Log
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptChain
+import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.Request
 import top.sankokomi.wirebare.core.interceptor.http.Response
+import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.util.Level
 import java.nio.ByteBuffer
 
@@ -24,29 +24,33 @@ object LauncherModel {
             addRoutes("0.0.0.0" to 0)
             addAllowedApplications(*targetPackageNameArray)
             setHttpInterceptorFactory {
-                object : HttpIndexedInterceptChain() {
+                object : HttpIndexedInterceptor() {
                     override fun onRequest(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
+                        session: Session,
                         index: Int
                     ) {
                         if (index == 0) {
-                            Log.i("TAG", chain.request.toString())
-                            onRequest(chain.request)
+                            chain.getReqRsp(session)?.let { (req, _) ->
+                                onRequest(req)
+                            }
                         }
-                        chain.processRequestNext(buffer)
+                        chain.processRequestNext(buffer, session)
                     }
 
                     override fun onResponse(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
+                        session: Session,
                         index: Int
                     ) {
                         if (index == 0) {
-                            Log.i("TAG", chain.response.toString())
-                            onResponse(chain.response)
+                            chain.getReqRsp(session)?.let { (_, rsp) ->
+                                onResponse(rsp)
+                            }
                         }
-                        chain.processResponseNext(buffer)
+                        chain.processResponseNext(buffer, session)
                     }
                 }
             }

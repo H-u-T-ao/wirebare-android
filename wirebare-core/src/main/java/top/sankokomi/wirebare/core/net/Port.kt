@@ -5,7 +5,7 @@ import top.sankokomi.wirebare.core.util.convertPortToString
 /**
  * 端口号
  * */
-internal data class Port(
+data class Port(
     internal val port: Short
 ) {
 

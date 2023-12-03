@@ -5,7 +5,7 @@ package top.sankokomi.wirebare.core.net
  *
  * @param name 协议名称
  * */
-internal class Protocol private constructor(internal val name: String) {
+class Protocol private constructor(internal val name: String) {
 
     internal companion object {
         /**

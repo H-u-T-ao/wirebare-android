@@ -1,5 +1,6 @@
 package top.sankokomi.wirebare.core.interceptor
 
+import top.sankokomi.wirebare.core.net.Session
 import java.nio.ByteBuffer
 
 /**
@@ -9,12 +10,12 @@ import java.nio.ByteBuffer
  * */
 interface Interceptor<C : InterceptorChain> {
 
-    fun onRequest(chain: C, buffer: ByteBuffer)
+    fun onRequest(chain: C, buffer: ByteBuffer, session: Session)
 
-    fun onRequestFinished(chain: C)
+    fun onRequestFinished(chain: C, session: Session)
 
-   fun onResponse(chain: C, buffer: ByteBuffer)
+   fun onResponse(chain: C, buffer: ByteBuffer, session: Session)
 
-    fun onResponseFinished(chain: C)
+    fun onResponseFinished(chain: C, session: Session)
 
 }

@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.HttpVirtualGateway
+import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.Ipv4Address
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet

@@ -1,17 +1,23 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
+import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.ByteBuffer
 
 /**
  * Http 请求头，响应头拦截器
  * */
-class HttpHeaderParserInterceptor : HttpIndexedInterceptChain() {
+class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
 
-    override fun onRequest(chain: HttpInterceptChain, buffer: ByteBuffer, index: Int) {
+    override fun onRequest(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: Session,
+        index: Int
+    ) {
         if (index == 0) {
             kotlin.runCatching {
-                val request = chain.request
+                val (request, _) = chain.getReqRsp(session) ?: return@runCatching
                 val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
                 request.isHttp = requestString.isReqHttp
                 if (!request.isHttp) return
@@ -35,14 +41,19 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptChain() {
                 WireBareLogger.error("构造 HTTP 请求时出现错误")
             }
         }
-        chain.processRequestNext(buffer)
+        chain.processRequestNext(buffer, session)
     }
 
-    override fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, index: Int) {
+    override fun onResponse(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: Session,
+        index: Int
+    ) {
         if (index == 0) {
             kotlin.runCatching {
-                val response = chain.response
-                response.url = chain.request.url
+                val (request, response) = chain.getReqRsp(session) ?: return@runCatching
+                response.url = request.url
                 val responseString = String(buffer.array(), buffer.position(), buffer.remaining())
                 response.isHttp = responseString.isRspHttp
                 if (!response.isHttp) return
@@ -57,7 +68,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptChain() {
                 WireBareLogger.error("构造 HTTP 响应时出现错误")
             }
         }
-        chain.processResponseNext(buffer)
+        chain.processResponseNext(buffer, session)
     }
 
     private val String.isReqHttp: Boolean

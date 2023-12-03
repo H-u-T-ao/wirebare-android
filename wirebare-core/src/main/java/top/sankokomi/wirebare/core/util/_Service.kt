@@ -24,6 +24,7 @@ internal fun Service.defaultNotification(chanelId: String): Notification {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         Notification.Builder(this, chanelId)
     } else {
+        @Suppress("DEPRECATION")
         Notification.Builder(this)
     }.setContentTitle(chanelId).setContentText(chanelId).build()
 }

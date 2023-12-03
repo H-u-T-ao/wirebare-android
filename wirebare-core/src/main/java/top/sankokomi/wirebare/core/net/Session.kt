@@ -9,12 +9,12 @@ package top.sankokomi.wirebare.core.net
  * @param destinationPort 会话的目的端口号
  * @param sessionStore 会话所对应的 [SessionStore]
  * */
-internal data class Session constructor(
-    internal val protocol: Protocol,
-    internal val sourcePort: Port,
-    internal val destinationAddress: Ipv4Address,
-    internal val destinationPort: Port,
-    private val sessionStore: SessionStore
+data class Session internal constructor(
+    val protocol: Protocol,
+    val sourcePort: Port,
+    val destinationAddress: Ipv4Address,
+    val destinationPort: Port,
+    internal val sessionStore: SessionStore
 ) {
 
     private var dying: Boolean = false
