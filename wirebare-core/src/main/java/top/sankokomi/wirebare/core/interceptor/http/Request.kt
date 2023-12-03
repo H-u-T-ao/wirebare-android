@@ -2,12 +2,14 @@
 
 package top.sankokomi.wirebare.core.interceptor.http
 
+import top.sankokomi.wirebare.core.net.TcpSession
 import java.io.Serializable
 
 /**
  * 请求信息
  * */
 data class Request internal constructor(
+    var destinationAddress: String? = null,
     /**
      * 请求的方法，需要是 HTTP 协议才可以解析
      * */

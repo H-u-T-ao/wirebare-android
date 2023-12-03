@@ -1,10 +1,11 @@
 package top.sankokomi.wirebare.core.tcp
 
 import kotlinx.coroutines.CoroutineScope
+import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.Port
-import top.sankokomi.wirebare.core.net.SessionStore
+import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.nio.NioCallback
 import top.sankokomi.wirebare.core.proxy.NioProxyServer
 import top.sankokomi.wirebare.core.service.WireBareProxyService
@@ -38,7 +39,7 @@ import java.nio.channels.SocketChannel
  * @see [TcpRealTunnel]
  * */
 internal class TcpProxyServer(
-    private val sessionStore: SessionStore,
+    private val sessionStore: TcpSessionStore,
     private val httpVirtualGateway: HttpVirtualGateway,
     private val configuration: WireBareConfiguration,
     private val proxyService: WireBareProxyService
@@ -64,7 +65,10 @@ internal class TcpProxyServer(
             Port(proxySocket.port.toShort())
         ) ?: throw IllegalStateException("一个 TCP 请求因为找不到指定会话而代理失败")
 
-        WireBareLogger.inet(session, "代理服务器 $proxyServerPort 代理开始")
+        WireBareLogger.inet(
+            session,
+            "代理服务器 $proxyServerPort 代理开始"
+        )
 
         // 接收到被代理客户端的请求后开始代理
         val proxyTunnel = TcpProxyTunnel(

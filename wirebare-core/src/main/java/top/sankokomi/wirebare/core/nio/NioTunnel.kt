@@ -35,7 +35,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
     /**
      * 复用此 [SelectionKey] 进行操作
      * */
-    private var key: SelectionKey? = null
+    private lateinit var key: SelectionKey
 
     /**
      * 从通道中读取字节流
@@ -99,7 +99,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
      * 为写状态，在 [selector] 中收到写事件后将会回调 [onWrite]
      * */
     internal open fun write(buffer: ByteBuffer) {
-        if (!isClosed and buffer.hasRemaining()) {
+        if (!isClosed && buffer.hasRemaining()) {
             pendingBuffers.offer(buffer)
             interestWrite()
         }
@@ -121,7 +121,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
      * */
     private fun interestWrite() {
         selector.wakeup()
-        key!!.interestOps(SelectionKey.OP_WRITE)
+        key.interestOps(SelectionKey.OP_WRITE)
     }
 
     /**
@@ -129,7 +129,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
      * */
     private fun interestRead() {
         selector.wakeup()
-        key!!.interestOps(SelectionKey.OP_READ)
+        key.interestOps(SelectionKey.OP_READ)
     }
 
     /**

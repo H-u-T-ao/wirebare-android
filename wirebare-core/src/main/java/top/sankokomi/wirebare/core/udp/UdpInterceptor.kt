@@ -1,11 +1,12 @@
 package top.sankokomi.wirebare.core.udp
 
+import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Protocol
-import top.sankokomi.wirebare.core.net.SessionStore
 import top.sankokomi.wirebare.core.net.UdpHeader
+import top.sankokomi.wirebare.core.net.UdpSessionStore
 import top.sankokomi.wirebare.core.service.PacketInterceptor
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
@@ -21,7 +22,7 @@ internal class UdpInterceptor(
     proxyService: WireBareProxyService
 ) : PacketInterceptor {
 
-    private val sessionStore: SessionStore = SessionStore()
+    private val sessionStore: UdpSessionStore = UdpSessionStore()
 
     private val proxyServer =
         UdpProxyServer(sessionStore, configuration, proxyService).apply { dispatch() }
@@ -39,7 +40,6 @@ internal class UdpInterceptor(
         val destinationPort = udpHeader.destinationPort
 
         val session = sessionStore.insert(
-            Protocol.UDP,
             sourcePort,
             destinationAddress,
             destinationPort

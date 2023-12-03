@@ -1,8 +1,9 @@
 package top.sankokomi.wirebare.core.tcp
 
+import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
-import top.sankokomi.wirebare.core.net.Session
+import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
@@ -23,7 +24,7 @@ import java.nio.channels.SocketChannel
 internal class TcpRealTunnel(
     override val channel: SocketChannel,
     override val selector: Selector,
-    private val session: Session,
+    private val session: TcpSession,
     private val configuration: WireBareConfiguration,
     private val httpVirtualGateway: HttpVirtualGateway,
     private val proxyService: WireBareProxyService
@@ -72,10 +73,7 @@ internal class TcpRealTunnel(
             httpVirtualGateway.onRequestFinished(session)
             return
         }
-        WireBareLogger.inet(
-            session,
-            "远程服务器 >> 代理客户端 $length 字节"
-        )
+        WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
         httpVirtualGateway.onResponse(buffer, session)
         proxyTunnel.write(buffer)
     }
@@ -84,6 +82,7 @@ internal class TcpRealTunnel(
         closeSafely(this, proxyTunnel)
         httpVirtualGateway.onRequestFinished(session)
         httpVirtualGateway.onResponseFinished(session)
+        session.markDying()
     }
 
 }

@@ -5,7 +5,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.Request
 import top.sankokomi.wirebare.core.interceptor.http.Response
-import top.sankokomi.wirebare.core.net.Session
+import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.util.Level
 import java.nio.ByteBuffer
 
@@ -28,7 +28,7 @@ object LauncherModel {
                     override fun onRequest(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
-                        session: Session,
+                        session: TcpSession,
                         index: Int
                     ) {
                         if (index == 0) {
@@ -42,7 +42,7 @@ object LauncherModel {
                     override fun onResponse(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
-                        session: Session,
+                        session: TcpSession,
                         index: Int
                     ) {
                         if (index == 0) {

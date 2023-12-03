@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.annotation.IntDef
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.net.Session
+import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.net.UdpSession
 
 object Level {
     const val VERBOSE = 1
@@ -73,7 +75,11 @@ internal object WireBareLogger {
         }
     }
 
-    internal fun inet(session: Session, msg: String) {
+    internal fun inet(session: TcpSession, msg: String) {
+        debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+    }
+
+    internal fun inet(session: UdpSession, msg: String) {
         debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 

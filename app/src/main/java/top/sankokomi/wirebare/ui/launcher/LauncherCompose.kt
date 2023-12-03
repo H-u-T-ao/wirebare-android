@@ -243,7 +243,7 @@ private fun LauncherUI.PageProxyRequestResult() {
                         }
                 ) {
                     SmallColorfulText(
-                        mainText = request.url ?: "",
+                        mainText = request.url ?: request.destinationAddress ?: "",
                         subText = request.method ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black
@@ -314,7 +314,7 @@ private fun LauncherUI.PageProxyResponseResult() {
                         }
                 ) {
                     SmallColorfulText(
-                        mainText = response.url ?: "",
+                        mainText = response.url ?: response.destinationAddress ?: "",
                         subText = response.formatHead?.getOrNull(0) ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black

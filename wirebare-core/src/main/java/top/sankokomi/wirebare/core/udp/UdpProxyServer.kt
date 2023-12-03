@@ -6,8 +6,8 @@ import kotlinx.coroutines.launch
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Port
-import top.sankokomi.wirebare.core.net.SessionStore
 import top.sankokomi.wirebare.core.net.UdpHeader
+import top.sankokomi.wirebare.core.net.UdpSessionStore
 import top.sankokomi.wirebare.core.proxy.NioProxyServer
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
@@ -23,7 +23,7 @@ import java.nio.channels.Selector
  * 负责启动 [UdpRealTunnel] 并让 [UdpRealTunnel] 与远程服务器通信
  * */
 internal class UdpProxyServer(
-    private val sessionStore: SessionStore,
+    private val sessionStore: UdpSessionStore,
     private val configuration: WireBareConfiguration,
     private val proxyService: WireBareProxyService
 ) : NioProxyServer(), CoroutineScope by proxyService {

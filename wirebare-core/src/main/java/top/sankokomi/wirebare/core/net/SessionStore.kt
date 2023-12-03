@@ -2,40 +2,31 @@ package top.sankokomi.wirebare.core.net
 
 import java.util.concurrent.ConcurrentHashMap
 
-internal class SessionStore {
+abstract class SessionStore<K, S : Session<K>> {
 
-    private val sessions: MutableMap<Port, Session> = ConcurrentHashMap(128)
+    private val sessions: MutableMap<K, S> = ConcurrentHashMap(128)
 
     /**
-     * 查找对应来源端口号的会话
-     *
-     * @return 若存在，则返回 [Session] ，否则返回 null
+     * 添加会话
      * */
-    internal fun query(port: Port): Session? {
-        return sessions[port]
+    internal fun insertSession(key: K, session: S) {
+        sessions[key] = session
     }
 
     /**
-     * 添加或覆盖会话
+     * 查找会话
      *
-     * @return 添加成功的会话
+     * @return 若存在，则返回，否则返回 null
      * */
-    internal fun insert(
-        protocol: Protocol,
-        sourcePort: Port,
-        destinationAddress: Ipv4Address,
-        destinationPort: Port
-    ): Session {
-        return Session(
-            protocol, sourcePort, destinationAddress, destinationPort, this
-        ).also { sessions[sourcePort] = it }
+    internal fun query(key: K): S? {
+        return sessions[key]
     }
 
     /**
      * 丢弃会话
      * */
-    internal fun drop(session: Session): Session? {
-        return sessions.remove(session.sourcePort)
+    internal fun dropSession(key: K): S? {
+        return sessions.remove(key)
     }
 
 }

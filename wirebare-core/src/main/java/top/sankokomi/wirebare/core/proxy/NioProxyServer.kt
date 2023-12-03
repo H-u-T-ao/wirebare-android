@@ -1,7 +1,6 @@
 package top.sankokomi.wirebare.core.proxy
 
 import top.sankokomi.wirebare.core.nio.NioCallback
-import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.channels.Selector
 
 /**
@@ -34,7 +33,6 @@ internal abstract class NioProxyServer : ProxyServer() {
                 else if (key.isReadable) callback.onRead()
                 else if (key.isWritable) callback.onWrite()
             }.onFailure {
-                WireBareLogger.error(it)
                 callback.onException(it)
             }
         }

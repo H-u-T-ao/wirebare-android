@@ -1,16 +1,16 @@
 package top.sankokomi.wirebare.core.interceptor
 
-import top.sankokomi.wirebare.core.net.Session
+import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
 
 interface VirtualGateway {
 
-    fun onRequest(buffer: ByteBuffer, session: Session)
+    fun onRequest(buffer: ByteBuffer, session: TcpSession)
 
-    fun onRequestFinished(session: Session)
+    fun onRequestFinished(session: TcpSession)
 
-    fun onResponse(buffer: ByteBuffer, session: Session)
+    fun onResponse(buffer: ByteBuffer, session: TcpSession)
 
-    fun onResponseFinished(session: Session)
+    fun onResponseFinished(session: TcpSession)
 
 }

@@ -3,8 +3,8 @@ package top.sankokomi.wirebare.core.udp
 import android.net.VpnService
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
-import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.net.UdpHeader
+import top.sankokomi.wirebare.core.net.UdpSession
 import top.sankokomi.wirebare.core.nio.DatagramSocketNioTunnel
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.closeSafely
@@ -23,7 +23,7 @@ internal class UdpRealTunnel(
     override val channel: DatagramChannel,
     override val selector: Selector,
     private val outputStream: OutputStream,
-    private val session: Session,
+    private val session: UdpSession,
     udpHeader: UdpHeader,
     private val configuration: WireBareConfiguration,
     private val vpnService: VpnService

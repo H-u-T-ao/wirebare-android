@@ -37,6 +37,18 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
+                    mainText = "DESTINATION IPV4",
+                    subText = request.destinationAddress ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
                     mainText = "URL",
                     subText = request.url ?: "",
                     backgroundColor = Purple80,
@@ -95,6 +107,18 @@ fun WireInfoUI.WireInfoUIPage(
                 .padding(horizontal = 24.dp, vertical = 4.dp)
         ) {
             AppStatusBar()
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "DESTINATION IPV4",
+                    subText = response.destinationAddress ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))

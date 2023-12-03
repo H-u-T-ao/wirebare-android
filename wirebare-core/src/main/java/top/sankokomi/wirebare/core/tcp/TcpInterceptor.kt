@@ -6,8 +6,7 @@ import top.sankokomi.wirebare.core.net.Ipv4Address
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Port
-import top.sankokomi.wirebare.core.net.Protocol
-import top.sankokomi.wirebare.core.net.SessionStore
+import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.net.TcpHeader
 import top.sankokomi.wirebare.core.service.PacketInterceptor
 import top.sankokomi.wirebare.core.service.WireBareProxyService
@@ -30,7 +29,7 @@ internal class TcpInterceptor(
     proxyService: WireBareProxyService
 ) : PacketInterceptor {
 
-    private val sessionStore: SessionStore = SessionStore()
+    private val sessionStore: TcpSessionStore = TcpSessionStore()
 
     /**
      * 虚拟网卡的 ip 地址，也就是代理服务器的 ip 地址
@@ -85,7 +84,7 @@ internal class TcpInterceptor(
         if (!ports.contains(sourcePort)) {
             // 来源不是代理服务器，说明该数据包是被代理客户端发出来的请求包
             sessionStore.insert(
-                Protocol.TCP, sourcePort, destinationAddress, destinationPort
+                sourcePort, destinationAddress, destinationPort
             )
 
             // 根据端口号分配给固定的服务器

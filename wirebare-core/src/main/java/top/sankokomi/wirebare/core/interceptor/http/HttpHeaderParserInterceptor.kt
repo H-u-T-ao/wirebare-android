@@ -1,6 +1,6 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.net.Session
+import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.ByteBuffer
 
@@ -12,15 +12,16 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
     override fun onRequest(
         chain: HttpInterceptChain,
         buffer: ByteBuffer,
-        session: Session,
+        session: TcpSession,
         index: Int
     ) {
         if (index == 0) {
             kotlin.runCatching {
                 val (request, _) = chain.getReqRsp(session) ?: return@runCatching
+                request.destinationAddress = session.destinationAddress.string
                 val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
                 request.isHttp = requestString.isReqHttp
-                if (!request.isHttp) return
+                if (!request.isHttp) return@runCatching
                 val headerString = requestString.substringBeforeLast("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val requestLine = headers[0].split(" ".toRegex())
@@ -47,16 +48,17 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
     override fun onResponse(
         chain: HttpInterceptChain,
         buffer: ByteBuffer,
-        session: Session,
+        session: TcpSession,
         index: Int
     ) {
         if (index == 0) {
             kotlin.runCatching {
                 val (request, response) = chain.getReqRsp(session) ?: return@runCatching
+                response.destinationAddress = session.destinationAddress.string
                 response.url = request.url
                 val responseString = String(buffer.array(), buffer.position(), buffer.remaining())
                 response.isHttp = responseString.isRspHttp
-                if (!response.isHttp) return
+                if (!response.isHttp) return@runCatching
                 val headerString = responseString.substringBeforeLast("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val responseLine = headers[0].split(" ".toRegex())
