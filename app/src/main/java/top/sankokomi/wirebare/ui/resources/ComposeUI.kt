@@ -164,7 +164,7 @@ fun AppNavigationBar(
     RealRow(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(2.dp)
+            .shadow(4.dp)
             .background(Purple80)
             .padding(vertical = 2.dp)
     ) {
