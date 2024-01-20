@@ -2,7 +2,9 @@ package top.sankokomi.wirebare.core.service
 
 import android.app.Notification
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.net.VpnService
+import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,7 +57,11 @@ abstract class WireBareProxyService : VpnService(),
 
     private fun startWireBare() {
         WireBare.notifyVpnStatusChanged(ProxyStatus.ACTIVE)
-        startForeground(notificationId, notification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(notificationId, notification(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(notificationId, notification())
+        }
         val configuration = WireBare.configuration.copy()
         this launchWith configuration
     }

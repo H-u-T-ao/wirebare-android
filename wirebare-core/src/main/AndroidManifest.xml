@@ -7,11 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:usesCleartextTraffic="true"
-        tools:targetApi="m">
+        android:usesCleartextTraffic="true">
         <provider
             android:name="top.sankokomi.wirebare.core.common.WireBareInitializer"
             android:authorities="top.sankokomi.wirebare.core.initializer"
