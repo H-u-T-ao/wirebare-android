@@ -1,21 +1,22 @@
 package top.sankokomi.wirebare.core.interceptor
 
+import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
 
 /**
  * 拦截器
  *
- * @param C 拦截器责任链
+ * @param CHAIN 拦截器责任链
  * */
-interface Interceptor<C : InterceptorChain> {
+interface Interceptor<CHAIN : InterceptorChain<*>, SESSION: Session<*>> {
 
-    fun onRequest(chain: C, buffer: ByteBuffer, session: TcpSession)
+    fun onRequest(chain: CHAIN, buffer: ByteBuffer, session: SESSION)
 
-    fun onRequestFinished(chain: C, session: TcpSession)
+    fun onRequestFinished(chain: CHAIN, session: SESSION)
 
-   fun onResponse(chain: C, buffer: ByteBuffer, session: TcpSession)
+   fun onResponse(chain: CHAIN, buffer: ByteBuffer, session: SESSION)
 
-    fun onResponseFinished(chain: C, session: TcpSession)
+    fun onResponseFinished(chain: CHAIN, session: SESSION)
 
 }

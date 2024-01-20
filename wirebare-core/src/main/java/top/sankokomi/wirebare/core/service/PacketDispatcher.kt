@@ -10,8 +10,8 @@ import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Protocol
-import top.sankokomi.wirebare.core.tcp.TcpInterceptor
-import top.sankokomi.wirebare.core.udp.UdpInterceptor
+import top.sankokomi.wirebare.core.tcp.TcpPacketInterceptor
+import top.sankokomi.wirebare.core.udp.UdpPacketInterceptor
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.closeSafely
 import java.io.FileInputStream
@@ -40,8 +40,8 @@ internal class PacketDispatcher private constructor(
      * ip 包拦截器
      * */
     private val interceptors = hashMapOf<Protocol, PacketInterceptor>(
-        Protocol.TCP to TcpInterceptor(configuration, proxyService),
-        Protocol.UDP to UdpInterceptor(configuration, proxyService)
+        Protocol.TCP to TcpPacketInterceptor(configuration, proxyService),
+        Protocol.UDP to UdpPacketInterceptor(configuration, proxyService)
     )
 
     /**

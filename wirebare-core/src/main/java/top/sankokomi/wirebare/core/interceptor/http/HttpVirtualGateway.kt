@@ -2,6 +2,7 @@ package top.sankokomi.wirebare.core.interceptor.http
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.VirtualGateway
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpVirtualGateway
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
 
@@ -10,9 +11,9 @@ import java.nio.ByteBuffer
  * */
 class HttpVirtualGateway internal constructor(
     configuration: WireBareConfiguration
-): VirtualGateway {
+): TcpVirtualGateway() {
 
-    private val interceptorChain: HttpInterceptChain
+    override val interceptorChain: HttpInterceptChain
 
     init {
         val interceptors = mutableListOf<HttpInterceptor>()
@@ -22,22 +23,6 @@ class HttpVirtualGateway internal constructor(
             configuration.httpInterceptorFactories.map { it.create() }
         )
         interceptorChain = HttpInterceptChain(interceptors)
-    }
-
-    override fun onRequest(buffer: ByteBuffer, session: TcpSession) {
-        interceptorChain.processRequest(buffer, session)
-    }
-
-    override fun onRequestFinished(session: TcpSession) {
-        interceptorChain.processRequestFinished(session)
-    }
-
-    override fun onResponse(buffer: ByteBuffer, session: TcpSession) {
-        interceptorChain.processResponse(buffer, session)
-    }
-
-    override fun onResponseFinished(session: TcpSession) {
-        interceptorChain.processResponseFinished(session)
     }
 
 }

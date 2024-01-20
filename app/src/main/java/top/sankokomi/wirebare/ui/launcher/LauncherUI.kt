@@ -18,8 +18,8 @@ import top.sankokomi.wirebare.core.common.IProxyStatusListener
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.interceptor.http.Request
-import top.sankokomi.wirebare.core.interceptor.http.Response
+import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
+import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.Purple80
@@ -30,9 +30,9 @@ class LauncherUI : VpnPrepareActivity() {
 
     private val _proxyStatusFlow = MutableStateFlow(ProxyStatus.DEAD)
 
-    private val _requestFlow = MutableSharedFlow<Request>()
+    private val _requestFlow = MutableSharedFlow<HttpRequest>()
 
-    private val _responseFlow = MutableSharedFlow<Response>()
+    private val _responseFlow = MutableSharedFlow<HttpResponse>()
 
     val proxyStatusFlow = _proxyStatusFlow.asStateFlow()
 

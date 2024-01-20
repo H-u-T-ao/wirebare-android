@@ -1,10 +1,8 @@
 package top.sankokomi.wirebare.core.udp
 
-import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
-import top.sankokomi.wirebare.core.net.Protocol
 import top.sankokomi.wirebare.core.net.UdpHeader
 import top.sankokomi.wirebare.core.net.UdpSessionStore
 import top.sankokomi.wirebare.core.service.PacketInterceptor
@@ -17,7 +15,7 @@ import java.io.OutputStream
  *
  * 拦截被代理客户端的数据包并转发给 [UdpProxyServer]
  * */
-internal class UdpInterceptor(
+internal class UdpPacketInterceptor(
     configuration: WireBareConfiguration,
     proxyService: WireBareProxyService
 ) : PacketInterceptor {

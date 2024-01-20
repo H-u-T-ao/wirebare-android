@@ -17,8 +17,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
     ) {
         if (index == 0) {
             kotlin.runCatching {
-                val (request, _) = chain.getReqRsp(session) ?: return@runCatching
-                request.destinationAddress = session.destinationAddress.string
+                val (request, _) = chain.curReqRsp(session) ?: return@runCatching
                 val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
                 request.isHttp = requestString.isReqHttp
                 if (!request.isHttp) return@runCatching
@@ -53,8 +52,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
     ) {
         if (index == 0) {
             kotlin.runCatching {
-                val (request, response) = chain.getReqRsp(session) ?: return@runCatching
-                response.destinationAddress = session.destinationAddress.string
+                val (request, response) = chain.curReqRsp(session) ?: return@runCatching
                 response.url = request.url
                 val responseString = String(buffer.array(), buffer.position(), buffer.remaining())
                 response.isHttp = responseString.isRspHttp

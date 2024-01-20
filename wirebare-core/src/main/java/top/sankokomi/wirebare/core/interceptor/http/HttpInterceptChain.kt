@@ -1,19 +1,17 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.interceptor.InterceptorChain
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpInterceptChain
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
 
 class HttpInterceptChain(
     private val interceptors: List<HttpInterceptor>
-) : InterceptorChain {
+) : TcpInterceptChain<HttpRequest, HttpResponse>() {
 
     private var interceptorIndex = -1
 
-    private val mapReqRsp = hashMapOf<TcpSession, Pair<Request, Response>>()
-
-    fun getReqRsp(session: TcpSession): Pair<Request, Response>? {
-        return mapReqRsp[session]
+    override fun newInstanceReqRsp(): Pair<HttpRequest, HttpResponse> {
+        return HttpRequest() to HttpResponse()
     }
 
     override fun processRequestNext(buffer: ByteBuffer, session: TcpSession) {
@@ -40,28 +38,23 @@ class HttpInterceptChain(
         )?.onResponseFinished(this, session)
     }
 
-    internal fun processRequest(buffer: ByteBuffer, session: TcpSession) {
+    override fun processRequest(buffer: ByteBuffer, session: TcpSession) {
         interceptorIndex = -1
-        if (!mapReqRsp.containsKey(session)) {
-            mapReqRsp[session] = Request() to Response()
-        }
-        processRequestNext(buffer, session)
+        super.processRequest(buffer, session)
     }
 
-    internal fun processRequestFinished(session: TcpSession) {
+    override fun processRequestFinished(session: TcpSession) {
         interceptorIndex = -1
-        processRequestFinishedNext(session)
-        mapReqRsp.remove(session)
+        super.processRequestFinished(session)
     }
 
-    internal fun processResponse(buffer: ByteBuffer, session: TcpSession) {
+    override fun processResponse(buffer: ByteBuffer, session: TcpSession) {
         interceptorIndex = -1
-        processResponseNext(buffer, session)
+        super.processResponse(buffer, session)
     }
 
-    internal fun processResponseFinished(session: TcpSession) {
+    override fun processResponseFinished(session: TcpSession) {
         interceptorIndex = -1
-        processResponseFinishedNext(session)
+        super.processResponseFinished(session)
     }
-
 }

@@ -2,49 +2,55 @@
 
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpRequest
 import java.io.Serializable
 
 /**
  * 请求信息
  * */
-data class Request internal constructor(
-    var destinationAddress: String? = null,
+class HttpRequest internal constructor() : TcpRequest(), Serializable {
+
     /**
      * 请求的方法，需要是 HTTP 协议才可以解析
      * */
-    var method: String? = null,
+    var method: String? = null
+        internal set
 
     /**
      * true 表示当前请求为 HTTP 请求
      * */
-    var isHttp: Boolean = false,
+    var isHttp: Boolean = false
+        internal set
 
     /**
      * 若为 HTTP 请求，则为 HTTP 版本，否则为 null
      * */
-    var httpVersion: String? = null,
+    var httpVersion: String? = null
+        internal set
 
     /**
      * 请求的域名，需要是 HTTP 协议才可以解析
      * */
-    var host: String? = null,
+    var host: String? = null
+        internal set
 
     /**
      * 请求的路径，需要是 HTTP 协议才可以解析
      * */
-    var path: String? = null,
+    var path: String? = null
+        internal set
 
     /**
      * 原始的请求头，包含的是最原始的请求头信息
      * */
-    var originHead: String? = null,
+    var originHead: String? = null
+        internal set
 
     /**
      * 整个请求头，已经以 \r\n 为间隔分隔好
      * */
     var formatHead: List<String>? = null
-) : Serializable {
+        internal set
 
     /**
      * 请求的 URL ，需要是 HTTP 协议才可以解析

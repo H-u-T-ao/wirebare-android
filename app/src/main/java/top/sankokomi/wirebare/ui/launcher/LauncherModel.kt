@@ -3,8 +3,8 @@ package top.sankokomi.wirebare.ui.launcher
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
-import top.sankokomi.wirebare.core.interceptor.http.Request
-import top.sankokomi.wirebare.core.interceptor.http.Response
+import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
+import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.util.Level
 import java.nio.ByteBuffer
@@ -13,8 +13,8 @@ object LauncherModel {
 
     fun startProxy(
         targetPackageNameArray: Array<String>,
-        onRequest: (Request) -> Unit,
-        onResponse: (Response) -> Unit
+        onRequest: (HttpRequest) -> Unit,
+        onResponse: (HttpResponse) -> Unit
     ) {
         WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
@@ -32,7 +32,7 @@ object LauncherModel {
                         index: Int
                     ) {
                         if (index == 0) {
-                            chain.getReqRsp(session)?.let { (req, _) ->
+                            chain.curReqRsp(session)?.let { (req, _) ->
                                 onRequest(req)
                             }
                         }
@@ -46,7 +46,7 @@ object LauncherModel {
                         index: Int
                     ) {
                         if (index == 0) {
-                            chain.getReqRsp(session)?.let { (_, rsp) ->
+                            chain.curReqRsp(session)?.let { (_, rsp) ->
                                 onResponse(rsp)
                             }
                         }

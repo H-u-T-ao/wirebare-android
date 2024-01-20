@@ -24,7 +24,7 @@ import java.io.OutputStream
  * 目的是将被代理客户端的请求数据包代理到 [TcpProxyServer] ，
  * 并将远程服务器的响应数据包转发给被代理客户端
  * */
-internal class TcpInterceptor(
+internal class TcpPacketInterceptor(
     private val configuration: WireBareConfiguration,
     proxyService: WireBareProxyService
 ) : PacketInterceptor {

@@ -33,8 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import top.sankokomi.wirebare.core.common.ProxyStatus
-import top.sankokomi.wirebare.core.interceptor.http.Request
-import top.sankokomi.wirebare.core.interceptor.http.Response
+import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
+import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.R
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
@@ -206,7 +206,7 @@ private fun LauncherUI.PageControlCenter() {
 @Composable
 private fun LauncherUI.PageProxyRequestResult() {
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
-    val requestList = remember { mutableStateListOf<Request>() }
+    val requestList = remember { mutableStateListOf<HttpRequest>() }
     LaunchedEffect(Unit) {
         requestFlow.collect {
             if (!isBanFilter) {
@@ -277,7 +277,7 @@ private fun LauncherUI.PageProxyRequestResult() {
 @Composable
 private fun LauncherUI.PageProxyResponseResult() {
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
-    val responseList = remember { mutableStateListOf<Response>() }
+    val responseList = remember { mutableStateListOf<HttpResponse>() }
     LaunchedEffect(Unit) {
         responseFlow.collect {
             if (!isBanFilter) {
