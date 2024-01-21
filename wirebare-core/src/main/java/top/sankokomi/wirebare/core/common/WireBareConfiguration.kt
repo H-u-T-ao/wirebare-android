@@ -2,8 +2,11 @@ package top.sankokomi.wirebare.core.common
 
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptorFactory
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
+import top.sankokomi.wirebare.core.ssl.JKS
 
 class WireBareConfiguration internal constructor() {
+
+    var jks: JKS? = null
 
     /**
      * 代理服务的传输单元大小，默认 4096 字节，建议不要设置得太小
