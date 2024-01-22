@@ -4,7 +4,6 @@ import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.util.readUnsignedByte
 import top.sankokomi.wirebare.core.util.readUnsignedShort
 import java.nio.ByteBuffer
-import javax.net.ssl.SSLEngine
 
 abstract class SSLCodec {
 
@@ -23,12 +22,11 @@ abstract class SSLCodec {
     internal fun decode(
         session: TcpSession,
         buffer: ByteBuffer,
-        callback: DecodeCallback
+        callback: SSLCallback
     ) {
-        val result = verifyPacket(buffer)
-        when (result) {
+        when (verifyPacket(buffer)) {
             VerifyResult.NotEncrypted -> {
-                callback.decodeSuccess(buffer)
+                callback.decryptSuccess(buffer)
             }
 
             VerifyResult.NotEnough -> {
@@ -41,21 +39,39 @@ abstract class SSLCodec {
         }
     }
 
+    internal fun encode(
+        session: TcpSession,
+        buffer: ByteBuffer,
+        callback: SSLCallback
+    ) {
+        realDecode(session, buffer, callback)
+    }
+
     private fun realDecode(
         session: TcpSession,
         buffer: ByteBuffer,
-        callback: DecodeCallback
+        callback: SSLCallback
     ) {
         val engine = createSSLEngineWrapper(session)
         if (engine == null) {
-            callback.decodeFailed(buffer)
+            callback.sslFailed(buffer)
             return
         }
-
+        engine.decodeBuffer(buffer, callback)
     }
 
-    private fun handshake() {
-
+    private fun realEncode(
+        session: TcpSession,
+        buffer: ByteBuffer,
+        callback: SSLCallback
+    ) {
+        val engine = createSSLEngineWrapper(session)
+        if (engine == null) {
+            // 按理来说这里应该不可能进来
+            callback.sslFailed(buffer)
+            return
+        }
+        engine.encodeBuffer(buffer, callback)
     }
 
     enum class VerifyResult {

@@ -46,18 +46,28 @@ class SSLEngineFactory(
     fun createClientSSLEngine(session: TcpSession): WireBareSSLEngine? {
         var engineWrapper = clientSSLEngineMap[session.destinationAddress.string]
         if (engineWrapper != null) return engineWrapper
-        val engin = sslContext?.createSSLEngine() ?: return null
-        engineWrapper = WireBareSSLEngine(engin)
+        val engine = sslContext?.createSSLEngine(
+            session.destinationAddress.string,
+            session.destinationPort.port.toInt()
+        ) ?: return null
+        engineWrapper = WireBareSSLEngine(engine)
         clientSSLEngineMap[session.destinationAddress.string] = engineWrapper
+        engine.useClientMode = true
+        engine.needClientAuth = false
         return engineWrapper
     }
 
     fun createServerSSLEngine(session: TcpSession): WireBareSSLEngine? {
         var engineWrapper = serverSSLEngineMap[session.destinationAddress.string]
         if (engineWrapper != null) return engineWrapper
-        val engin = sslContext?.createSSLEngine() ?: return null
-        engineWrapper = WireBareSSLEngine(engin)
+        val engine = sslContext?.createSSLEngine(
+            session.destinationAddress.string,
+            session.destinationPort.port.toInt()
+        ) ?: return null
+        engineWrapper = WireBareSSLEngine(engine)
         serverSSLEngineMap[session.destinationAddress.string] = engineWrapper
+        engine.useClientMode = false
+        engine.needClientAuth = false
         return engineWrapper
     }
 

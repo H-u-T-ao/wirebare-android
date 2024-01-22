@@ -4,7 +4,6 @@ enum class EnginePhase {
     Initial,
     HandshakeStarted,
     HandshakeFinished,
-    Ready,
     Closed,
     Unknown
 }
