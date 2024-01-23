@@ -12,8 +12,8 @@ class SSLEngineFactory(
 
     companion object {
         private const val KEY_STORE_TYPE_JKS = "JKS"
-        private const val SSL_PROTOCOL_TLS_V2 = "TLSv2"
-        private const val SSL_PROTOCOL_TLS = "TLS"
+        private const val SSL_PROTOCOL_TLS_V1_2 = "TLSv1.2"
+        private const val SSL_PROTOCOL_TLS_V1 = "TLSv1"
     }
 
     private val sslContext: SSLContext? by lazy(::ensureSSLContext)
@@ -21,13 +21,11 @@ class SSLEngineFactory(
     private fun ensureSSLContext(): SSLContext? {
         val jks = configuration.jks ?: return null
         return kotlin.runCatching {
-            SSLContext.getInstance(SSL_PROTOCOL_TLS_V2)
+            SSLContext.getInstance(SSL_PROTOCOL_TLS_V1_2)
         }.onFailure {
-            SSLContext.getInstance(SSL_PROTOCOL_TLS)
-        }.getOrThrow().apply {
-            val keyStore = KeyStore.getInstance(
-                KEY_STORE_TYPE_JKS
-            ).also {
+            SSLContext.getInstance(SSL_PROTOCOL_TLS_V1)
+        }.getOrNull()?.apply {
+            val keyStore = KeyStore.getInstance(jks.type).also {
                 it.load(jks.sourceStream(), jks.password)
             }
             val kmf = KeyManagerFactory.getInstance(

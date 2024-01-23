@@ -210,7 +210,7 @@ private fun LauncherUI.PageProxyRequestResult() {
     LaunchedEffect(Unit) {
         requestFlow.collect {
             if (!isBanFilter) {
-                if (!it.isHttp) return@collect
+                //if (it.isHttps != false) return@collect
             }
             requestList.add(it)
         }
@@ -281,7 +281,7 @@ private fun LauncherUI.PageProxyResponseResult() {
     LaunchedEffect(Unit) {
         responseFlow.collect {
             if (!isBanFilter) {
-                if (!it.isHttp) return@collect
+                // if (it.isHttps) return@collect
             }
             responseList.add(it)
         }

@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.core.interceptor.tcp
 
 import androidx.annotation.CallSuper
+import top.sankokomi.wirebare.core.interceptor.BufferDirection
 import top.sankokomi.wirebare.core.interceptor.InterceptorChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
@@ -21,8 +22,7 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
 
     protected abstract fun newInstanceReqRsp(): Pair<REQ, RSP>
 
-    @CallSuper
-    internal open fun processRequest(buffer: ByteBuffer, session: TcpSession) {
+    private fun checkCurReqRsp(session: TcpSession) {
         if (!curReqRspMap.containsKey(session)) {
             curReqRspMap[session] = newInstanceReqRsp().also {
                 it.first.run {
@@ -37,23 +37,49 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
                 }
             }
         }
+    }
+
+    @CallSuper
+    override fun processRequestFirst(buffer: ByteBuffer, session: TcpSession) {
+        requestReflux = buffer to BufferDirection.RemoteServer
+        checkCurReqRsp(session)
         processRequestNext(buffer, session)
     }
 
     @CallSuper
-    internal open fun processRequestFinished(session: TcpSession) {
+    override fun processRequestFinishedFirst(session: TcpSession) {
         processRequestFinishedNext(session)
         curReqRspMap.remove(session)
     }
 
     @CallSuper
-    internal open fun processResponse(buffer: ByteBuffer, session: TcpSession) {
+    override fun processResponseFirst(buffer: ByteBuffer, session: TcpSession) {
+        responseReflux = buffer to BufferDirection.ProxyClient
         processResponseNext(buffer, session)
     }
 
     @CallSuper
-    internal open fun processResponseFinished(session: TcpSession) {
+    override fun processResponseFinishedFirst(session: TcpSession) {
         processResponseFinishedNext(session)
     }
 
+    private var requestReflux: Pair<ByteBuffer, BufferDirection>? = null
+
+    private var responseReflux: Pair<ByteBuffer, BufferDirection>? = null
+
+    final override fun skipRequestAndReflux(target: ByteBuffer) {
+        requestReflux = target to BufferDirection.ProxyClient
+    }
+
+    final override fun skipResponseAndReflux(target: ByteBuffer) {
+        responseReflux = target to BufferDirection.RemoteServer
+    }
+
+    final override fun processRequestResult(): Pair<ByteBuffer, BufferDirection>? {
+        return requestReflux
+    }
+
+    final override fun processResponseResult(): Pair<ByteBuffer, BufferDirection>? {
+        return responseReflux
+    }
 }

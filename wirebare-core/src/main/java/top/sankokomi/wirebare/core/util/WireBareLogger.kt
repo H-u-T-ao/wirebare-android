@@ -9,12 +9,12 @@ import top.sankokomi.wirebare.core.net.UdpSession
 
 object Level {
     const val VERBOSE = 1
-    const val DEBUG = 2
-    const val INFO = 4
-    const val WARN = 8
-    const val ERROR = 16
-    const val WTF = 32
-    const val SILENT = 64
+    const val DEBUG = 1 shl 1
+    const val INFO = 1 shl 2
+    const val WARN = 1 shl 3
+    const val ERROR = 1 shl 4
+    const val WTF = 1 shl 5
+    const val SILENT = 1 shl 6
 }
 
 @Target(

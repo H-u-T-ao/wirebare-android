@@ -6,7 +6,7 @@ import java.io.Serializable
 class HttpResponse internal constructor() : TcpResponse(), Serializable {
     var url: String? = null
         internal set
-    var isHttp: Boolean = false
+    var isHttps: Boolean? = null
         internal set
     var httpVersion: String? = null
         internal set

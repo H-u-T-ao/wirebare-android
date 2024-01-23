@@ -38,23 +38,23 @@ class HttpInterceptChain(
         )?.onResponseFinished(this, session)
     }
 
-    override fun processRequest(buffer: ByteBuffer, session: TcpSession) {
+    override fun processRequestFirst(buffer: ByteBuffer, session: TcpSession) {
         interceptorIndex = -1
-        super.processRequest(buffer, session)
+        super.processRequestFirst(buffer, session)
     }
 
-    override fun processRequestFinished(session: TcpSession) {
+    override fun processRequestFinishedFirst(session: TcpSession) {
         interceptorIndex = -1
-        super.processRequestFinished(session)
+        super.processRequestFinishedFirst(session)
     }
 
-    override fun processResponse(buffer: ByteBuffer, session: TcpSession) {
+    override fun processResponseFirst(buffer: ByteBuffer, session: TcpSession) {
         interceptorIndex = -1
-        super.processResponse(buffer, session)
+        super.processResponseFirst(buffer, session)
     }
 
-    override fun processResponseFinished(session: TcpSession) {
+    override fun processResponseFinishedFirst(session: TcpSession) {
         interceptorIndex = -1
-        super.processResponseFinished(session)
+        super.processResponseFinishedFirst(session)
     }
 }

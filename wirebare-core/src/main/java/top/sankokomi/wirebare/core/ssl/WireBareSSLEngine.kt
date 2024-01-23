@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.core.ssl
 
 import android.os.Build
+import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -145,6 +146,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
         var status = engine.handshakeStatus
         while (phase != EnginePhase.HandshakeFinished) {
+            WireBareLogger.debug("SSLEngine handshake handshakeStatus = $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     status = handshakeWrap(callback).handshakeStatus
@@ -186,7 +188,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var result: SSLEngineResult
         var output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
+            try {
             result = engine.wrap(ByteBuffer.allocate(0), output)
+            WireBareLogger.debug("SSLEngine handshakeWrap $result")
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
@@ -200,6 +204,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 }
                 break
             }
+            }catch (e:Exception) {
+                WireBareLogger.error("SSLEngine handshakeWrap Exception", e)
+            }
         }
         return result
     }
@@ -212,6 +219,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
             result = engine.unwrap(input, output)
+            WireBareLogger.debug("SSLEngine handshakeUnwrap $result")
             val status = result.status
             output.flip()
             val producedSize = output.remaining()

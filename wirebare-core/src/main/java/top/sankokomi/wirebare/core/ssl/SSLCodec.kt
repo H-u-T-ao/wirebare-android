@@ -7,16 +7,6 @@ import java.nio.ByteBuffer
 
 abstract class SSLCodec {
 
-    companion object {
-        private const val SSL_RECORD_HEADER_LENGTH = 5
-
-        private const val SSL_CONTENT_TYPE_CHANGE_CIPHER_SPEC = 20
-        private const val SSL_CONTENT_TYPE_ALERT = 21
-        private const val SSL_CONTENT_TYPE_HANDSHAKE = 22
-        private const val SSL_CONTENT_TYPE_APPLICATION_DATA = 23
-        private const val SSL_CONTENT_TYPE_EXTENSION_HEARTBEAT = 24
-    }
-
     abstract fun createSSLEngineWrapper(session: TcpSession): WireBareSSLEngine?
 
     internal fun decode(
@@ -44,7 +34,7 @@ abstract class SSLCodec {
         buffer: ByteBuffer,
         callback: SSLCallback
     ) {
-        realDecode(session, buffer, callback)
+        realEncode(session, buffer, callback)
     }
 
     private fun realDecode(
@@ -93,16 +83,16 @@ abstract class SSLCodec {
 
     private fun verifyPacket(buffer: ByteBuffer): VerifyResult {
         val position = buffer.position()
-        if (buffer.remaining() < SSL_RECORD_HEADER_LENGTH) {
+        if (buffer.remaining() < SSLPredicate.SSL_RECORD_HEADER_LENGTH) {
             return VerifyResult.NotEnough
         }
         var packetLength = 0
         var tls = when (buffer.readUnsignedByte(position)) {
-            SSL_CONTENT_TYPE_CHANGE_CIPHER_SPEC,
-            SSL_CONTENT_TYPE_ALERT,
-            SSL_CONTENT_TYPE_HANDSHAKE,
-            SSL_CONTENT_TYPE_APPLICATION_DATA,
-            SSL_CONTENT_TYPE_EXTENSION_HEARTBEAT -> true
+            SSLPredicate.SSL_CONTENT_TYPE_CHANGE_CIPHER_SPEC,
+            SSLPredicate.SSL_CONTENT_TYPE_ALERT,
+            SSLPredicate.SSL_CONTENT_TYPE_HANDSHAKE,
+            SSLPredicate.SSL_CONTENT_TYPE_APPLICATION_DATA,
+            SSLPredicate.SSL_CONTENT_TYPE_EXTENSION_HEARTBEAT -> true
 
             else -> false
         }
@@ -111,8 +101,8 @@ abstract class SSLCodec {
             if (majorVersion == 3) {
                 packetLength = buffer.readUnsignedShort(
                     position + 3
-                ) + SSL_RECORD_HEADER_LENGTH
-                if (packetLength <= SSL_RECORD_HEADER_LENGTH) {
+                ) + SSLPredicate.SSL_RECORD_HEADER_LENGTH
+                if (packetLength <= SSLPredicate.SSL_RECORD_HEADER_LENGTH) {
                     tls = false
                 }
             } else {

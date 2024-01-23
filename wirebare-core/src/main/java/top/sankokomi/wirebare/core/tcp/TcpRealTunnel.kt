@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.tcp
 
-import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
+import top.sankokomi.wirebare.core.interceptor.BufferDirection
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
@@ -74,8 +74,18 @@ internal class TcpRealTunnel(
             return
         }
         WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
-        httpVirtualGateway.onResponse(buffer, session)
-        proxyTunnel.write(buffer)
+        val (target, direction) = httpVirtualGateway.onResponse(
+            buffer, session
+        ) ?: (buffer to BufferDirection.RemoteServer)
+        when (direction) {
+            BufferDirection.ProxyClient -> {
+                proxyTunnel.write(target)
+            }
+
+            BufferDirection.RemoteServer -> {
+                write(target)
+            }
+        }
     }
 
     override fun onException(t: Throwable) {

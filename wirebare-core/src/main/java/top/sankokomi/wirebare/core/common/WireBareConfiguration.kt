@@ -118,6 +118,7 @@ class WireBareConfiguration internal constructor() {
 
     internal fun copy(): WireBareConfiguration {
         return WireBareConfiguration().also {
+            it.jks = jks
             it.mtu = mtu
             it.address = address
             it.prefixLength = prefixLength
