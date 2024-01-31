@@ -20,7 +20,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
             kotlin.runCatching {
                 val (request, _) = chain.curReqRsp(session) ?: return@runCatching
                 val requestString = buffer.newString()
-                val headerString = requestString.substringBeforeLast("\r\n\r\n")
+                val headerString = requestString.substringBefore("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val requestLine = headers[0].split(" ".toRegex())
                 request.originHead = requestString
@@ -54,7 +54,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
                 val (request, response) = chain.curReqRsp(session) ?: return@runCatching
                 response.url = request.url
                 val responseString = buffer.newString()
-                val headerString = responseString.substringBeforeLast("\r\n\r\n")
+                val headerString = responseString.substringBefore("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val responseLine = headers[0].split(" ".toRegex())
                 response.originHead = headerString
