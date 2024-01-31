@@ -7,10 +7,11 @@ import java.nio.ByteBuffer
 
 abstract class SSLCodec {
 
-    abstract fun createSSLEngineWrapper(session: TcpSession): WireBareSSLEngine?
+    abstract fun createSSLEngineWrapper(session: TcpSession, host: String): WireBareSSLEngine?
 
     internal fun decode(
         session: TcpSession,
+        host: String,
         buffer: ByteBuffer,
         callback: SSLCallback
     ) {
@@ -24,25 +25,27 @@ abstract class SSLCodec {
             }
 
             VerifyResult.Ready -> {
-                realDecode(session, buffer, callback)
+                realDecode(session, host, buffer, callback)
             }
         }
     }
 
     internal fun encode(
         session: TcpSession,
+        host: String,
         buffer: ByteBuffer,
         callback: SSLCallback
     ) {
-        realEncode(session, buffer, callback)
+        realEncode(session, host, buffer, callback)
     }
 
     private fun realDecode(
         session: TcpSession,
+        host: String,
         buffer: ByteBuffer,
         callback: SSLCallback
     ) {
-        val engine = createSSLEngineWrapper(session)
+        val engine = createSSLEngineWrapper(session, host)
         if (engine == null) {
             callback.sslFailed(buffer)
             return
@@ -52,10 +55,11 @@ abstract class SSLCodec {
 
     private fun realEncode(
         session: TcpSession,
+        host: String,
         buffer: ByteBuffer,
         callback: SSLCallback
     ) {
-        val engine = createSSLEngineWrapper(session)
+        val engine = createSSLEngineWrapper(session, host)
         if (engine == null) {
             // 按理来说这里应该不可能进来
             callback.sslFailed(buffer)

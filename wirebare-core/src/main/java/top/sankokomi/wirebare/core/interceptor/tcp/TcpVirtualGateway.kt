@@ -4,6 +4,7 @@ import top.sankokomi.wirebare.core.interceptor.BufferDirection
 import top.sankokomi.wirebare.core.interceptor.VirtualGateway
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
+import java.util.Queue
 
 /**
  * Tcp 虚拟网关
@@ -15,9 +16,9 @@ abstract class TcpVirtualGateway : VirtualGateway<TcpSession> {
     override fun onRequest(
         buffer: ByteBuffer,
         session: TcpSession
-    ): Pair<ByteBuffer, BufferDirection>? {
+    ): Queue<Pair<ByteBuffer, BufferDirection>> {
         interceptorChain.processRequestFirst(buffer, session)
-        return interceptorChain.processRequestResult()
+        return interceptorChain.processResults()
     }
 
     override fun onRequestFinished(session: TcpSession) {
@@ -27,9 +28,9 @@ abstract class TcpVirtualGateway : VirtualGateway<TcpSession> {
     override fun onResponse(
         buffer: ByteBuffer,
         session: TcpSession
-    ): Pair<ByteBuffer, BufferDirection>? {
+    ): Queue<Pair<ByteBuffer, BufferDirection>> {
         interceptorChain.processResponseFirst(buffer, session)
-        return interceptorChain.processResponseResult()
+        return interceptorChain.processResults()
     }
 
     override fun onResponseFinished(session: TcpSession) {

@@ -7,6 +7,8 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
+import java.util.Queue
+import java.util.concurrent.LinkedBlockingQueue
 
 abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
     InterceptorChain<TcpSession> {
@@ -39,9 +41,12 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
         }
     }
 
+    private var bufferResults = LinkedBlockingQueue<Pair<ByteBuffer, BufferDirection>>()
+
     @CallSuper
     override fun processRequestFirst(buffer: ByteBuffer, session: TcpSession) {
-        requestReflux = buffer to BufferDirection.RemoteServer
+        bufferResults.clear()
+        bufferResults.offer(buffer to BufferDirection.RemoteServer)
         checkCurReqRsp(session)
         processRequestNext(buffer, session)
     }
@@ -54,7 +59,8 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
 
     @CallSuper
     override fun processResponseFirst(buffer: ByteBuffer, session: TcpSession) {
-        responseReflux = buffer to BufferDirection.ProxyClient
+        bufferResults.clear()
+        bufferResults.offer(buffer to BufferDirection.ProxyClient)
         processResponseNext(buffer, session)
     }
 
@@ -63,23 +69,23 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
         processResponseFinishedNext(session)
     }
 
-    private var requestReflux: Pair<ByteBuffer, BufferDirection>? = null
-
-    private var responseReflux: Pair<ByteBuffer, BufferDirection>? = null
-
-    final override fun skipRequestAndReflux(target: ByteBuffer) {
-        requestReflux = target to BufferDirection.ProxyClient
+    final override fun processRequestFinial(target: ByteBuffer) {
+        bufferResults.offer(target to BufferDirection.RemoteServer)
     }
 
-    final override fun skipResponseAndReflux(target: ByteBuffer) {
-        responseReflux = target to BufferDirection.RemoteServer
+    final override fun processResponseFinial(target: ByteBuffer) {
+        bufferResults.offer(target to BufferDirection.ProxyClient)
     }
 
-    final override fun processRequestResult(): Pair<ByteBuffer, BufferDirection>? {
-        return requestReflux
+    override fun skipOriginBuffer() {
+        bufferResults.poll()
     }
 
-    final override fun processResponseResult(): Pair<ByteBuffer, BufferDirection>? {
-        return responseReflux
+    final override fun processExtraBuffer(target: ByteBuffer, direction: BufferDirection) {
+        bufferResults.offer(target to direction)
+    }
+
+    final override fun processResults(): Queue<Pair<ByteBuffer, BufferDirection>> {
+        return bufferResults
     }
 }

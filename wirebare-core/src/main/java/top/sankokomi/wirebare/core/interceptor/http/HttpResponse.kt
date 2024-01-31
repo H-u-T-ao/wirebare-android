@@ -16,4 +16,7 @@ class HttpResponse internal constructor() : TcpResponse(), Serializable {
         internal set
     var formatHead: List<String>? = null
         internal set
+    internal var hostInternal: String? = null
+    var host: String? = null
+        internal set
 }

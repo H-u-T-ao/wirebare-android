@@ -57,7 +57,7 @@ internal class TcpRealTunnel(
 
     override fun onWrite(): Int {
         val length = super.onWrite()
-        WireBareLogger.inet(session, "代理客户端 >> 远程服务器 $length 字节")
+        WireBareLogger.inetInfo(session, "代理客户端 >> 远程服务器 $length 字节")
         return length
     }
 
@@ -73,17 +73,30 @@ internal class TcpRealTunnel(
             httpVirtualGateway.onRequestFinished(session)
             return
         }
-        WireBareLogger.inet(session, "远程服务器 >> 代理客户端 $length 字节")
-        val (target, direction) = httpVirtualGateway.onResponse(
+        WireBareLogger.inetDebug(
+            session,
+            "远程服务器 >> 代理客户端 $length 字节"
+        )
+        val bufferQueue = httpVirtualGateway.onResponse(
             buffer, session
-        ) ?: (buffer to BufferDirection.RemoteServer)
-        when (direction) {
-            BufferDirection.ProxyClient -> {
-                proxyTunnel.write(target)
-            }
+        )
+        for ((target, direction) in bufferQueue) {
+            when (direction) {
+                BufferDirection.ProxyClient -> {
+                    WireBareLogger.inetDebug(
+                        session,
+                        "代理客户端 >> 客户端 $length 字节"
+                    )
+                    proxyTunnel.write(target)
+                }
 
-            BufferDirection.RemoteServer -> {
-                write(target)
+                BufferDirection.RemoteServer -> {
+                    WireBareLogger.inetDebug(
+                        session,
+                        "代理客户端 >> 远程服务器 $length 字节"
+                    )
+                    write(target)
+                }
             }
         }
     }

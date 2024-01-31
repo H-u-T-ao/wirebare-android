@@ -1,8 +1,8 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
 import top.sankokomi.wirebare.core.net.TcpSession
-import top.sankokomi.wirebare.core.ssl.isRequestHttps
 import top.sankokomi.wirebare.core.util.WireBareLogger
+import top.sankokomi.wirebare.core.util.newString
 import java.nio.ByteBuffer
 
 /**
@@ -19,7 +19,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
         if (index == 0) {
             kotlin.runCatching {
                 val (request, _) = chain.curReqRsp(session) ?: return@runCatching
-                val requestString = String(buffer.array(), buffer.position(), buffer.remaining())
+                val requestString = buffer.newString()
                 val headerString = requestString.substringBeforeLast("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val requestLine = headers[0].split(" ".toRegex())
@@ -53,7 +53,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
             kotlin.runCatching {
                 val (request, response) = chain.curReqRsp(session) ?: return@runCatching
                 response.url = request.url
-                val responseString = String(buffer.array(), buffer.position(), buffer.remaining())
+                val responseString = buffer.newString()
                 val headerString = responseString.substringBeforeLast("\r\n\r\n")
                 val headers = headerString.split("\r\n")
                 val responseLine = headers[0].split(" ".toRegex())

@@ -20,7 +20,7 @@ object SSLPredicate {
     internal const val SSL_CONTENT_TYPE_EXTENSION_HEARTBEAT = 24
 }
 
-internal val ByteBuffer.isRequestHttps: Boolean?
+internal val ByteBuffer.judgeIsHttps: Boolean?
     get() {
         if (!hasRemaining()) return null
         return when (get(position()).toInt()) {

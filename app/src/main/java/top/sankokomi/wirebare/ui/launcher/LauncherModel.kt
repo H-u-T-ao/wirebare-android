@@ -19,7 +19,7 @@ object LauncherModel {
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.DEBUG
+        WireBare.logLevel = Level.INFO
         WireBare.startProxy {
             jks = JKS(
                 {
@@ -27,7 +27,9 @@ object LauncherModel {
                 },
                 "wirebare",
                 "wirebare".toCharArray(),
-                "PKCS12"
+                "PKCS12",
+                "WB",
+                "WB"
             )
             mtu = 10000
             tcpProxyServerCount = 1

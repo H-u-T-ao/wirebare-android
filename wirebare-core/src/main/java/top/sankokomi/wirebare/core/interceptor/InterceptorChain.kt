@@ -4,6 +4,7 @@ import top.sankokomi.wirebare.core.common.UnsupportedCall
 import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.util.clearAndPut
 import java.nio.ByteBuffer
+import java.util.Queue
 
 /**
  * 拦截器责任链
@@ -45,40 +46,31 @@ interface InterceptorChain<SESSION : Session<*>> {
     /**
      * 不走剩余的所有拦截器，直接发送 [target]
      *
-     * @param origin 在拦截链中拦截到的 [ByteBuffer]
      * @param target 需要直接发送的 [ByteBuffer]
      * */
     @UnsupportedCall
-    fun processRequestFinial(origin: ByteBuffer, target: ByteBuffer) {
-        origin.clearAndPut(target)
-    }
+    fun processRequestFinial(target: ByteBuffer)
 
     /**
      * 不走剩余的所有拦截器，直接发送 [target]
      *
-     * @param origin 在拦截链中拦截到的 [ByteBuffer]
      * @param target 需要直接发送的 [ByteBuffer]
      * */
     @UnsupportedCall
-    fun processResponseFinial(origin: ByteBuffer, target: ByteBuffer) {
-        origin.clearAndPut(target)
-    }
+    fun processResponseFinial(target: ByteBuffer)
 
     /**
-     * 跳过请求拦截链，直接将 [target] 写回被代理客户端
+     * 跳过原来需要发送的数据（原始数据包）
      * */
     @UnsupportedCall
-    fun skipRequestAndReflux(target: ByteBuffer)
+    fun skipOriginBuffer()
 
     /**
-     * 跳过响应拦截链，直接将 [target] 写到远端服务器
+     * 跳过拦截链，直接将 [target] 写到 [direction]
      * */
     @UnsupportedCall
-    fun skipResponseAndReflux(target: ByteBuffer)
+    fun processExtraBuffer(target: ByteBuffer, direction: BufferDirection)
 
     @UnsupportedCall
-    fun processRequestResult(): Pair<ByteBuffer, BufferDirection>?
-
-    @UnsupportedCall
-    fun processResponseResult(): Pair<ByteBuffer, BufferDirection>?
+    fun processResults(): Queue<Pair<ByteBuffer, BufferDirection>>
 }

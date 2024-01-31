@@ -11,7 +11,14 @@ internal fun ByteBuffer.readUnsignedShort(index: Int): Int {
     return getShort(index).toInt() and 0x0FFFF
 }
 
-internal fun Queue<ByteBuffer>.mergeBuffer(): ByteBuffer {
+internal fun ByteBuffer.newString(
+    position: Int = position(),
+    remaining: Int = remaining()
+): String {
+    return String(array(), position, remaining)
+}
+
+internal fun Queue<ByteBuffer>.mergeBuffer(clear: Boolean = true): ByteBuffer {
     val pendingBuffers = this
     if (isNotEmpty()) {
         var total = 0
@@ -29,7 +36,9 @@ internal fun Queue<ByteBuffer>.mergeBuffer(): ByteBuffer {
             )
             offset += pendingBuffer.remaining()
         }
-        pendingBuffers.clear()
+        if (clear) {
+            pendingBuffers.clear()
+        }
         return ByteBuffer.wrap(array)
     }
     return ByteBuffer.allocate(0)

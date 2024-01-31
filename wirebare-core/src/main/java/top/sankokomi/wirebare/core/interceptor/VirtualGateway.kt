@@ -2,6 +2,7 @@ package top.sankokomi.wirebare.core.interceptor
 
 import top.sankokomi.wirebare.core.net.Session
 import java.nio.ByteBuffer
+import java.util.Queue
 
 /**
  * 虚拟网关
@@ -13,7 +14,7 @@ interface VirtualGateway<SESSION : Session<*>> {
     fun onRequest(
         buffer: ByteBuffer,
         session: SESSION
-    ): Pair<ByteBuffer, BufferDirection>?
+    ): Queue<Pair<ByteBuffer, BufferDirection>>
 
     /**
      * ④ 请求结束
@@ -26,7 +27,7 @@ interface VirtualGateway<SESSION : Session<*>> {
     fun onResponse(
         buffer: ByteBuffer,
         session: SESSION
-    ): Pair<ByteBuffer, BufferDirection>?
+    ): Queue<Pair<ByteBuffer, BufferDirection>>
 
     /**
      * ③ 响应结束

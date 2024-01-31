@@ -4,8 +4,13 @@ import top.sankokomi.wirebare.core.net.TcpSession
 
 class RequestSSLCodec(
     private val engineFactory: SSLEngineFactory
-): SSLCodec() {
-    override fun createSSLEngineWrapper(session: TcpSession): WireBareSSLEngine? {
-        return engineFactory.createServerSSLEngine(session)
+) : SSLCodec() {
+
+    private val serverSSLEngineMap = hashMapOf<TcpSession, WireBareSSLEngine>()
+
+    override fun createSSLEngineWrapper(session: TcpSession, host: String): WireBareSSLEngine? {
+        return serverSSLEngineMap[session] ?: engineFactory.createServerSSLEngine(host)?.also {
+            serverSSLEngineMap[session] = it
+        }
     }
 }

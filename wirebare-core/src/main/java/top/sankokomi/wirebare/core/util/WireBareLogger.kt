@@ -3,7 +3,6 @@ package top.sankokomi.wirebare.core.util
 import android.util.Log
 import androidx.annotation.IntDef
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.net.Session
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.net.UdpSession
 
@@ -75,12 +74,20 @@ internal object WireBareLogger {
         }
     }
 
-    internal fun inet(session: TcpSession, msg: String) {
+    internal fun inetDebug(session: TcpSession, msg: String) {
         debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
-    internal fun inet(session: UdpSession, msg: String) {
+    internal fun inetInfo(session: TcpSession, msg: String) {
+        info("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+    }
+
+    internal fun inetDebug(session: UdpSession, msg: String) {
         debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+    }
+
+    internal fun inetInfo(session: UdpSession, msg: String) {
+        info("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
 }

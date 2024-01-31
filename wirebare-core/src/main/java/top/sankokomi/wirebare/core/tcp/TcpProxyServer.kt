@@ -1,7 +1,6 @@
 package top.sankokomi.wirebare.core.tcp
 
 import kotlinx.coroutines.CoroutineScope
-import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.Port
@@ -65,7 +64,7 @@ internal class TcpProxyServer(
             Port(proxySocket.port.toShort())
         ) ?: throw IllegalStateException("一个 TCP 请求因为找不到指定会话而代理失败")
 
-        WireBareLogger.inet(
+        WireBareLogger.inetDebug(
             session,
             "代理服务器 $proxyServerPort 代理开始"
         )

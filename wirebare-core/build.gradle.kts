@@ -41,4 +41,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
+
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.67")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.67")
 }

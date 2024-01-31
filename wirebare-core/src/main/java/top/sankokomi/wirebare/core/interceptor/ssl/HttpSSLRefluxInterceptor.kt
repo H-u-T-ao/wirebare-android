@@ -16,7 +16,7 @@ class HttpSSLRefluxInterceptor(
     }
 
     override fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
-        if (chain.curReqRsp(session)?.second?.isHttps == true) {
+        if (chain.curReqRsp(session)?.first?.isHttps == true) {
             receiver.onResponseReflux(chain, buffer, session)
         }
     }

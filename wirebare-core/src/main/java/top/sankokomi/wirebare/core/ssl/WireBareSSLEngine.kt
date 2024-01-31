@@ -11,6 +11,8 @@ import javax.net.ssl.SSLEngineResult
 class WireBareSSLEngine(private val engine: SSLEngine) {
 
     companion object {
+        private const val TAG = "WireBareSSLEngine"
+
         private const val DEFAULT_BUFFER_SIZE = 20 * 1024
         private const val SSL_CONTENT_TYPE_HANDSHAKE = 22
     }
@@ -71,6 +73,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var output: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
             val result: SSLEngineResult = engine.wrap(input, output)
+            WireBareLogger.debug("[$TAG] wrap $result")
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
@@ -100,6 +103,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
             }
             val result: SSLEngineResult = engine.unwrap(input, output)
+            WireBareLogger.debug("[$TAG] unwrap $result")
             val status = result.status
             output!!.flip()
             val producedSize = output.remaining()
@@ -136,7 +140,10 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
     }
 
-    private fun handshake(
+    /**
+     * 开始进行 SSl 握手协商
+     * */
+    internal fun handshake(
         input: ByteBuffer,
         callback: SSLCallback
     ) {
@@ -146,7 +153,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
         var status = engine.handshakeStatus
         while (phase != EnginePhase.HandshakeFinished) {
-            WireBareLogger.debug("SSLEngine handshake handshakeStatus = $status")
+            WireBareLogger.debug("[$TAG] handshake $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     status = handshakeWrap(callback).handshakeStatus
@@ -188,9 +195,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var result: SSLEngineResult
         var output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
-            try {
             result = engine.wrap(ByteBuffer.allocate(0), output)
-            WireBareLogger.debug("SSLEngine handshakeWrap $result")
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
@@ -204,9 +209,6 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 }
                 break
             }
-            }catch (e:Exception) {
-                WireBareLogger.error("SSLEngine handshakeWrap Exception", e)
-            }
         }
         return result
     }
@@ -219,7 +221,6 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
             result = engine.unwrap(input, output)
-            WireBareLogger.debug("SSLEngine handshakeUnwrap $result")
             val status = result.status
             output.flip()
             val producedSize = output.remaining()

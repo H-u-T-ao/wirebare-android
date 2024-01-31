@@ -32,6 +32,8 @@ class HttpRequest internal constructor() : TcpRequest(), Serializable {
     var httpVersion: String? = null
         internal set
 
+    internal var hostInternal: String? = null
+
     /**
      * 请求的域名
      * */
