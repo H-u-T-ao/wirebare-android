@@ -2,7 +2,7 @@
 
 WireBare 是一个基于 Andoird VPN Service 开发的 Android 抓包框架
 
-目前支持拦截抓取 Http 请求包，正在持续更新，后续计划支持 Https 以及支持拦截抓取响应包
+目前支持拦截抓取 Http/Https 请求包，正在持续更新
 
 在高版本的 Android 系统中的 Https 的拦截抓包功能需要先获取 ROOT 权限
 
@@ -53,6 +53,8 @@ class SimpleActivity : VpnPrepareActivity() {
     override fun onPrepareSuccess() {
         // 可以在这里调整日志等级
         WireBare.logLevel = Level.DEBUG
+        // 如果需要支持 Https 抓包，则需要配置密钥信息
+        WireBare.jks = JKS(...)
         WireBare.startProxy {
             mtu = 7000
             proxyAddress = "10.1.10.1" to 32
