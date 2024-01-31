@@ -81,11 +81,12 @@ internal class TcpRealTunnel(
             buffer, session
         )
         for ((target, direction) in bufferQueue) {
+            val remaining = target.remaining() - target.position()
             when (direction) {
                 BufferDirection.ProxyClient -> {
                     WireBareLogger.inetDebug(
                         session,
-                        "代理客户端 >> 客户端 $length 字节"
+                        "代理客户端 >> 客户端 $remaining 字节"
                     )
                     proxyTunnel.write(target)
                 }
@@ -93,7 +94,7 @@ internal class TcpRealTunnel(
                 BufferDirection.RemoteServer -> {
                     WireBareLogger.inetDebug(
                         session,
-                        "代理客户端 >> 远程服务器 $length 字节"
+                        "代理客户端 >> 远程服务器 $remaining 字节"
                     )
                     write(target)
                 }

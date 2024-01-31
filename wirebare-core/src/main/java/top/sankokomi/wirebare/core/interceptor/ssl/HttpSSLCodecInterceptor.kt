@@ -12,6 +12,7 @@ import top.sankokomi.wirebare.core.ssl.SSLEngineFactory
 import top.sankokomi.wirebare.core.util.mergeBuffer
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 class HttpSSLCodecInterceptor(
     configuration: WireBareConfiguration
@@ -35,16 +36,23 @@ class HttpSSLCodecInterceptor(
         }
         val host = request.hostInternal ?: return
         chain.skipOriginBuffer()
+        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
         responseCodec.handshakeIfNecessary(
             session,
             host,
             object : SSLCallback {
                 override fun encryptSuccess(target: ByteBuffer) {
-                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+                    pendingBuffer.offer(target)
                 }
             }
         )
+        chain.processExtraBuffer(
+            pendingBuffer.mergeBuffer(),
+            BufferDirection.RemoteServer
+        )
         pendingReqCiphertext.add(buffer)
+        var direction: BufferDirection? = null
         requestCodec.decode(
             session,
             host,
@@ -59,14 +67,28 @@ class HttpSSLCodecInterceptor(
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-                    chain.processRequestNext(target, session)
+//                    chain.processRequestNext(target, session)
+                    pendingBuffer.offer(target)
                 }
 
                 override fun encryptSuccess(target: ByteBuffer) {
-                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
+//                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
+                    pendingBuffer.offer(target)
+                    direction = BufferDirection.ProxyClient
                 }
             }
         )
+        if (direction != null && pendingBuffer.isNotEmpty()) {
+            chain.processExtraBuffer(
+                pendingBuffer.mergeBuffer(false),
+                direction!!
+            )
+        } else if (pendingBuffer.isNotEmpty()) {
+            chain.processRequestNext(
+                pendingBuffer.mergeBuffer(false),
+                session
+            )
+        }
     }
 
     override fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
@@ -78,6 +100,8 @@ class HttpSSLCodecInterceptor(
         val host = chain.curReqRsp(session)?.second?.hostInternal ?: return
         chain.skipOriginBuffer()
         pendingRspCiphertext.add(buffer)
+        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
+        var direction: BufferDirection? = null
         responseCodec.decode(
             session,
             host,
@@ -92,14 +116,28 @@ class HttpSSLCodecInterceptor(
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-                    chain.processResponseNext(target, session)
+//                    chain.processResponseNext(target, session)
+                    pendingBuffer.offer(target)
                 }
 
                 override fun encryptSuccess(target: ByteBuffer) {
-                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+                    pendingBuffer.offer(target)
+                    direction = BufferDirection.RemoteServer
                 }
             }
         )
+        if (direction != null && pendingBuffer.isNotEmpty()) {
+            chain.processExtraBuffer(
+                pendingBuffer.mergeBuffer(false),
+                direction!!
+            )
+        } else if (pendingBuffer.isNotEmpty()) {
+            chain.processResponseNext(
+                pendingBuffer.mergeBuffer(false),
+                session
+            )
+        }
     }
 
     override fun onRequestReflux(
@@ -108,16 +146,24 @@ class HttpSSLCodecInterceptor(
         session: TcpSession
     ) {
         val host = chain.curReqRsp(session)?.first?.hostInternal ?: return
+        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
         responseCodec.encode(
             session,
             host,
             buffer,
             object : SSLCallback {
                 override fun encryptSuccess(target: ByteBuffer) {
-                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
+                    pendingBuffer.offer(target)
                 }
             }
         )
+        if (pendingBuffer.isNotEmpty()) {
+            chain.processExtraBuffer(
+                pendingBuffer.mergeBuffer(false),
+                BufferDirection.RemoteServer
+            )
+        }
     }
 
     override fun onResponseReflux(
@@ -126,15 +172,23 @@ class HttpSSLCodecInterceptor(
         session: TcpSession
     ) {
         val host = chain.curReqRsp(session)?.second?.hostInternal ?: return
+        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
         requestCodec.encode(
             session,
             host,
             buffer,
             object : SSLCallback {
                 override fun encryptSuccess(target: ByteBuffer) {
-                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
+//                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
+                    pendingBuffer.offer(target)
                 }
             }
         )
+        if (pendingBuffer.isNotEmpty()) {
+            chain.processExtraBuffer(
+                pendingBuffer.mergeBuffer(false),
+                BufferDirection.ProxyClient
+            )
+        }
     }
 }

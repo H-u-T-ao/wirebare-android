@@ -10,8 +10,12 @@ class ResponseSSLCodec(
     private val clientSSLEngineMap = hashMapOf<TcpSession, WireBareSSLEngine>()
 
     override fun createSSLEngineWrapper(session: TcpSession, host: String): WireBareSSLEngine? {
-        return clientSSLEngineMap[session] ?: (engineFactory.createClientSSLEngine(host)
-            ?.also { clientSSLEngineMap[session] = it })
+        return clientSSLEngineMap[session] ?: let {
+            engineFactory.createClientSSLEngine(host)?.also {
+                clientSSLEngineMap[session] = it
+                it.name = "RSP-$host"
+            }
+        }
     }
 
     internal fun handshakeIfNecessary(

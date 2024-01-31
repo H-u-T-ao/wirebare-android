@@ -19,7 +19,7 @@ object LauncherModel {
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.INFO
+        WireBare.logLevel = Level.VERBOSE
         WireBare.startProxy {
             jks = JKS(
                 {

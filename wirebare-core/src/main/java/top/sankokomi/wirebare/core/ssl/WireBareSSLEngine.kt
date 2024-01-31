@@ -17,6 +17,8 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         private const val SSL_CONTENT_TYPE_HANDSHAKE = 22
     }
 
+    internal var name: String = ""
+
     @Volatile
     private var phase: EnginePhase = EnginePhase.Initial
 
@@ -73,7 +75,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var output: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
             val result: SSLEngineResult = engine.wrap(input, output)
-            WireBareLogger.debug("[$TAG] wrap $result")
+            WireBareLogger.verbose("[$TAG-$name] wrap $result")
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
@@ -103,7 +105,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
             }
             val result: SSLEngineResult = engine.unwrap(input, output)
-            WireBareLogger.debug("[$TAG] unwrap $result")
+            WireBareLogger.verbose("[$TAG-$name] unwrap $result")
             val status = result.status
             output!!.flip()
             val producedSize = output.remaining()
@@ -153,7 +155,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
         var status = engine.handshakeStatus
         while (phase != EnginePhase.HandshakeFinished) {
-            WireBareLogger.debug("[$TAG] handshake $status")
+            WireBareLogger.verbose("[$TAG-$name] handshake $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     status = handshakeWrap(callback).handshakeStatus
