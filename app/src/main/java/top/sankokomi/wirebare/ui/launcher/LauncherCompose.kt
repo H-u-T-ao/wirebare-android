@@ -244,7 +244,7 @@ private fun LauncherUI.PageProxyRequestResult() {
                 ) {
                     SmallColorfulText(
                         mainText = request.url ?: request.destinationAddress ?: "",
-                        subText = request.method ?: "",
+                        subText = request.formatHead?.getOrNull(0) ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black
                     )
