@@ -28,7 +28,7 @@ internal class ProxyLauncher private constructor(
                 builder.setMtu(mtu)
                     .addAddress(address, prefixLength)
                     .allowFamily(AF_INET)
-                    .setBlocking(true)
+                    .setBlocking(false)
                 for (route in routes) {
                     builder.addRoute(route.first, route.second)
                 }

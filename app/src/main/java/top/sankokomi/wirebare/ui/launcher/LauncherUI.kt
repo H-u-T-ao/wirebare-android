@@ -65,6 +65,7 @@ class LauncherUI : VpnPrepareActivity() {
             ).mapIndexedNotNull { index, b -> if (b) appList[index].packageName else null }
             withContext(Dispatchers.Main) {
                 LauncherModel.startProxy(
+                    this@LauncherUI,
                     accessList.toTypedArray(),
                     onRequest = {
                         lifecycleScope.launch {

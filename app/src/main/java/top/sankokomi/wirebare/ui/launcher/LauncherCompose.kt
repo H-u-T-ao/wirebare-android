@@ -210,7 +210,7 @@ private fun LauncherUI.PageProxyRequestResult() {
     LaunchedEffect(Unit) {
         requestFlow.collect {
             if (!isBanFilter) {
-                if (!it.isHttp) return@collect
+                //if (it.isHttps != false) return@collect
             }
             requestList.add(it)
         }
@@ -244,7 +244,7 @@ private fun LauncherUI.PageProxyRequestResult() {
                 ) {
                     SmallColorfulText(
                         mainText = request.url ?: request.destinationAddress ?: "",
-                        subText = request.method ?: "",
+                        subText = request.formatHead?.getOrNull(0) ?: "",
                         backgroundColor = Purple80,
                         textColor = Color.Black
                     )
@@ -281,7 +281,7 @@ private fun LauncherUI.PageProxyResponseResult() {
     LaunchedEffect(Unit) {
         responseFlow.collect {
             if (!isBanFilter) {
-                if (!it.isHttp) return@collect
+                // if (it.isHttps) return@collect
             }
             responseList.add(it)
         }

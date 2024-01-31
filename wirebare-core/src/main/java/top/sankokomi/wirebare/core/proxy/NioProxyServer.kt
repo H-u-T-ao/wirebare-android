@@ -1,5 +1,9 @@
 package top.sankokomi.wirebare.core.proxy
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.nio.NioCallback
 import java.nio.channels.Selector
 
@@ -16,24 +20,34 @@ internal abstract class NioProxyServer : ProxyServer() {
      * */
     protected abstract val selector: Selector
 
-    final override fun process() {
-        val select = selector.select()
-        if (select == 0) return
-        val selectionKeys = selector.selectedKeys()
-        var selectionKey = selectionKeys.firstOrNull()
-        while (selectionKey != null) {
-            val key = selectionKey
-            selectionKeys.remove(key)
-            selectionKey = selectionKeys.firstOrNull()
-            val callback = key.attachment()
-            if (!key.isValid || callback !is NioCallback) continue
-            kotlin.runCatching {
-                if (key.isAcceptable) callback.onAccept()
-                else if (key.isConnectable) callback.onConnected()
-                else if (key.isReadable) callback.onRead()
-                else if (key.isWritable) callback.onWrite()
-            }.onFailure {
-                callback.onException(it)
+    final override suspend fun process() {
+        withContext(Dispatchers.IO) {
+            var select = 0
+            while(isActive) {
+                select = selector.selectNow()
+                if (select != 0) {
+                    break
+                } else {
+                    delay(50L)
+                }
+            }
+            if (select == 0) return@withContext
+            val selectionKeys = selector.selectedKeys()
+            var selectionKey = selectionKeys.firstOrNull()
+            while (selectionKey != null) {
+                val key = selectionKey
+                selectionKeys.remove(key)
+                selectionKey = selectionKeys.firstOrNull()
+                val callback = key.attachment()
+                if (!key.isValid || callback !is NioCallback) continue
+                kotlin.runCatching {
+                    if (key.isAcceptable) callback.onAccept()
+                    else if (key.isConnectable) callback.onConnected()
+                    else if (key.isReadable) callback.onRead()
+                    else if (key.isWritable) callback.onWrite()
+                }.onFailure {
+                    callback.onException(it)
+                }
             }
         }
     }

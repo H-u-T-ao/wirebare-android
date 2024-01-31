@@ -11,7 +11,7 @@ internal abstract class ProxyServer : CoroutineScope {
     /**
      * 只要协程仍然存活，此函数将一直被执行来进行代理服务器的调度
      * */
-    protected abstract fun process()
+    protected abstract suspend fun process()
 
     /**
      * 协程被取消后，此函数用于释放资源
@@ -27,7 +27,9 @@ internal abstract class ProxyServer : CoroutineScope {
                 kotlin.runCatching {
                     process()
                 }.onFailure {
-                    WireBareLogger.error(it)
+                    if (it !is CancellationException) {
+                        WireBareLogger.error(it)
+                    }
                 }
             }
             release()

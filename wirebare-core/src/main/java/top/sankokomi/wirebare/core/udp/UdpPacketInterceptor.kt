@@ -43,7 +43,7 @@ internal class UdpPacketInterceptor(
             destinationPort
         )
 
-        WireBareLogger.inet(session, "客户端 $sourcePort >> 代理服务器")
+        WireBareLogger.inetDebug(session, "客户端 $sourcePort >> 代理服务器")
 
         proxyServer.proxy(ipv4Header, udpHeader, outputStream)
     }

@@ -11,31 +11,37 @@ import java.io.Serializable
 class HttpRequest internal constructor() : TcpRequest(), Serializable {
 
     /**
-     * 请求的方法，需要是 HTTP 协议才可以解析
+     * 请求的方法，需要是 HTTP/HTTPS 协议才可以解析
      * */
     var method: String? = null
         internal set
 
     /**
      * true 表示当前请求为 HTTP 请求
+     *
+     * false 表示当前请求为 HTTPS 请求
+     *
+     * null 表示未知，既不是 HTTP 也不是 HTTPS
      * */
-    var isHttp: Boolean = false
+    var isHttps: Boolean? = null
         internal set
 
     /**
-     * 若为 HTTP 请求，则为 HTTP 版本，否则为 null
+     * 若为 HTTP/HTTPS 请求，则为 HTTP 版本，否则为 null
      * */
     var httpVersion: String? = null
         internal set
 
+    internal var hostInternal: String? = null
+
     /**
-     * 请求的域名，需要是 HTTP 协议才可以解析
+     * 请求的域名
      * */
     var host: String? = null
         internal set
 
     /**
-     * 请求的路径，需要是 HTTP 协议才可以解析
+     * 请求的路径
      * */
     var path: String? = null
         internal set
@@ -53,14 +59,18 @@ class HttpRequest internal constructor() : TcpRequest(), Serializable {
         internal set
 
     /**
-     * 请求的 URL ，需要是 HTTP 协议才可以解析
+     * 请求的 URL ，需要是 HTTP/HTTPS 协议才可以解析
      * */
     val url: String?
         get() {
             if (host == null || path == null) {
                 return null
             }
-            return if (isHttp) "http://${host}${path}" else null
+            return when (isHttps) {
+                false -> "http://${host}${path}"
+                true -> "https://${host}${path}"
+                else -> null
+            }
         }
 
 }

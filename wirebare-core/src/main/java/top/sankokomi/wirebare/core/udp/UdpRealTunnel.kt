@@ -52,7 +52,7 @@ internal class UdpRealTunnel(
 
     override fun onWrite(): Int {
         val length = super.onWrite()
-        WireBareLogger.inet(session, "代理客户端写入 $length 字节")
+        WireBareLogger.inetDebug(session, "代理客户端写入 $length 字节")
         return length
     }
 
@@ -62,7 +62,7 @@ internal class UdpRealTunnel(
         if (length < 0) {
             closeSafely()
         } else {
-            WireBareLogger.inet(session, "代理客户端读取 $length 字节")
+            WireBareLogger.inetDebug(session, "代理客户端读取 $length 字节")
             outputStream.write(createUdpMessage(buffer))
         }
     }
@@ -99,7 +99,7 @@ internal class UdpRealTunnel(
 
     override fun close() {
         super.close()
-        WireBareLogger.inet(session, "UDP 代理结束")
+        WireBareLogger.inetDebug(session, "UDP 代理结束")
     }
 
 }

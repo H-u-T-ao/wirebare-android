@@ -1,23 +1,36 @@
 package top.sankokomi.wirebare.ui.launcher
 
+import android.content.Context
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.util.Level
 import java.nio.ByteBuffer
 
 object LauncherModel {
 
     fun startProxy(
+        context: Context,
         targetPackageNameArray: Array<String>,
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.DEBUG
+        WireBare.logLevel = Level.VERBOSE
         WireBare.startProxy {
+            jks = JKS(
+                {
+                    context.assets.open("wirebare.jks")
+                },
+                "wirebare",
+                "wirebare".toCharArray(),
+                "PKCS12",
+                "WB",
+                "WB"
+            )
             mtu = 10000
             tcpProxyServerCount = 1
             proxyAddress = "10.1.10.1" to 32

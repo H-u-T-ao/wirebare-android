@@ -2,8 +2,10 @@ package top.sankokomi.wirebare.core.service
 
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
@@ -68,28 +70,55 @@ internal class PacketDispatcher private constructor(
         if (!isActive) return
         // 启动协程接收 TUN 虚拟网卡的输入流
         launch(Dispatchers.IO) {
-            while (isActive) {
-                var length = 0
-                kotlin.runCatching {
-                    // 从 VPN 服务中读取输入流
-                    length = inputStream.read(buffer)
-                }.onFailure {
+            runCatching {
+                while (isActive) {
+                    var length = 0
+                    while (isActive) {
+                        kotlin.runCatching {
+                            // 从 VPN 服务中读取输入流
+                            length = inputStream.read(buffer)
+                        }.onFailure {
+                            WireBareLogger.error(it)
+                        }
+                        if (length != 0) {
+                            break
+                        } else {
+                            // 空闲了，等待 100 毫秒再继续轮询
+                            delay(100L)
+                        }
+                    }
+
+                    if (length <= 0) continue
+
+                    // 添加到处理队列
+                    pendingBuffers.offer(Packet(buffer, length))
+                    // 新建新的缓冲区准备接收下一个字节包
+                    buffer = ByteArray(configuration.mtu)
+                }
+            }.onFailure {
+                if (it !is CancellationException) {
                     WireBareLogger.error(it)
                 }
-
-                if (length <= 0) continue
-
-                // 添加到处理队列
-                pendingBuffers.offer(Packet(buffer, length))
-                // 新建新的缓冲区准备接收下一个字节包
-                buffer = ByteArray(configuration.mtu)
             }
+            // 关闭所有资源
             closeSafely(proxyDescriptor, inputStream, outputStream)
         }
         // 启动协程对接收到的输入流进行处理并进行输出
         launch(Dispatchers.IO) {
             while (isActive) {
-                val packet = pendingBuffers.take()
+                var p: Packet? = null
+                while (isActive) {
+                    p = pendingBuffers.poll()
+                    if (p != null) {
+                        break
+                    } else {
+                        // 空闲了，等待 100 毫秒再继续轮询
+                        delay(100L)
+                    }
+                }
+
+                // 这里为空只有一种情况，那就是 isActive == false
+                val packet = p ?: continue
 
                 if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
                     WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")

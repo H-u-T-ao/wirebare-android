@@ -98,12 +98,13 @@ internal class TcpPacketInterceptor(
             ipv4Header.destinationAddress = tunIpv4Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.debug("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort ${tcpHeader.dataLength} 字节")
+            WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
+                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
         } else {
             // 来源是代理服务器，说明该数据包是响应包
             val session = sessionStore.query(
                 destinationPort
-            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接")
+            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接 端口 $destinationPort")
 
             session.tryDrop()
 
@@ -113,7 +114,8 @@ internal class TcpPacketInterceptor(
 
             ipv4Header.destinationAddress = tunIpv4Address
 
-            WireBareLogger.debug("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort ${tcpHeader.dataLength} 字节")
+            WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
+                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
         }
 
         ipv4Header.notifyCheckSum()
