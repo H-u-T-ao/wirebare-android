@@ -19,27 +19,55 @@ class WireBareConfiguration internal constructor() {
     var tcpProxyServerCount: Int = 1
 
     /**
-     * TUN 网卡 ip 地址
+     * TUN 网卡 ipv4 地址
      * */
-    internal var address: String = "10.1.10.1"
+    internal var ipv4Address: String = "10.1.10.1"
 
     /**
-     * TUN 网卡 ip 地址前缀长度
+     * TUN 网卡 ipv4 地址前缀长度
      * */
-    internal var prefixLength: Int = 32
+    internal var ipv4PrefixLength: Int = 32
 
     /**
-     * TUN 网卡 ip 地址以及地址的前缀长度
+     * TUN 网卡 ipv4 地址以及地址的前缀长度
      *
-     * 建议设置几乎不会冲突的 ip 地址，例如 A 类地址
+     * 建议设置几乎不会冲突的 ipv4 地址，例如 A 类地址
      *
      * 默认 10.1.10.1/32
      * */
-    var proxyAddress: Pair<String, Int>
-        get() = address to prefixLength
+    var ipv4ProxyAddress: Pair<String, Int>
+        get() = ipv4Address to ipv4PrefixLength
         set(proxyAddress) {
-            address = proxyAddress.first
-            prefixLength - proxyAddress.second
+            ipv4Address = proxyAddress.first
+            ipv4PrefixLength - proxyAddress.second
+        }
+
+    /**
+     * TUN 网卡 ipv6 地址
+     *
+     * 请使用全称，不要用 :: 省略
+     * */
+    internal var ipv6Address: String = "a:0:1:0:0:a:0:1"
+
+    /**
+     * TUN 网卡 ipv6 地址前缀长度
+     * */
+    internal var ipv6PrefixLength: Int = 128
+
+    var enableIpv6: Boolean = true
+        internal set
+
+    /**
+     * TUN 网卡 ipv6 地址以及地址的前缀长度
+     * */
+    var ipv6ProxyAddress: Pair<String, Int>
+        get() = ipv4Address to ipv4PrefixLength
+        set(proxyAddress) {
+            if (proxyAddress.second < 0) {
+                enableIpv6 = false
+            }
+            ipv4Address = proxyAddress.first
+            ipv4PrefixLength - proxyAddress.second
         }
 
     /**
@@ -120,9 +148,13 @@ class WireBareConfiguration internal constructor() {
         return WireBareConfiguration().also {
             it.jks = jks
             it.mtu = mtu
-            it.address = address
-            it.prefixLength = prefixLength
-            it.proxyAddress = proxyAddress
+            it.ipv4Address = ipv4Address
+            it.ipv4PrefixLength = ipv4PrefixLength
+            it.ipv4ProxyAddress = ipv4ProxyAddress.copy()
+            it.ipv6Address = ipv6Address
+            it.ipv6PrefixLength = ipv6PrefixLength
+            it.enableIpv6 = enableIpv6
+            it.ipv6ProxyAddress = ipv6ProxyAddress.copy()
             it.routes.addAll(routes)
             it.dnsServers.addAll(dnsServers)
             it.allowedApplications.addAll(allowedApplications)

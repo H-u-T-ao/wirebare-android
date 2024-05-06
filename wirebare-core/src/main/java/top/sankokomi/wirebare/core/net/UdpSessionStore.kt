@@ -9,7 +9,7 @@ internal class UdpSessionStore : SessionStore<Port, UdpSession>() {
      * */
     internal fun insert(
         sourcePort: Port,
-        destinationAddress: Ipv4Address,
+        destinationAddress: IpAddress,
         destinationPort: Port
     ): UdpSession {
         return UdpSession(

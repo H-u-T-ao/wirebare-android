@@ -33,7 +33,7 @@ object LauncherModel {
             )
             mtu = 10000
             tcpProxyServerCount = 1
-            proxyAddress = "10.1.10.1" to 32
+            ipv4ProxyAddress = "10.1.10.1" to 32
             addRoutes("0.0.0.0" to 0)
             addAllowedApplications(*targetPackageNameArray)
             setHttpInterceptorFactory {

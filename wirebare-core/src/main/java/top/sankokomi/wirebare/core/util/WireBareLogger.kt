@@ -75,19 +75,19 @@ internal object WireBareLogger {
     }
 
     internal fun inetDebug(session: TcpSession, msg: String) {
-        debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+        debug("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetInfo(session: TcpSession, msg: String) {
-        info("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+        info("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetDebug(session: UdpSession, msg: String) {
-        debug("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+        debug("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetInfo(session: UdpSession, msg: String) {
-        info("[${session.protocol.name}] ${WireBare.configuration.address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+        info("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
 }

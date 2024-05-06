@@ -2,7 +2,8 @@ package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
-import top.sankokomi.wirebare.core.net.Ipv4Address
+import top.sankokomi.wirebare.core.net.IpAddress
+import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Port
@@ -34,7 +35,10 @@ internal class TcpPacketInterceptor(
     /**
      * 虚拟网卡的 ip 地址，也就是代理服务器的 ip 地址
      * */
-    private val tunIpv4Address = Ipv4Address(configuration.address)
+    private val tunIpAddress = IpAddress(
+        configuration.ipv4Address,
+        IpVersion.IPv4
+    )
 
     /**
      * 代理服务器的端口集合
@@ -95,7 +99,7 @@ internal class TcpPacketInterceptor(
             // 将被代理客户端的请求数据包转发给代理服务器
             ipv4Header.sourceAddress = destinationAddress
 
-            ipv4Header.destinationAddress = tunIpv4Address
+            ipv4Header.destinationAddress = tunIpAddress
             tcpHeader.destinationPort = proxyServerPort
 
             WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
@@ -112,7 +116,7 @@ internal class TcpPacketInterceptor(
             ipv4Header.sourceAddress = destinationAddress
             tcpHeader.sourcePort = session.destinationPort
 
-            ipv4Header.destinationAddress = tunIpv4Address
+            ipv4Header.destinationAddress = tunIpAddress
 
             WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
                     "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")

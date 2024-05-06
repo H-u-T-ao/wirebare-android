@@ -10,7 +10,7 @@ package top.sankokomi.wirebare.core.net
  * */
 data class UdpSession internal constructor(
     val sourcePort: Port,
-    val destinationAddress: Ipv4Address,
+    val destinationAddress: IpAddress,
     val destinationPort: Port,
     internal val sessionStore: UdpSessionStore
 ) : Session<Port>(sessionStore) {

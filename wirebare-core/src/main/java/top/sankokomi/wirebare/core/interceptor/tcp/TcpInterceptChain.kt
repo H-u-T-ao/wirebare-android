@@ -29,12 +29,12 @@ abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
             curReqRspMap[session] = newInstanceReqRsp().also {
                 it.first.run {
                     sourcePort = session.sourcePort.port
-                    destinationAddress = session.destinationAddress.string
+                    destinationAddress = session.destinationAddress.stringIp
                     destinationPort = session.destinationPort.port
                 }
                 it.second.run {
                     sourcePort = session.sourcePort.port
-                    destinationAddress = session.destinationAddress.string
+                    destinationAddress = session.destinationAddress.stringIp
                     destinationPort = session.destinationPort.port
                 }
             }

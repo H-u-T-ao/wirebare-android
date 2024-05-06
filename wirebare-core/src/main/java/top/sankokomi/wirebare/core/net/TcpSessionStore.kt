@@ -9,7 +9,7 @@ internal class TcpSessionStore : SessionStore<Port, TcpSession>() {
      * */
     internal fun insert(
         sourcePort: Port,
-        destinationAddress: Ipv4Address,
+        destinationAddress: IpAddress,
         destinationPort: Port
     ): TcpSession {
         return TcpSession(

@@ -86,13 +86,13 @@ internal class Ipv4Header(
         get() = packet[offset + OFFSET_PROTOCOL]
         set(value) = packet.writeByte(value, offset + OFFSET_PROTOCOL)
 
-    internal var sourceAddress: Ipv4Address
-        get() = Ipv4Address(packet.readInt(offset + OFFSET_SOURCE_ADDRESS))
-        set(value) = packet.writeInt(value.int, offset + OFFSET_SOURCE_ADDRESS)
+    internal var sourceAddress: IpAddress
+        get() = IpAddress(packet.readInt(offset + OFFSET_SOURCE_ADDRESS))
+        set(value) = packet.writeInt(value.intIpv4, offset + OFFSET_SOURCE_ADDRESS)
 
-    internal var destinationAddress: Ipv4Address
-        get() = Ipv4Address(packet.readInt(offset + OFFSET_DESTINATION_ADDRESS))
-        set(value) = packet.writeInt(value.int, offset + OFFSET_DESTINATION_ADDRESS)
+    internal var destinationAddress: IpAddress
+        get() = IpAddress(packet.readInt(offset + OFFSET_DESTINATION_ADDRESS))
+        set(value) = packet.writeInt(value.intIpv4, offset + OFFSET_DESTINATION_ADDRESS)
 
     internal var checkSum: Short
         get() = packet.readShort(offset + OFFSET_CHECK_SUM)

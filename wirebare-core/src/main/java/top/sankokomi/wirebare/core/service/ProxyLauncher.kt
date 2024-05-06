@@ -26,7 +26,7 @@ internal class ProxyLauncher private constructor(
         val builder = proxyService.Builder().also { builder ->
             with(configuration) {
                 builder.setMtu(mtu)
-                    .addAddress(address, prefixLength)
+                    .addAddress(ipv4Address, ipv4PrefixLength)
                     .allowFamily(AF_INET)
                     .setBlocking(false)
                 for (route in routes) {

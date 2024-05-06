@@ -34,6 +34,13 @@ internal fun ByteArray.writeInt(value: Int, offset: Int) {
     this[offset + 3] = value.toByte()
 }
 
+internal fun ByteArray.writeBigInt(value: BigInteger, length: Int, offset: Int) {
+    this[offset] = (value shr 24).toByte()
+    this[offset + 1] = (value shr 16).toByte()
+    this[offset + 2] = (value shr 8).toByte()
+    this[offset + 3] = value.toByte()
+}
+
 internal fun ByteArray.calculateSum(offset: Int, length: Int): BigInteger {
     var start = offset
     var size = length

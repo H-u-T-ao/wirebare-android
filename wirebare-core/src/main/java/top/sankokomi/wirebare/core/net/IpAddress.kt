@@ -1,0 +1,87 @@
+package top.sankokomi.wirebare.core.net
+
+import android.os.Parcel
+import android.os.Parcelable
+import android.os.Parcelable.Creator
+import top.sankokomi.wirebare.core.util.convertIpv4ToInt
+import top.sankokomi.wirebare.core.util.convertIpv4ToString
+import top.sankokomi.wirebare.core.util.convertIpv6ToInt
+
+/**
+ * ip 地址
+ * */
+class IpAddress : Parcelable {
+
+    val ipVersion: IpVersion
+
+    val intIpv4: Int
+
+    val intIpv6: IntIpv6
+
+    val stringIp: String
+
+    constructor(ipv4Address: Int) {
+        this.ipVersion = IpVersion.IPv4
+        this.intIpv4 = ipv4Address
+        this.stringIp = intIpv4.convertIpv4ToString
+        this.intIpv6 = IntIpv6(0L, 0L)
+    }
+
+    constructor(address: String, ipVersion: IpVersion) {
+        this.ipVersion = ipVersion
+        when (ipVersion) {
+            IpVersion.IPv4 -> {
+                this.intIpv4 = address.convertIpv4ToInt
+                this.stringIp = address
+                this.intIpv6 = IntIpv6(0L, 0L)
+            }
+
+            IpVersion.IPv6 -> {
+                this.intIpv6 = address.convertIpv6ToInt
+                this.stringIp = address
+                this.intIpv4 = 0
+            }
+        }
+    }
+
+    override fun toString(): String = stringIp
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as IpAddress
+
+        if (ipVersion != other.ipVersion) return false
+        if (intIpv4 != other.intIpv4) return false
+        if (intIpv6 != other.intIpv6) return false
+        return stringIp == other.stringIp
+    }
+
+    override fun hashCode(): Int {
+        var result = ipVersion.hashCode()
+        result = 31 * result + intIpv4
+        result = 31 * result + intIpv6.hashCode()
+        result = 31 * result + stringIp.hashCode()
+        return result
+    }
+
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeInt(intIpv4)
+    }
+
+    private constructor(parcel: Parcel) : this(parcel.readInt())
+
+    companion object CREATOR : Creator<IpAddress> {
+        override fun createFromParcel(parcel: Parcel): IpAddress {
+            return IpAddress(parcel)
+        }
+
+        override fun newArray(size: Int): Array<IpAddress?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}
