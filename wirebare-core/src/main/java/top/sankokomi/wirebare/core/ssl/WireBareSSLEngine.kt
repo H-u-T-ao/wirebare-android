@@ -24,6 +24,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
 
     private val pendingPlaintext = ConcurrentLinkedQueue<ByteBuffer>()
 
+    /**
+     * 使用 SSL 引擎 [engine] 解密数据 [input]
+     * */
     fun decodeBuffer(
         input: ByteBuffer,
         callback: SSLCallback
@@ -41,6 +44,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 }
             }
         } else {
+            // 开始握手
             handshake(input, callback)
         }
         // 握手完成了，此时有待发送的数据的话，立即发送
@@ -54,6 +58,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
     }
 
+    /**
+     * 使用 SSL 引擎 [engine] 加密数据 [input]
+     * */
     fun encodeBuffer(
         input: ByteBuffer,
         callback: SSLCallback
@@ -64,10 +71,14 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         if (phase == EnginePhase.HandshakeFinished) {
             wrap(input, callback)
         } else {
+            // 还没有握手完毕，先将要加密的数据存到缓冲区中
             pendingPlaintext.offer(input)
         }
     }
 
+    /**
+     * 加密数据的核心操作
+     * */
     private fun wrap(
         input: ByteBuffer,
         callback: SSLCallback
@@ -95,6 +106,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
     }
 
+    /**
+     * 解密数据的核心操作
+     * */
     private fun unwrap(
         input: ByteBuffer,
         callback: SSLCallback
@@ -193,6 +207,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
     }
 
+    /**
+     * 握手协商时的加密操作
+     * */
     private fun handshakeWrap(callback: SSLCallback): SSLEngineResult {
         var result: SSLEngineResult
         var output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
@@ -215,6 +232,9 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         return result
     }
 
+    /**
+     * 握手协商时的解密操作
+     * */
     private fun handshakeUnwrap(
         input: ByteBuffer,
         callback: SSLCallback
