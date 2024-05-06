@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.service
 
 import android.os.Build
-import android.system.OsConstants.AF_INET
+import android.system.OsConstants
 import kotlinx.coroutines.*
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.service.PacketDispatcher.Companion.dispatchWith
@@ -27,8 +27,15 @@ internal class ProxyLauncher private constructor(
             with(configuration) {
                 builder.setMtu(mtu)
                     .addAddress(ipv4Address, ipv4PrefixLength)
-                    .allowFamily(AF_INET)
+                    .allowFamily(OsConstants.AF_INET)
                     .setBlocking(false)
+                if (enableIpv6) {
+                    builder.setMtu(mtu)
+                        .addAddress(ipv6Address, ipv6PrefixLength)
+                        .allowFamily(OsConstants.AF_INET6)
+                        .setBlocking(false)
+                        .addRoute("::", 0)
+                }
                 for (route in routes) {
                     builder.addRoute(route.first, route.second)
                 }

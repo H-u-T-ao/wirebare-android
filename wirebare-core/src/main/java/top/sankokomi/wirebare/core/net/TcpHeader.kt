@@ -35,7 +35,7 @@ import kotlin.experimental.and
  * RES := Reserved
  */
 internal class TcpHeader(
-    private val ipv4Header: Ipv4Header,
+    private val ipHeader: IIpHeader,
     private val packet: ByteArray,
     private val offset: Int
 ) {
@@ -82,7 +82,7 @@ internal class TcpHeader(
      * 计算结果 = [Ipv4Header.totalLength] - [Ipv4Header.headerLength] - [headerLength]
      * */
     internal val dataLength: Int
-        get() = ipv4Header.totalLength - ipv4Header.headerLength - headerLength
+        get() = ipHeader.dataLength - headerLength
 
     internal var flag: Byte
         get() = packet.readByte(offset + OFFSET_FLAG)
@@ -119,11 +119,11 @@ internal class TcpHeader(
     }
 
     private fun calculateChecksum(): Short {
-        val dataLength = ipv4Header.totalLength - ipv4Header.headerLength
-        var sum = ipv4Header.ipv4AddressSum
-        sum += BigInteger.valueOf((ipv4Header.protocol.toInt() and 0xF).toLong())
-        sum += BigInteger.valueOf(dataLength.toLong())
-        sum += packet.calculateSum(offset, dataLength)
+        val totalLength = ipHeader.dataLength
+        var sum = ipHeader.addressSum
+        sum += BigInteger.valueOf((ipHeader.protocol.toInt() and 0xF).toLong())
+        sum += BigInteger.valueOf(totalLength.toLong())
+        sum += packet.calculateSum(offset, totalLength)
         var next = sum shr 16
         while (next != BigInteger.ZERO) {
             sum = (sum and BigInteger.valueOf(0xFFFF)) + next

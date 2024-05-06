@@ -77,28 +77,36 @@ internal class TcpRealTunnel(
             session,
             "远程服务器 >> 代理客户端 $length 字节"
         )
-        val bufferQueue = httpVirtualGateway.onResponse(
-            buffer, session
-        )
-        for ((target, direction) in bufferQueue) {
-            val remaining = target.remaining() - target.position()
-            when (direction) {
-                BufferDirection.ProxyClient -> {
-                    WireBareLogger.inetDebug(
-                        session,
-                        "代理客户端 >> 客户端 $remaining 字节"
-                    )
-                    proxyTunnel.write(target)
-                }
+        runCatching {
+            val bufferQueue = httpVirtualGateway.onResponse(
+                buffer, session
+            )
+            for ((target, direction) in bufferQueue) {
+                WireBareLogger.inetDebug(
+                    session,
+                    "???"
+                )
+                val remaining = target.remaining() - target.position()
+                when (direction) {
+                    BufferDirection.ProxyClient -> {
+                        WireBareLogger.inetDebug(
+                            session,
+                            "代理客户端 >> 客户端 $remaining 字节"
+                        )
+                        proxyTunnel.write(target)
+                    }
 
-                BufferDirection.RemoteServer -> {
-                    WireBareLogger.inetDebug(
-                        session,
-                        "代理客户端 >> 远程服务器 $remaining 字节"
-                    )
-                    write(target)
+                    BufferDirection.RemoteServer -> {
+                        WireBareLogger.inetDebug(
+                            session,
+                            "代理客户端 >> 远程服务器 $remaining 字节"
+                        )
+                        write(target)
+                    }
                 }
             }
+        }.onFailure {
+            WireBareLogger.error(it)
         }
     }
 

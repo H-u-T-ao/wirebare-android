@@ -6,6 +6,7 @@ import android.os.Parcelable.Creator
 import top.sankokomi.wirebare.core.util.convertIpv4ToInt
 import top.sankokomi.wirebare.core.util.convertIpv4ToString
 import top.sankokomi.wirebare.core.util.convertIpv6ToInt
+import top.sankokomi.wirebare.core.util.convertIpv6ToString
 
 /**
  * ip 地址
@@ -25,6 +26,13 @@ class IpAddress : Parcelable {
         this.intIpv4 = ipv4Address
         this.stringIp = intIpv4.convertIpv4ToString
         this.intIpv6 = IntIpv6(0L, 0L)
+    }
+
+    constructor(ipv6Address: IntIpv6) {
+        this.ipVersion = IpVersion.IPv6
+        this.intIpv6 = ipv6Address
+        this.stringIp = intIpv6.convertIpv6ToString
+        this.intIpv4 = 0
     }
 
     constructor(address: String, ipVersion: IpVersion) {

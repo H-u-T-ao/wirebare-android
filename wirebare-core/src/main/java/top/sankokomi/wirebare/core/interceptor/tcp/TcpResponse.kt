@@ -1,6 +1,8 @@
 package top.sankokomi.wirebare.core.interceptor.tcp
 
-open class TcpResponse internal constructor() {
+import java.io.Serializable
+
+open class TcpResponse internal constructor(): Serializable {
     /**
      * 来源端口号
      * */

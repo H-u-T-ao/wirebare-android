@@ -5,6 +5,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
 import top.sankokomi.wirebare.core.net.IpAddress
 import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.Ipv4Header
+import top.sankokomi.wirebare.core.net.Ipv6Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Port
 import top.sankokomi.wirebare.core.net.TcpSessionStore
@@ -35,9 +36,14 @@ internal class TcpPacketInterceptor(
     /**
      * 虚拟网卡的 ip 地址，也就是代理服务器的 ip 地址
      * */
-    private val tunIpAddress = IpAddress(
+    private val tunIpv4Address = IpAddress(
         configuration.ipv4Address,
         IpVersion.IPv4
+    )
+
+    private val tunIpv6Address = IpAddress(
+        configuration.ipv6Address,
+        IpVersion.IPv6
     )
 
     /**
@@ -99,7 +105,7 @@ internal class TcpPacketInterceptor(
             // 将被代理客户端的请求数据包转发给代理服务器
             ipv4Header.sourceAddress = destinationAddress
 
-            ipv4Header.destinationAddress = tunIpAddress
+            ipv4Header.destinationAddress = tunIpv4Address
             tcpHeader.destinationPort = proxyServerPort
 
             WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
@@ -116,13 +122,79 @@ internal class TcpPacketInterceptor(
             ipv4Header.sourceAddress = destinationAddress
             tcpHeader.sourcePort = session.destinationPort
 
-            ipv4Header.destinationAddress = tunIpAddress
+            ipv4Header.destinationAddress = tunIpv4Address
 
             WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
                     "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
         }
 
         ipv4Header.notifyCheckSum()
+        tcpHeader.notifyCheckSum()
+
+        outputStream.write(packet.packet, 0, packet.length)
+    }
+
+    override fun intercept(
+        ipv6Header: Ipv6Header, packet: Packet, outputStream: OutputStream
+    ) {
+        val tcpHeader = TcpHeader(ipv6Header, packet.packet, ipv6Header.headerLength)
+
+        // 来源地址和端口
+        val sourceAddress = ipv6Header.sourceAddress
+        val sourcePort = tcpHeader.sourcePort
+
+        // 目的地址和端口
+        val destinationAddress = ipv6Header.destinationAddress
+        val destinationPort = tcpHeader.destinationPort
+
+        val logPrefix = if (tcpHeader.syn) {
+            "[IPv6][SYN]"
+        } else if (tcpHeader.fin) {
+            "[IPv6][FIN]"
+        } else if (tcpHeader.ack) {
+            "[IPv6][ACK]"
+        } else {
+            "[IPv6][---]"
+        }
+
+        if (!ports.contains(sourcePort)) {
+            // 来源不是代理服务器，说明该数据包是被代理客户端发出来的请求包
+            sessionStore.insert(
+                sourcePort, destinationAddress, destinationPort
+            )
+
+            // 根据端口号分配给固定的服务器
+            val proxyServerPort = servers[
+                sourcePort.port.convertPortToInt % servers.size
+            ].proxyServerPort
+
+            // 将被代理客户端的请求数据包转发给代理服务器
+            ipv6Header.sourceAddress = destinationAddress
+
+            ipv6Header.destinationAddress = tunIpv6Address
+            tcpHeader.destinationPort = proxyServerPort
+
+            WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
+                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+        } else {
+            // 来源是代理服务器，说明该数据包是响应包
+            val session = sessionStore.query(
+                destinationPort
+            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接 端口 $destinationPort")
+
+            session.tryDrop()
+
+            // 将远程服务器的响应包转发给被代理客户端
+            ipv6Header.sourceAddress = destinationAddress
+            tcpHeader.sourcePort = session.destinationPort
+
+            ipv6Header.destinationAddress = tunIpv6Address
+
+            WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
+                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+        }
+
+        // ipv4Header.notifyCheckSum()
         tcpHeader.notifyCheckSum()
 
         outputStream.write(packet.packet, 0, packet.length)

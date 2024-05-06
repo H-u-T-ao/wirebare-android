@@ -37,8 +37,32 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
-                    mainText = "DESTINATION IPV4",
+                    mainText = "DESTINATION IP ADDRESS",
                     subText = request.destinationAddress ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "SOURCE PORT",
+                    subText = request.sourcePort?.toUShort()?.toString() ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "DESTINATION PORT",
+                    subText = request.destinationPort?.toUShort()?.toString() ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )
@@ -112,8 +136,32 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
-                    mainText = "DESTINATION IPV4",
+                    mainText = "DESTINATION IP ADDRESS",
                     subText = response.destinationAddress ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "SOURCE PORT",
+                    subText = response.sourcePort?.toUShort()?.toString() ?: "",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                LargeColorfulText(
+                    mainText = "DESTINATION PORT",
+                    subText = response.destinationPort?.toUShort()?.toString() ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )

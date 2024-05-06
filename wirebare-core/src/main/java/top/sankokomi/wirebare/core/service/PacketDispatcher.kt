@@ -9,7 +9,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
+import top.sankokomi.wirebare.core.net.IIpHeader
+import top.sankokomi.wirebare.core.net.IpHeader
+import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.Ipv4Header
+import top.sankokomi.wirebare.core.net.Ipv6Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Protocol
 import top.sankokomi.wirebare.core.tcp.TcpPacketInterceptor
@@ -120,26 +124,42 @@ internal class PacketDispatcher private constructor(
                 // 这里为空只有一种情况，那就是 isActive == false
                 val packet = p ?: continue
 
-                if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
-                    WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")
-                    continue
+                val ipHeader: IIpHeader
+                when (val ipVersion = IpHeader.readIpVersion(packet, 0)) {
+                    IpHeader.VERSION_4 -> {
+                        if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
+                            WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")
+                            continue
+                        }
+                        ipHeader = Ipv4Header(packet.packet, 0)
+                    }
+
+                    IpHeader.VERSION_6 -> {
+                        if (packet.length < Ipv6Header.IPV6_STANDARD_LENGTH) {
+                            WireBareLogger.warn("报文长度小于 ${Ipv6Header.IPV6_STANDARD_LENGTH}")
+                            continue
+                        }
+                        ipHeader = Ipv6Header(packet.packet, 0)
+                    }
+
+                    else -> {
+                        WireBareLogger.debug("未知的 ip 版本号 0b${ipVersion.toString(2)}")
+                        continue
+                    }
                 }
 
-                val ipv4Header = Ipv4Header(packet.packet, 0)
-                if (!ipv4Header.isIpv4) {
-                    WireBareLogger.debug("未知的 ip 版本号 0b${ipv4Header.version.toString(2)}")
-                    continue
-                }
-
-                val interceptor = interceptors[Protocol.parse(ipv4Header.protocol)]
+                val interceptor = interceptors[Protocol.parse(ipHeader.protocol)]
                 if (interceptor == null) {
-                    WireBareLogger.warn("未知的协议代号 0b${ipv4Header.protocol.toString(2)}")
+                    WireBareLogger.warn("未知的协议代号 0b${ipHeader.protocol.toString(2)}")
                     continue
                 }
 
                 kotlin.runCatching {
                     // 拦截器拦截输入流
-                    interceptor.intercept(ipv4Header, packet, outputStream)
+                    when (ipHeader) {
+                        is Ipv4Header -> interceptor.intercept(ipHeader, packet, outputStream)
+                        is Ipv6Header -> interceptor.intercept(ipHeader, packet, outputStream)
+                    }
                 }.onFailure {
                     WireBareLogger.error(it)
                 }

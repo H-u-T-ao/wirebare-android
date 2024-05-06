@@ -32,7 +32,7 @@ internal fun Queue<ByteBuffer>.mergeBuffer(clear: Boolean = true): ByteBuffer {
                 array,
                 offset,
                 pendingBuffer.position(),
-                pendingBuffer.remaining() - pendingBuffer.position()
+                pendingBuffer.position() + pendingBuffer.remaining()
             )
             offset += pendingBuffer.remaining()
         }
