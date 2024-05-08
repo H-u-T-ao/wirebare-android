@@ -1,13 +1,18 @@
 package top.sankokomi.wirebare.core.tcp
 
+import top.sankokomi.wirebare.core.common.EventSynopsis
+import top.sankokomi.wirebare.core.common.ImportantEvent
+import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.BufferDirection
 import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
+import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.closeSafely
+import top.sankokomi.wirebare.core.util.ipVersion
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
@@ -40,7 +45,13 @@ internal class TcpRealTunnel(
         if (proxyService.protect(channel.socket())) {
             channel.configureBlocking(false)
             channel.register(selector, SelectionKey.OP_CONNECT, this)
-            channel.connect(InetSocketAddress(address, port))
+            runCatching {
+                channel.connect(InetSocketAddress(address, port))
+            }.onFailure {
+                reportExceptionWhenConnect(address, port, it)
+                WireBareLogger.error(it)
+                onException(it)
+            }
         } else {
             throw IllegalStateException("无法保护 TCP 通道的套接字")
         }
@@ -77,44 +88,63 @@ internal class TcpRealTunnel(
             session,
             "远程服务器 >> 代理客户端 $length 字节"
         )
-        runCatching {
-            val bufferQueue = httpVirtualGateway.onResponse(
-                buffer, session
-            )
-            for ((target, direction) in bufferQueue) {
-                WireBareLogger.inetDebug(
-                    session,
-                    "???"
-                )
-                val remaining = target.remaining() - target.position()
-                when (direction) {
-                    BufferDirection.ProxyClient -> {
-                        WireBareLogger.inetDebug(
-                            session,
-                            "代理客户端 >> 客户端 $remaining 字节"
-                        )
-                        proxyTunnel.write(target)
-                    }
+        val bufferQueue = httpVirtualGateway.onResponse(
+            buffer, session
+        )
+        for ((target, direction) in bufferQueue) {
+            val remaining = target.remaining() - target.position()
+            when (direction) {
+                BufferDirection.ProxyClient -> {
+                    WireBareLogger.inetDebug(
+                        session,
+                        "代理客户端 >> 客户端 $remaining 字节"
+                    )
+                    proxyTunnel.write(target)
+                }
 
-                    BufferDirection.RemoteServer -> {
-                        WireBareLogger.inetDebug(
-                            session,
-                            "代理客户端 >> 远程服务器 $remaining 字节"
-                        )
-                        write(target)
-                    }
+                BufferDirection.RemoteServer -> {
+                    WireBareLogger.inetDebug(
+                        session,
+                        "代理客户端 >> 远程服务器 $remaining 字节"
+                    )
+                    write(target)
                 }
             }
-        }.onFailure {
-            WireBareLogger.error(it)
         }
     }
 
     override fun onException(t: Throwable) {
+        WireBareLogger.error(t)
         closeSafely(this, proxyTunnel)
         httpVirtualGateway.onRequestFinished(session)
         httpVirtualGateway.onResponseFinished(session)
         session.markDying()
+    }
+
+    private fun reportExceptionWhenConnect(address: String, port: Int, t: Throwable?) {
+        when (address.ipVersion) {
+            IpVersion.IPv4 -> {
+                WireBare.postImportantEvent(
+                    ImportantEvent(
+                        "连接远程服务器 $address:$port 时出现错误",
+                        EventSynopsis.IPV4_UNREACHABLE,
+                        t
+                    )
+                )
+            }
+
+            IpVersion.IPv6 -> {
+                WireBare.postImportantEvent(
+                    ImportantEvent(
+                        "连接远程服务器 $address:$port 时出现错误",
+                        EventSynopsis.IPV6_UNREACHABLE,
+                        t
+                    )
+                )
+            }
+
+            else -> {}
+        }
     }
 
 }

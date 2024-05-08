@@ -157,8 +157,12 @@ internal class PacketDispatcher private constructor(
                 kotlin.runCatching {
                     // 拦截器拦截输入流
                     when (ipHeader) {
-                        is Ipv4Header -> interceptor.intercept(ipHeader, packet, outputStream)
-                        is Ipv6Header -> interceptor.intercept(ipHeader, packet, outputStream)
+                        is Ipv4Header -> {
+                            interceptor.intercept(ipHeader, packet, outputStream)
+                        }
+                        is Ipv6Header -> {
+                            interceptor.intercept(ipHeader, packet, outputStream)
+                        }
                     }
                 }.onFailure {
                     WireBareLogger.error(it)

@@ -43,31 +43,36 @@ class WireBareConfiguration internal constructor() {
         }
 
     /**
+     * 是否启用 ipv6
+     *
+     * 当然启动的前提是设备和网络都必须支持 ipv6
+     *
+     * 如果不支持 ipv6 但启用了，那么还是会代理 ipv6 流量，但不会有任何响应
+     *
+     * 一般来说，ipv6 失败以后会退化成为 ipv4
+     * */
+    var enableIpv6: Boolean = false
+
+    /**
      * TUN 网卡 ipv6 地址
      *
      * 请使用全称，不要用 :: 省略
      * */
-    internal var ipv6Address: String = "a:0:1:0:0:a:0:1"
+    internal var ipv6Address: String = "a:0:0:1:a:0:0:1"
 
     /**
      * TUN 网卡 ipv6 地址前缀长度
      * */
     internal var ipv6PrefixLength: Int = 128
 
-    var enableIpv6: Boolean = true
-        internal set
-
     /**
      * TUN 网卡 ipv6 地址以及地址的前缀长度
      * */
     var ipv6ProxyAddress: Pair<String, Int>
-        get() = ipv4Address to ipv4PrefixLength
+        get() = ipv6Address to ipv6PrefixLength
         set(proxyAddress) {
-            if (proxyAddress.second < 0) {
-                enableIpv6 = false
-            }
-            ipv4Address = proxyAddress.first
-            ipv4PrefixLength - proxyAddress.second
+            ipv6Address = proxyAddress.first
+            ipv6PrefixLength - proxyAddress.second
         }
 
     /**

@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.ui.launcher
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +34,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import top.sankokomi.wirebare.core.common.EventSynopsis
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
@@ -45,6 +49,7 @@ import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple40
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.PurpleGrey40
+import top.sankokomi.wirebare.ui.resources.DeepPureRed
 import top.sankokomi.wirebare.ui.resources.SmallColorfulText
 import top.sankokomi.wirebare.ui.wireinfo.WireInfoUI
 
@@ -83,9 +88,23 @@ fun LauncherUI.WireBareUIPage() {
 private fun LauncherUI.PageControlCenter() {
     var wireBareStatus by remember { mutableStateOf(ProxyStatus.DEAD) }
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
+    val enableIpv6 by ProxyPolicyDataStore.enableIpv6.collectAsState()
+    var maybeUnsupportedIpv6 by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         proxyStatusFlow.collect {
+            maybeUnsupportedIpv6 = false
             wireBareStatus = it
+        }
+    }
+    LaunchedEffect(Unit) {
+        eventFlow.collect { event ->
+            when (event.synopsis) {
+                EventSynopsis.IPV6_UNREACHABLE -> {
+                    maybeUnsupportedIpv6 = true
+                }
+
+                else -> {}
+            }
         }
     }
     Box(
@@ -148,7 +167,20 @@ private fun LauncherUI.PageControlCenter() {
                     textColor = textColor
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            AnimatedVisibility(
+                visible = wireBareStatus == ProxyStatus.ACTIVE || wireBareStatus == ProxyStatus.STARTING
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    text = "下面的配置修改后需要重启服务生效",
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -199,6 +231,55 @@ private fun LauncherUI.PageControlCenter() {
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            val i6MainText: String
+            val i6SubText: String
+            val i6BackgroundColor: Color
+            val i6TextColor: Color
+            if (enableIpv6) {
+                i6MainText = "IPv6 代理已启用"
+                i6SubText = "代理 IPv4 和 IPv6 数据包"
+                i6BackgroundColor = Purple80
+                i6TextColor = Color.Black
+            } else {
+                i6MainText = "IPv6 代理已禁用"
+                i6SubText = "仅代理 IPv4 数据包"
+                i6BackgroundColor = PurpleGrey40
+                i6TextColor = Color.White
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
+                    }
+            ) {
+                LargeColorfulText(
+                    mainText = i6MainText,
+                    subText = i6SubText,
+                    backgroundColor = i6BackgroundColor,
+                    textColor = i6TextColor
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            AnimatedVisibility(
+                visible = maybeUnsupportedIpv6 && wireBareStatus == ProxyStatus.ACTIVE
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
+                        }
+                ) {
+                    LargeColorfulText(
+                        mainText = "注意",
+                        subText = "当前网络疑似不支持 IPv6",
+                        backgroundColor = DeepPureRed,
+                        textColor = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }

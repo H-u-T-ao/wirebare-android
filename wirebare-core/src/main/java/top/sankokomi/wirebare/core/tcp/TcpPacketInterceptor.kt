@@ -82,13 +82,13 @@ internal class TcpPacketInterceptor(
         val destinationPort = tcpHeader.destinationPort
 
         val logPrefix = if (tcpHeader.syn) {
-            "[SYN]"
+            "[IPv4-SYN]"
         } else if (tcpHeader.fin) {
-            "[FIN]"
+            "[IPv4-FIN]"
         } else if (tcpHeader.ack) {
-            "[ACK]"
+            "[IPv4-ACK]"
         } else {
-            "[---]"
+            "[IPv4----]"
         }
 
         if (!ports.contains(sourcePort)) {
@@ -148,13 +148,13 @@ internal class TcpPacketInterceptor(
         val destinationPort = tcpHeader.destinationPort
 
         val logPrefix = if (tcpHeader.syn) {
-            "[IPv6][SYN]"
+            "[IPv6-SYN]"
         } else if (tcpHeader.fin) {
-            "[IPv6][FIN]"
+            "[IPv6-FIN]"
         } else if (tcpHeader.ack) {
-            "[IPv6][ACK]"
+            "[IPv6-ACK]"
         } else {
-            "[IPv6][---]"
+            "[IPv6----]"
         }
 
         if (!ports.contains(sourcePort)) {

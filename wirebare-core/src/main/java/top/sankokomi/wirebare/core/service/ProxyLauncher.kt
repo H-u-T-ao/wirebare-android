@@ -5,6 +5,7 @@ import android.system.OsConstants
 import kotlinx.coroutines.*
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.service.PacketDispatcher.Companion.dispatchWith
+import top.sankokomi.wirebare.core.util.WireBareLogger
 
 /**
  * VPN 代理服务的启动器
@@ -34,7 +35,6 @@ internal class ProxyLauncher private constructor(
                         .addAddress(ipv6Address, ipv6PrefixLength)
                         .allowFamily(OsConstants.AF_INET6)
                         .setBlocking(false)
-                        .addRoute("::", 0)
                 }
                 for (route in routes) {
                     builder.addRoute(route.first, route.second)

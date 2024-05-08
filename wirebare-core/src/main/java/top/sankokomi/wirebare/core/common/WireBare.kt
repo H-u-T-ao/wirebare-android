@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.LogLevel
 import top.sankokomi.wirebare.core.util.WireBareLogger
-import java.lang.ref.WeakReference
 
 object WireBare {
 
@@ -18,6 +17,8 @@ object WireBare {
     private var _configuration: WireBareConfiguration? = null
 
     private val listeners: MutableSet<IProxyStatusListener> = hashSetOf()
+
+    private val eventListeners: MutableSet<IImportantEventListener> = hashSetOf()
 
     /**
      * [WireBareProxyService] 的实时状态
@@ -36,7 +37,7 @@ object WireBare {
     @MainThread
     fun startProxy(configuration: WireBareConfiguration.() -> Unit) {
         if (proxyStatus == ProxyStatus.ACTIVE) return
-        WireBare.notifyVpnStatusChanged(ProxyStatus.STARTING)
+        notifyVpnStatusChanged(ProxyStatus.STARTING)
         _configuration = WireBareConfiguration()
             .apply(configuration)
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_START).apply {
@@ -53,7 +54,7 @@ object WireBare {
     @MainThread
     fun stopProxy() {
         if (proxyStatus == ProxyStatus.DEAD) return
-        WireBare.notifyVpnStatusChanged(ProxyStatus.DYING)
+        notifyVpnStatusChanged(ProxyStatus.DYING)
         val intent = Intent(WireBareProxyService.WIREBARE_ACTION_PROXY_VPN_STOP).apply {
             `package` = appContext.packageName
         }
@@ -84,6 +85,30 @@ object WireBare {
     }
 
     /**
+     * 注册重要事件监听器
+     *
+     * @see [IImportantEventListener]
+     * @see [EventSynopsis]
+     * @see [removeImportantEventListener]
+     * */
+    @MainThread
+    fun addImportantEventListener(listener: IImportantEventListener) {
+        eventListeners.add(listener)
+    }
+
+    /**
+     * 注销代理服务状态监听器
+     *
+     * @see [IImportantEventListener]
+     * @see [EventSynopsis]
+     * @see [addImportantEventListener]
+     * */
+    @MainThread
+    fun removeImportantEventListener(listener: IImportantEventListener): Boolean {
+        return eventListeners.remove(listener)
+    }
+
+    /**
      * 配置日志等级
      *
      * @see [LogLevel]
@@ -108,6 +133,12 @@ object WireBare {
             listeners.forEach { listener ->
                 listener.onVpnStatusChanged(oldStatus, newStatus)
             }
+        }
+    }
+
+    internal fun postImportantEvent(event: ImportantEvent) {
+        eventListeners.forEach { listener ->
+            listener.onPost(event)
         }
     }
 

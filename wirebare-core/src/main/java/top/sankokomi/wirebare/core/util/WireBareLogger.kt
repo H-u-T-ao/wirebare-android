@@ -3,6 +3,7 @@ package top.sankokomi.wirebare.core.util
 import android.util.Log
 import androidx.annotation.IntDef
 import top.sankokomi.wirebare.core.common.WireBare
+import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.net.UdpSession
 
@@ -75,11 +76,12 @@ internal object WireBareLogger {
     }
 
     internal fun inetDebug(session: TcpSession, msg: String) {
-        debug("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+        debug("${tcpPrefix(session)} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetInfo(session: TcpSession, msg: String) {
-        info("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+
+        info("${tcpPrefix(session)} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetDebug(session: UdpSession, msg: String) {
@@ -88,6 +90,13 @@ internal object WireBareLogger {
 
     internal fun inetInfo(session: UdpSession, msg: String) {
         info("[${session.protocol.name}] ${WireBare.configuration.ipv4Address}:${session.sourcePort} >> ${session.destinationAddress}:${session.destinationPort} $msg")
+    }
+
+    private fun tcpPrefix(session: TcpSession): String {
+        return when (session.destinationAddress.ipVersion) {
+            IpVersion.IPv4 -> "[IPv4-TCP] ${WireBare.configuration.ipv4Address}:${session.sourcePort}"
+            IpVersion.IPv6 -> "[IPv6-TCP] ${WireBare.configuration.ipv6Address}:${session.sourcePort}"
+        }
     }
 
 }

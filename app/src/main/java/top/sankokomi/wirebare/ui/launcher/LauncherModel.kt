@@ -9,6 +9,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.util.Level
+import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import java.nio.ByteBuffer
 
 object LauncherModel {
@@ -19,7 +20,7 @@ object LauncherModel {
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.VERBOSE
+        WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
             jks = JKS(
                 {
@@ -31,10 +32,12 @@ object LauncherModel {
                 "WB",
                 "WB"
             )
-            mtu = 10000
-            tcpProxyServerCount = 1
+            mtu = 7000
+            tcpProxyServerCount = 10
             ipv4ProxyAddress = "10.1.10.1" to 32
-            addRoutes("0.0.0.0" to 0)
+            enableIpv6 = ProxyPolicyDataStore.enableIpv6.value
+            ipv6ProxyAddress = "a:a:1:1:a:a:1:1" to 128
+            addRoutes("0.0.0.0" to 0, "::" to 0)
             addAllowedApplications(*targetPackageNameArray)
             setHttpInterceptorFactory {
                 object : HttpIndexedInterceptor() {

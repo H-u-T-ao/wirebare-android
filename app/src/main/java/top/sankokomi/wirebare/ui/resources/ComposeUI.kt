@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -248,9 +249,24 @@ fun SmallColorfulText(
             .clip(RoundedCornerShape(6.dp))
             .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
-        Text(text = mainText, color = textColor, fontSize = 14.sp, lineHeight = 15.sp)
+        Text(
+            text = mainText,
+            color = textColor,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 15.sp,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 2
+        )
         Spacer(modifier = Modifier.height(2.dp))
-        Text(text = subText, color = textColor, fontSize = 12.sp, lineHeight = 13.sp)
+        Text(
+            text = subText,
+            color = textColor,
+            fontSize = 12.sp,
+            lineHeight = 13.sp,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 2
+        )
     }
 }
 
@@ -268,7 +284,13 @@ fun LargeColorfulText(
             .clip(RoundedCornerShape(6.dp))
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
-        Text(text = mainText, color = textColor, fontSize = 18.sp, lineHeight = 20.sp)
+        Text(
+            text = mainText,
+            color = textColor,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 20.sp
+        )
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = subText, color = textColor, fontSize = 14.sp, lineHeight = 16.sp)
     }

@@ -8,13 +8,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.sankokomi.wirebare.core.common.EventSynopsis
+import top.sankokomi.wirebare.core.common.IImportantEventListener
 import top.sankokomi.wirebare.core.common.IProxyStatusListener
+import top.sankokomi.wirebare.core.common.ImportantEvent
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.VpnPrepareActivity
 import top.sankokomi.wirebare.core.common.WireBare
@@ -25,16 +29,23 @@ import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 import top.sankokomi.wirebare.ui.util.requireAppDataList
+import top.sankokomi.wirebare.ui.util.showToast
 
 class LauncherUI : VpnPrepareActivity() {
 
     private val _proxyStatusFlow = MutableStateFlow(ProxyStatus.DEAD)
+
+    private val _eventFlow = MutableSharedFlow<ImportantEvent>(
+        0, 1, BufferOverflow.SUSPEND
+    )
 
     private val _requestFlow = MutableSharedFlow<HttpRequest>()
 
     private val _responseFlow = MutableSharedFlow<HttpResponse>()
 
     val proxyStatusFlow = _proxyStatusFlow.asStateFlow()
+
+    val eventFlow = _eventFlow.asSharedFlow()
 
     val requestFlow = _requestFlow.asSharedFlow()
 
@@ -88,10 +99,19 @@ class LauncherUI : VpnPrepareActivity() {
         }
     }
 
+    private val wireBareEventListener = object : IImportantEventListener {
+        override fun onPost(event: ImportantEvent) {
+            lifecycleScope.launch {
+                _eventFlow.emit(event)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 添加 WireBare 状态监听器
         WireBare.addVpnProxyStatusListener(wireBareStatusListener)
+        WireBare.addImportantEventListener(wireBareEventListener)
         setContent {
             WirebareUITheme(
                 navigationBarColor = Purple80
@@ -108,6 +128,7 @@ class LauncherUI : VpnPrepareActivity() {
 
     override fun onDestroy() {
         // 解除监听，防止内存泄露
+        WireBare.removeImportantEventListener(wireBareEventListener)
         WireBare.removeVpnProxyStatusListener(wireBareStatusListener)
         super.onDestroy()
     }

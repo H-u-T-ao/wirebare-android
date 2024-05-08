@@ -1,6 +1,14 @@
 package top.sankokomi.wirebare.core.util
 
 import top.sankokomi.wirebare.core.net.IntIpv6
+import top.sankokomi.wirebare.core.net.IpVersion
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.net.Socket
+import java.net.SocketException
+import java.util.Collections
+
 
 /**
  * 将 [Int] 所代表的 IP 地址转换为 %s:%s:%s:%s 的形式
@@ -60,3 +68,14 @@ internal val Short.convertPortToString: String
 
 internal val Short.convertPortToInt: Int
     get() = this.toInt() and 0xFFFF
+
+internal val String.ipVersion: IpVersion?
+    get() {
+        runCatching {
+            this.convertIpv4ToInt
+            return IpVersion.IPv4
+        }.onFailure {
+            return IpVersion.IPv6
+        }
+        return null
+    }
