@@ -8,6 +8,11 @@ object ProxyPolicyDataStore : AppDataStore("proxy_policy") {
     val banAutoFilter by AppBooleanPref("ban_auto_filter")
 
     /**
+     * true：启用 SSL，false：禁用 SSL
+     * */
+    val enableSSL by AppBooleanPref("enable_ssl")
+
+    /**
      * true：启用 ipv6，false：禁用 ipv6
      * */
     val enableIpv6 by AppBooleanPref("enable_ipv6")

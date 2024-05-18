@@ -22,18 +22,20 @@ object LauncherModel {
     ) {
         WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
-            jks = JKS(
-                {
-                    context.assets.open("wirebare.jks")
-                },
-                "wirebare",
-                "wirebare".toCharArray(),
-                "PKCS12",
-                "WB",
-                "WB"
-            )
+            if (ProxyPolicyDataStore.enableSSL.value) {
+                jks = JKS(
+                    {
+                        context.assets.open("wirebare.jks")
+                    },
+                    "wirebare",
+                    "wirebare".toCharArray(),
+                    "PKCS12",
+                    "WB",
+                    "WB"
+                )
+            }
             mtu = 7000
-            tcpProxyServerCount = 10
+            tcpProxyServerCount = 1
             ipv4ProxyAddress = "10.1.10.1" to 32
             enableIpv6 = ProxyPolicyDataStore.enableIpv6.value
             ipv6ProxyAddress = "a:a:1:1:a:a:1:1" to 128

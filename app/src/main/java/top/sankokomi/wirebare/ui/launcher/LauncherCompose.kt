@@ -89,6 +89,7 @@ private fun LauncherUI.PageControlCenter() {
     var wireBareStatus by remember { mutableStateOf(ProxyStatus.DEAD) }
     val isBanFilter by ProxyPolicyDataStore.banAutoFilter.collectAsState()
     val enableIpv6 by ProxyPolicyDataStore.enableIpv6.collectAsState()
+    val enableSSL by ProxyPolicyDataStore.enableSSL.collectAsState()
     var maybeUnsupportedIpv6 by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         proxyStatusFlow.collect {
@@ -228,6 +229,49 @@ private fun LauncherUI.PageControlCenter() {
                     subText = afSubText,
                     backgroundColor = afBackgroundColor,
                     textColor = afTextColor
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            AnimatedVisibility(
+                visible = enableSSL
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    text = "可能需要您事先安装好代理服务器根证书",
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            val sslMainText: String
+            val sslSubText: String
+            val sslBackgroundColor: Color
+            val sslTextColor: Color
+            if (enableSSL) {
+                sslMainText = "SSL/TLS 已启用"
+                sslSubText = "进行 SSL/TLS 握手并解密 HTTPS"
+                sslBackgroundColor = Purple80
+                sslTextColor = Color.Black
+            } else {
+                sslMainText = "SSL/TLS 已禁用"
+                sslSubText = "仅对 HTTPS 透明代理"
+                sslBackgroundColor = PurpleGrey40
+                sslTextColor = Color.White
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        ProxyPolicyDataStore.enableSSL.value = !enableSSL
+                    }
+            ) {
+                LargeColorfulText(
+                    mainText = sslMainText,
+                    subText = sslSubText,
+                    backgroundColor = sslBackgroundColor,
+                    textColor = sslTextColor
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
