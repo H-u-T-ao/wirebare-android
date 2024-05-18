@@ -8,6 +8,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -270,18 +271,22 @@ fun SmallColorfulText(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LargeColorfulText(
     mainText: String,
     subText: String,
     backgroundColor: Color,
-    textColor: Color
+    textColor: Color,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     RealColumn(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
             .clip(RoundedCornerShape(6.dp))
+            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Text(

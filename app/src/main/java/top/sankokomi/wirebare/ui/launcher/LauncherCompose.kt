@@ -159,13 +159,13 @@ private fun LauncherUI.PageControlCenter() {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onClick)
             ) {
                 LargeColorfulText(
                     mainText = mainText,
                     subText = subText,
                     backgroundColor = backgroundColor,
-                    textColor = textColor
+                    textColor = textColor,
+                    onClick = onClick
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
@@ -185,7 +185,13 @@ private fun LauncherUI.PageControlCenter() {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable {
+            ) {
+                LargeColorfulText(
+                    mainText = "访问控制",
+                    subText = "配置代理应用",
+                    backgroundColor = Purple80,
+                    textColor = Color.Black,
+                    onClick = {
                         startActivity(
                             Intent(
                                 this@PageControlCenter,
@@ -193,12 +199,6 @@ private fun LauncherUI.PageControlCenter() {
                             )
                         )
                     }
-            ) {
-                LargeColorfulText(
-                    mainText = "访问控制",
-                    subText = "配置代理应用",
-                    backgroundColor = Purple80,
-                    textColor = Color.Black
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -220,15 +220,15 @@ private fun LauncherUI.PageControlCenter() {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable {
-                        ProxyPolicyDataStore.banAutoFilter.value = !isBanFilter
-                    }
             ) {
                 LargeColorfulText(
                     mainText = afMainText,
                     subText = afSubText,
                     backgroundColor = afBackgroundColor,
-                    textColor = afTextColor
+                    textColor = afTextColor,
+                    onClick = {
+                        ProxyPolicyDataStore.banAutoFilter.value = !isBanFilter
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
@@ -263,15 +263,15 @@ private fun LauncherUI.PageControlCenter() {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable {
-                        ProxyPolicyDataStore.enableSSL.value = !enableSSL
-                    }
             ) {
                 LargeColorfulText(
                     mainText = sslMainText,
                     subText = sslSubText,
                     backgroundColor = sslBackgroundColor,
-                    textColor = sslTextColor
+                    textColor = sslTextColor,
+                    onClick = {
+                        ProxyPolicyDataStore.enableSSL.value = !enableSSL
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -293,15 +293,15 @@ private fun LauncherUI.PageControlCenter() {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .clickable {
-                        ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
-                    }
             ) {
                 LargeColorfulText(
                     mainText = i6MainText,
                     subText = i6SubText,
                     backgroundColor = i6BackgroundColor,
-                    textColor = i6TextColor
+                    textColor = i6TextColor,
+                    onClick = {
+                        ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -311,15 +311,15 @@ private fun LauncherUI.PageControlCenter() {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .clickable {
-                            ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
-                        }
                 ) {
                     LargeColorfulText(
                         mainText = "注意",
                         subText = "当前网络疑似不支持 IPv6",
                         backgroundColor = DeepPureRed,
-                        textColor = Color.White
+                        textColor = Color.White,
+                        onClick = {
+                            ProxyPolicyDataStore.enableIpv6.value = !enableIpv6
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -336,6 +336,7 @@ private fun LauncherUI.PageProxyRequestResult() {
         requestFlow.collect {
             if (!isBanFilter) {
                 if (it.url == null) return@collect
+//                if (it.httpVersion?.startsWith("HTTP") != true) return@collect
             }
             requestList.add(it)
         }
@@ -349,7 +350,8 @@ private fun LauncherUI.PageProxyRequestResult() {
             item {
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            items(requestList.size) { index ->
+            items(requestList.size) { i ->
+                val index = requestList.size - i - 1
                 val request = requestList[index]
                 Box(
                     modifier = Modifier
@@ -407,6 +409,7 @@ private fun LauncherUI.PageProxyResponseResult() {
         responseFlow.collect {
             if (!isBanFilter) {
                 if (it.url == null) return@collect
+//                if (it.httpVersion?.startsWith("HTTP") != true) return@collect
             }
             responseList.add(it)
         }
@@ -420,7 +423,8 @@ private fun LauncherUI.PageProxyResponseResult() {
             item {
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            items(responseList.size) { index ->
+            items(responseList.size) { i ->
+                val index = responseList.size - i - 1
                 val response = responseList[index]
                 Box(
                     modifier = Modifier

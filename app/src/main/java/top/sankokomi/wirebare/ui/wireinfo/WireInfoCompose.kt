@@ -19,6 +19,8 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.resources.AppStatusBar
 import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple80
+import top.sankokomi.wirebare.ui.util.copyTextToClipBoard
+import top.sankokomi.wirebare.ui.util.showToast
 
 @Composable
 fun WireInfoUI.WireInfoUIPage(
@@ -76,7 +78,14 @@ fun WireInfoUI.WireInfoUIPage(
                     mainText = "URL",
                     subText = request.url ?: "",
                     backgroundColor = Purple80,
-                    textColor = Color.Black
+                    textColor = Color.Black,
+                    onLongClick = {
+                        val url = request.url
+                        if (!url.isNullOrBlank()) {
+                            copyTextToClipBoard(url)
+                            showToast("已复制 URL")
+                        }
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +184,14 @@ fun WireInfoUI.WireInfoUIPage(
                     mainText = "URL",
                     subText = response.url ?: "",
                     backgroundColor = Purple80,
-                    textColor = Color.Black
+                    textColor = Color.Black,
+                    onLongClick = {
+                        val url = response.url
+                        if (!url.isNullOrBlank()) {
+                            copyTextToClipBoard(url)
+                            showToast("已复制 URL")
+                        }
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
