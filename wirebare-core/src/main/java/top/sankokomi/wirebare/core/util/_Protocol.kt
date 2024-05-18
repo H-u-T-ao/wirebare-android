@@ -2,12 +2,6 @@ package top.sankokomi.wirebare.core.util
 
 import top.sankokomi.wirebare.core.net.IntIpv6
 import top.sankokomi.wirebare.core.net.IpVersion
-import java.net.Inet6Address
-import java.net.InetAddress
-import java.net.NetworkInterface
-import java.net.Socket
-import java.net.SocketException
-import java.util.Collections
 
 
 /**
@@ -36,14 +30,14 @@ internal val String.convertIpv4ToInt: Int
 internal val IntIpv6.convertIpv6ToString: String
     get() = String.format(
         "%s:%s:%s:%s:%s:%s:%s:%s",
-        (this.first64 shr 48 and 0xFFFF).toString(16),
-        (this.first64 shr 32 and 0xFFFF).toString(16),
-        (this.first64 shr 16 and 0xFFFF).toString(16),
-        (this.first64 and 0xFFFF).toString(16),
-        (this.last64 shr 48 and 0xFFFF).toString(16),
-        (this.last64 shr 32 and 0xFFFF).toString(16),
-        (this.last64 shr 16 and 0xFFFF).toString(16),
-        (this.last64 and 0xFFFF).toString(16)
+        (this.high64 shr 48 and 0xFFFF).toString(16),
+        (this.high64 shr 32 and 0xFFFF).toString(16),
+        (this.high64 shr 16 and 0xFFFF).toString(16),
+        (this.high64 and 0xFFFF).toString(16),
+        (this.low64 shr 48 and 0xFFFF).toString(16),
+        (this.low64 shr 32 and 0xFFFF).toString(16),
+        (this.low64 shr 16 and 0xFFFF).toString(16),
+        (this.low64 and 0xFFFF).toString(16)
     )
 
 internal val String.convertIpv6ToInt: IntIpv6

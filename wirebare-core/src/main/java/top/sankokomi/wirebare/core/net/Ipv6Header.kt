@@ -79,25 +79,25 @@ internal class Ipv6Header(
     internal var sourceAddress: IpAddress
         get() = IpAddress(
             IntIpv6(
-                first64 = packet.readLong(offset + OFFSET_SOURCE_ADDRESS_FIRST_64),
-                last64 = packet.readLong(offset + OFFSET_SOURCE_ADDRESS_LAST_64)
+                high64 = packet.readLong(offset + OFFSET_SOURCE_ADDRESS_FIRST_64),
+                low64 = packet.readLong(offset + OFFSET_SOURCE_ADDRESS_LAST_64)
             )
         )
         set(value) {
-            packet.writeLong(value.intIpv6.first64, offset + OFFSET_SOURCE_ADDRESS_FIRST_64)
-            packet.writeLong(value.intIpv6.last64, offset + OFFSET_SOURCE_ADDRESS_LAST_64)
+            packet.writeLong(value.intIpv6.high64, offset + OFFSET_SOURCE_ADDRESS_FIRST_64)
+            packet.writeLong(value.intIpv6.low64, offset + OFFSET_SOURCE_ADDRESS_LAST_64)
         }
 
     internal var destinationAddress: IpAddress
         get() = IpAddress(
             IntIpv6(
-                first64 = packet.readLong(offset + OFFSET_DESTINATION_ADDRESS_FIRST_64),
-                last64 = packet.readLong(offset + OFFSET_DESTINATION_ADDRESS_LAST_64)
+                high64 = packet.readLong(offset + OFFSET_DESTINATION_ADDRESS_FIRST_64),
+                low64 = packet.readLong(offset + OFFSET_DESTINATION_ADDRESS_LAST_64)
             )
         )
         set(value) {
-            packet.writeLong(value.intIpv6.first64, offset + OFFSET_DESTINATION_ADDRESS_FIRST_64)
-            packet.writeLong(value.intIpv6.last64, offset + OFFSET_DESTINATION_ADDRESS_LAST_64)
+            packet.writeLong(value.intIpv6.high64, offset + OFFSET_DESTINATION_ADDRESS_FIRST_64)
+            packet.writeLong(value.intIpv6.low64, offset + OFFSET_DESTINATION_ADDRESS_LAST_64)
         }
 
     override val addressSum: BigInteger
