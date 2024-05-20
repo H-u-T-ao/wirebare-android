@@ -1,10 +1,9 @@
 package top.sankokomi.wirebare.core.ssl
 
 import android.os.Build
-import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 import javax.net.ssl.SSLEngine
 import javax.net.ssl.SSLEngineResult
 
@@ -13,7 +12,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
     companion object {
         private const val TAG = "WireBareSSLEngine"
 
-        private const val DEFAULT_BUFFER_SIZE = 20 * 1024
+        private const val DEFAULT_BUFFER_SIZE = 10 * 1024
         private const val SSL_CONTENT_TYPE_HANDSHAKE = 22
     }
 
@@ -22,7 +21,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
     @Volatile
     private var phase: EnginePhase = EnginePhase.Initial
 
-    private val pendingPlaintext = ConcurrentLinkedQueue<ByteBuffer>()
+    private val pendingPlaintext = LinkedBlockingQueue<ByteBuffer>()
 
     /**
      * 使用 SSL 引擎 [engine] 解密数据 [input]
@@ -86,7 +85,6 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         var output: ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
         while (true) {
             val result: SSLEngineResult = engine.wrap(input, output)
-            WireBareLogger.verbose("[$TAG-$name] wrap $result")
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
@@ -119,7 +117,6 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 output = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
             }
             val result: SSLEngineResult = engine.unwrap(input, output)
-            WireBareLogger.verbose("[$TAG-$name] unwrap $result")
             val status = result.status
             output!!.flip()
             val producedSize = output.remaining()
@@ -169,7 +166,6 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
         }
         var status = engine.handshakeStatus
         while (phase != EnginePhase.HandshakeFinished) {
-            WireBareLogger.verbose("[$TAG-$name] handshake $status")
             when (status) {
                 SSLEngineResult.HandshakeStatus.NEED_WRAP -> {
                     status = handshakeWrap(callback).handshakeStatus

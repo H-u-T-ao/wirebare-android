@@ -1,6 +1,6 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.newString
 import java.nio.ByteBuffer
@@ -13,12 +13,13 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
     override fun onRequest(
         chain: HttpInterceptChain,
         buffer: ByteBuffer,
-        session: TcpSession,
+        session: HttpSession,
+        tunnel: TcpTunnel,
         index: Int
     ) {
-        if (index == 0) {
+        if (index == 0 && session.isPlaintext) {
             kotlin.runCatching {
-                val (request, _) = chain.curReqRsp(session) ?: return@runCatching
+                val (request, _) = session
                 val requestString = buffer.newString()
                 val headerString = requestString.substringBefore("\r\n\r\n")
                 val headers = headerString.split("\r\n")
@@ -40,18 +41,19 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
                 WireBareLogger.error("构造 HTTP 请求时出现错误")
             }
         }
-        chain.processRequestNext(buffer, session)
+        super.onRequest(chain, buffer, session, tunnel, index)
     }
 
     override fun onResponse(
         chain: HttpInterceptChain,
         buffer: ByteBuffer,
-        session: TcpSession,
+        session: HttpSession,
+        tunnel: TcpTunnel,
         index: Int
     ) {
-        if (index == 0) {
+        if (index == 0 && session.isPlaintext) {
             kotlin.runCatching {
-                val (request, response) = chain.curReqRsp(session) ?: return@runCatching
+                val (request, response) = session
                 response.url = request.url
                 val responseString = buffer.newString()
                 val headerString = responseString.substringBefore("\r\n\r\n")
@@ -65,7 +67,6 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
                 WireBareLogger.error("构造 HTTP 响应时出现错误")
             }
         }
-        chain.processResponseNext(buffer, session)
+        super.onResponse(chain, buffer, session, tunnel, index)
     }
-
 }

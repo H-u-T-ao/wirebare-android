@@ -104,7 +104,9 @@ internal class TcpHeader(
 
     internal val crw: Boolean get() = flag and MASK_CRW == MASK_CRW
 
-    internal val window: Int get() = packet.readShort(OFFSET_WINDOW).toInt() and 0xFFFF
+    internal var window: Int
+        get() = packet.readShort(OFFSET_WINDOW).toInt() and 0xFFFF
+        set(value) = packet.writeShort((value and 0xFFFF).toShort(), offset + OFFSET_CHECK_SUM)
 
     internal var checkSum: Short
         get() = packet.readShort(offset + OFFSET_CHECK_SUM)

@@ -6,7 +6,8 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.http.HttpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.util.Level
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
@@ -20,7 +21,7 @@ object LauncherModel {
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.DEBUG
+        WireBare.logLevel = Level.VERBOSE
         WireBare.startProxy {
             if (ProxyPolicyDataStore.enableSSL.value) {
                 jks = JKS(
@@ -46,29 +47,27 @@ object LauncherModel {
                     override fun onRequest(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
-                        session: TcpSession,
+                        session: HttpSession,
+                        tunnel: TcpTunnel,
                         index: Int
                     ) {
                         if (index == 0) {
-                            chain.curReqRsp(session)?.let { (req, _) ->
-                                onRequest(req)
-                            }
+                            onRequest(session.request)
                         }
-                        chain.processRequestNext(buffer, session)
+                        chain.processRequestNext(this, buffer, session, tunnel)
                     }
 
                     override fun onResponse(
                         chain: HttpInterceptChain,
                         buffer: ByteBuffer,
-                        session: TcpSession,
+                        session: HttpSession,
+                        tunnel: TcpTunnel,
                         index: Int
                     ) {
                         if (index == 0) {
-                            chain.curReqRsp(session)?.let { (_, rsp) ->
-                                onResponse(rsp)
-                            }
+                            onResponse(session.response)
                         }
-                        chain.processResponseNext(buffer, session)
+                        chain.processResponseNext(this, buffer, session, tunnel)
                     }
                 }
             }

@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
 import java.nio.channels.spi.AbstractSelectableChannel
-import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * NIO 隧道抽象类，内部实现了一些 NIO 读写通用的操作
@@ -30,7 +30,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
     /**
      * 写入字节流的缓冲队列
      * */
-    private val pendingBuffers = ConcurrentLinkedDeque<ByteBuffer>()
+    private val pendingBuffers = LinkedBlockingQueue<ByteBuffer>()
 
     /**
      * 复用此 [SelectionKey] 进行操作
@@ -76,6 +76,8 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
             }
             buffer = pendingBuffers.poll()
         }
+//        val buffer = pendingBuffers.mergeBuffer(true)
+//        val length = writeByteBuffer(buffer)
         // 写完了，切为读操作，等待下一次读数据
         interestRead()
         return length

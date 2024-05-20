@@ -1,9 +1,25 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.interceptor.tcp.TcpResponse
 import java.io.Serializable
 
-class HttpResponse internal constructor() : TcpResponse(), Serializable {
+class HttpResponse internal constructor() : Serializable {
+    /**
+     * 来源端口号
+     * */
+    var sourcePort: Short? = null
+        internal set
+
+    /**
+     * 目的地址
+     * */
+    var destinationAddress: String? = null
+        internal set
+
+    /**
+     * 目的端口号
+     * */
+    var destinationPort: Short? = null
+        internal set
     var url: String? = null
         internal set
     var isHttps: Boolean? = null

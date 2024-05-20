@@ -1,91 +1,99 @@
 package top.sankokomi.wirebare.core.interceptor.tcp
 
-import androidx.annotation.CallSuper
-import top.sankokomi.wirebare.core.interceptor.BufferDirection
-import top.sankokomi.wirebare.core.interceptor.InterceptorChain
-import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
-import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
-import java.util.Queue
-import java.util.concurrent.LinkedBlockingQueue
 
-abstract class TcpInterceptChain<REQ : TcpRequest, RSP : TcpResponse> :
-    InterceptorChain<TcpSession> {
+class TcpInterceptChain(
+    private val interceptors: List<TcpInterceptor>
+) {
 
-    private val curReqRspMap = hashMapOf<TcpSession, Pair<REQ, RSP>>()
+    private var interceptorIndex = -1
 
     /**
-     * 通过 [session] 拿到当前会话所对应的 [HttpRequest] 和 [HttpResponse]
+     * 处理请求体
      * */
-    fun curReqRsp(session: TcpSession): Pair<REQ, RSP>? {
-        return curReqRspMap[session]
+    fun processRequestNext(
+        buffer: ByteBuffer,
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex++
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onRequest(this, buffer, session, tunnel)
     }
 
-    protected abstract fun newInstanceReqRsp(): Pair<REQ, RSP>
-
-    private fun checkCurReqRsp(session: TcpSession) {
-        if (!curReqRspMap.containsKey(session)) {
-            curReqRspMap[session] = newInstanceReqRsp().also {
-                it.first.run {
-                    sourcePort = session.sourcePort.port
-                    destinationAddress = session.destinationAddress.stringIp
-                    destinationPort = session.destinationPort.port
-                }
-                it.second.run {
-                    sourcePort = session.sourcePort.port
-                    destinationAddress = session.destinationAddress.stringIp
-                    destinationPort = session.destinationPort.port
-                }
-            }
-        }
+    /**
+     * 请求体处理完毕
+     * */
+    fun processRequestFinishedNext(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex++
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onRequestFinished(this, session, tunnel)
     }
 
-    private var bufferResults = LinkedBlockingQueue<Pair<ByteBuffer, BufferDirection>>()
-
-    @CallSuper
-    override fun processRequestFirst(buffer: ByteBuffer, session: TcpSession) {
-        bufferResults.clear()
-        bufferResults.offer(buffer to BufferDirection.RemoteServer)
-        checkCurReqRsp(session)
-        processRequestNext(buffer, session)
+    /**
+     * 处理响应体
+     * */
+    fun processResponseNext(
+        buffer: ByteBuffer,
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex++
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onResponse(this, buffer, session, tunnel)
     }
 
-    @CallSuper
-    override fun processRequestFinishedFirst(session: TcpSession) {
-        processRequestFinishedNext(session)
-        curReqRspMap.remove(session)
+    /**
+     * 响应体处理完毕
+     * */
+    fun processResponseFinishedNext(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex++
+        interceptors.getOrNull(
+            interceptorIndex
+        )?.onResponseFinished(this, session, tunnel)
     }
 
-    @CallSuper
-    override fun processResponseFirst(buffer: ByteBuffer, session: TcpSession) {
-        bufferResults.clear()
-        bufferResults.offer(buffer to BufferDirection.ProxyClient)
-        processResponseNext(buffer, session)
+    internal fun processRequestFirst(
+        buffer: ByteBuffer,
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex = -1
+        processRequestNext(buffer, session, tunnel)
     }
 
-    @CallSuper
-    override fun processResponseFinishedFirst(session: TcpSession) {
-        processResponseFinishedNext(session)
+    internal fun processRequestFinishedFirst(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex = -1
+        processRequestFinishedNext(session, tunnel)
     }
 
-    final override fun processRequestFinial(target: ByteBuffer) {
-        bufferResults.offer(target to BufferDirection.RemoteServer)
+    internal fun processResponseFirst(
+        buffer: ByteBuffer,
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex = -1
+        processResponseNext(buffer, session, tunnel)
     }
 
-    final override fun processResponseFinial(target: ByteBuffer) {
-        bufferResults.offer(target to BufferDirection.ProxyClient)
-    }
-
-    override fun skipOriginBuffer() {
-        bufferResults.poll()
-    }
-
-    final override fun processExtraBuffer(target: ByteBuffer, direction: BufferDirection) {
-        bufferResults.offer(target to direction)
-    }
-
-    final override fun processResults(): Queue<Pair<ByteBuffer, BufferDirection>> {
-        return bufferResults
+    internal fun processResponseFinishedFirst(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorIndex = -1
+        processResponseFinishedNext(session, tunnel)
     }
 }

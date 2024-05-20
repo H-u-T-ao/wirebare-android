@@ -5,13 +5,16 @@ import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.net.VpnService
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.service.ProxyLauncher.Companion.launchWith
+import top.sankokomi.wirebare.core.util.closeSafely
 import top.sankokomi.wirebare.core.util.defaultNotification
 
 abstract class WireBareProxyService : VpnService(),
@@ -55,6 +58,8 @@ abstract class WireBareProxyService : VpnService(),
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private var fd: ParcelFileDescriptor? = null
+
     private fun startWireBare() {
         WireBare.notifyVpnStatusChanged(ProxyStatus.ACTIVE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -63,13 +68,16 @@ abstract class WireBareProxyService : VpnService(),
             startForeground(notificationId, notification())
         }
         val configuration = WireBare.configuration.copy()
-        this launchWith configuration
+        fd = this launchWith configuration
     }
 
     private fun stopWireBare() {
-        cancel()
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+        launch(Dispatchers.IO) {
+            cancel()
+            fd.closeSafely()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
     }
 
     override fun onDestroy() {

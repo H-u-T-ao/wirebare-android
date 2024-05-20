@@ -2,7 +2,7 @@ package top.sankokomi.wirebare.core.tcp
 
 import kotlinx.coroutines.CoroutineScope
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpVirtualGateway
 import top.sankokomi.wirebare.core.net.Port
 import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.nio.NioCallback
@@ -39,7 +39,7 @@ import java.nio.channels.SocketChannel
  * */
 internal class TcpProxyServer(
     private val sessionStore: TcpSessionStore,
-    private val httpVirtualGateway: HttpVirtualGateway,
+    private val tcpVirtualGateway: TcpVirtualGateway,
     private val configuration: WireBareConfiguration,
     private val proxyService: WireBareProxyService
 ) : NioProxyServer(), NioCallback, CoroutineScope by proxyService {
@@ -75,7 +75,7 @@ internal class TcpProxyServer(
             selector,
             proxyServerPort,
             session,
-            httpVirtualGateway,
+            tcpVirtualGateway,
             configuration
         )
         val realTunnel = TcpRealTunnel(
@@ -83,7 +83,7 @@ internal class TcpProxyServer(
             selector,
             session,
             configuration,
-            httpVirtualGateway,
+            tcpVirtualGateway,
             proxyService
         )
 

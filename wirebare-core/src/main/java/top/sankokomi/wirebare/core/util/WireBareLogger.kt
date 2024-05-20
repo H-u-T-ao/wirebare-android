@@ -57,6 +57,12 @@ internal object WireBareLogger {
         }
     }
 
+    internal fun warn(cause: Throwable? = null) {
+        if (LOG_LEVEL <= Level.WARN) {
+            Log.w(TAG, cause?.message, cause)
+        }
+    }
+
     internal fun error(msg: String, cause: Throwable? = null) {
         if (LOG_LEVEL <= Level.ERROR) {
             Log.e(TAG, msg, cause)
@@ -73,6 +79,10 @@ internal object WireBareLogger {
         if (LOG_LEVEL <= Level.WTF) {
             Log.wtf(TAG, cause)
         }
+    }
+
+    internal fun inetVerbose(session: TcpSession, msg: String) {
+        verbose("${tcpPrefix(session)} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
     internal fun inetDebug(session: TcpSession, msg: String) {

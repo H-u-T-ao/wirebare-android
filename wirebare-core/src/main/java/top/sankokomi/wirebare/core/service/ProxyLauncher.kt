@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.core.service
 
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import kotlinx.coroutines.*
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
@@ -16,25 +17,25 @@ internal class ProxyLauncher private constructor(
 ) : CoroutineScope by proxyService {
 
     companion object {
-        internal infix fun WireBareProxyService.launchWith(configuration: WireBareConfiguration) {
-            ProxyLauncher(configuration, this).launch()
+        internal infix fun WireBareProxyService.launchWith(
+            configuration: WireBareConfiguration
+        ): ParcelFileDescriptor? {
+            return ProxyLauncher(configuration, this).launch()
         }
     }
 
-    private fun launch() {
-        if (!isActive) return
+    private fun launch(): ParcelFileDescriptor? {
+        if (!isActive) return null
         // 配置 VPN 服务
         val builder = proxyService.Builder().also { builder ->
             with(configuration) {
                 builder.setMtu(mtu)
                     .addAddress(ipv4Address, ipv4PrefixLength)
                     .allowFamily(OsConstants.AF_INET)
-                    .setBlocking(false)
+                    .setBlocking(true)
                 if (enableIpv6) {
-                    builder.setMtu(mtu)
-                        .addAddress(ipv6Address, ipv6PrefixLength)
+                    builder.addAddress(ipv6Address, ipv6PrefixLength)
                         .allowFamily(OsConstants.AF_INET6)
-                        .setBlocking(false)
                 }
                 for (route in routes) {
                     builder.addRoute(route.first, route.second)
@@ -61,7 +62,7 @@ internal class ProxyLauncher private constructor(
             }
         }
 
-        this dispatchWith builder
+        return this dispatchWith builder
     }
 
 }

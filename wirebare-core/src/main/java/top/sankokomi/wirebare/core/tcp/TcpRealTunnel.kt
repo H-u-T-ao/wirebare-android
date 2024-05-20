@@ -4,8 +4,8 @@ import top.sankokomi.wirebare.core.common.EventSynopsis
 import top.sankokomi.wirebare.core.common.ImportantEvent
 import top.sankokomi.wirebare.core.common.WireBare
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.BufferDirection
-import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpVirtualGateway
 import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.TcpSession
 import top.sankokomi.wirebare.core.nio.SocketNioTunnel
@@ -31,9 +31,9 @@ internal class TcpRealTunnel(
     override val selector: Selector,
     private val session: TcpSession,
     private val configuration: WireBareConfiguration,
-    private val httpVirtualGateway: HttpVirtualGateway,
+    private val tcpVirtualGateway: TcpVirtualGateway,
     private val proxyService: WireBareProxyService
-) : SocketNioTunnel() {
+) : SocketNioTunnel(), TcpTunnel {
 
     private lateinit var proxyTunnel: TcpProxyTunnel
 
@@ -68,57 +68,27 @@ internal class TcpRealTunnel(
 
     override fun onWrite(): Int {
         val length = super.onWrite()
-        WireBareLogger.inetInfo(session, "代理客户端 >> 远程服务器 $length 字节")
+        WireBareLogger.inetDebug(session, "代理客户端 >> 远程服务器 $length 字节")
         return length
     }
 
     override fun onRead() {
         if (isClosed) {
-            httpVirtualGateway.onRequestFinished(session)
+            tcpVirtualGateway.onRequestFinished(session, this)
             return
         }
         val buffer = ByteBuffer.allocate(configuration.mtu)
         val length = read(buffer)
         if (length < 0 || proxyTunnel.isClosed) {
             closeSafely()
-            httpVirtualGateway.onRequestFinished(session)
+            tcpVirtualGateway.onRequestFinished(session, this)
             return
         }
-        WireBareLogger.inetDebug(
+        WireBareLogger.inetVerbose(
             session,
-            "远程服务器 >> 代理客户端 $length 字节"
+            "代理客户端 << 远程服务器 $length 字节"
         )
-        val bufferQueue = httpVirtualGateway.onResponse(
-            buffer, session
-        )
-        for ((target, direction) in bufferQueue) {
-            val remaining = target.remaining() - target.position()
-            when (direction) {
-                BufferDirection.ProxyClient -> {
-                    WireBareLogger.inetDebug(
-                        session,
-                        "代理客户端 >> 客户端 $remaining 字节"
-                    )
-                    proxyTunnel.write(target)
-                }
-
-                BufferDirection.RemoteServer -> {
-                    WireBareLogger.inetDebug(
-                        session,
-                        "代理客户端 >> 远程服务器 $remaining 字节"
-                    )
-                    write(target)
-                }
-            }
-        }
-    }
-
-    override fun onException(t: Throwable) {
-        WireBareLogger.error(t)
-        closeSafely(this, proxyTunnel)
-        httpVirtualGateway.onRequestFinished(session)
-        httpVirtualGateway.onResponseFinished(session)
-        session.markDying()
+        tcpVirtualGateway.onResponse(buffer, session, this)
     }
 
     private fun reportExceptionWhenConnect(address: String, port: Int, t: Throwable?) {
@@ -147,4 +117,16 @@ internal class TcpRealTunnel(
         }
     }
 
+    override fun onException(t: Throwable) {
+        closeSafely(this, proxyTunnel)
+        tcpVirtualGateway.onRequestFinished(session, this)
+    }
+
+    override fun writeToRemoteServer(buffer: ByteBuffer) {
+        write(buffer)
+    }
+
+    override fun writeToLocalClient(buffer: ByteBuffer) {
+        proxyTunnel.write(buffer)
+    }
 }

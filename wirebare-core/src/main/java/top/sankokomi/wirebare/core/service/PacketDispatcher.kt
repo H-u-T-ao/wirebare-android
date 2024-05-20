@@ -22,6 +22,7 @@ import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.closeSafely
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InterruptedIOException
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
@@ -34,11 +35,12 @@ internal class PacketDispatcher private constructor(
 ) : CoroutineScope by proxyService {
 
     companion object {
-        internal infix fun ProxyLauncher.dispatchWith(builder: VpnService.Builder) {
+        internal infix fun ProxyLauncher.dispatchWith(builder: VpnService.Builder): ParcelFileDescriptor {
             val proxyDescriptor = builder.establish() ?: throw IllegalStateException(
                 "请先准备代理服务"
             )
             PacketDispatcher(configuration, proxyDescriptor, proxyService).dispatch()
+            return proxyDescriptor
         }
     }
 
@@ -65,11 +67,6 @@ internal class PacketDispatcher private constructor(
      * */
     private var buffer = ByteArray(configuration.mtu)
 
-    /**
-     * 队列中等待处理的 ip 包
-     * */
-    private val pendingBuffers = LinkedBlockingQueue<Packet>()
-
     private fun dispatch() {
         if (!isActive) return
         // 启动协程接收 TUN 虚拟网卡的输入流
@@ -78,26 +75,73 @@ internal class PacketDispatcher private constructor(
                 while (isActive) {
                     var length = 0
                     while (isActive) {
+                        length = 0
                         kotlin.runCatching {
                             // 从 VPN 服务中读取输入流
                             length = inputStream.read(buffer)
                         }.onFailure {
-                            WireBareLogger.error(it)
+                            if (it !is InterruptedIOException) {
+                                WireBareLogger.error(it)
+                            }
+                            return@launch
                         }
                         if (length != 0) {
                             break
-                        } else {
-                            // 空闲了，等待 100 毫秒再继续轮询
-                            delay(100L)
                         }
                     }
 
                     if (length <= 0) continue
 
-                    // 添加到处理队列
-                    pendingBuffers.offer(Packet(buffer, length))
+                    val packet = Packet(buffer, length)
                     // 新建新的缓冲区准备接收下一个字节包
-                    buffer = ByteArray(configuration.mtu)
+//                    buffer = ByteArray(configuration.mtu)
+
+                    val ipHeader: IIpHeader
+                    when (val ipVersion = IpHeader.readIpVersion(packet, 0)) {
+                        IpHeader.VERSION_4 -> {
+                            if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
+                                WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")
+                                continue
+                            }
+                            ipHeader = Ipv4Header(packet.packet, 0)
+                        }
+
+                        IpHeader.VERSION_6 -> {
+                            if (packet.length < Ipv6Header.IPV6_STANDARD_LENGTH) {
+                                WireBareLogger.warn("报文长度小于 ${Ipv6Header.IPV6_STANDARD_LENGTH}")
+                                continue
+                            }
+                            ipHeader = Ipv6Header(packet.packet, 0)
+                        }
+
+                        else -> {
+                            WireBareLogger.debug("未知的 ip 版本号 0b${ipVersion.toString(2)}")
+                            continue
+                        }
+                    }
+
+                    val interceptor = interceptors[Protocol.parse(ipHeader.protocol)]
+                    if (interceptor == null) {
+                        WireBareLogger.warn("未知的协议代号 0b${ipHeader.protocol.toString(2)}")
+                        continue
+                    }
+
+                    kotlin.runCatching {
+                        // 拦截器拦截输入流
+                        when (ipHeader) {
+                            is Ipv4Header -> {
+                                interceptor.intercept(ipHeader, packet, outputStream)
+                            }
+
+                            is Ipv6Header -> {
+                                if (configuration.enableIpv6) {
+                                    interceptor.intercept(ipHeader, packet, outputStream)
+                                }
+                            }
+                        }
+                    }.onFailure {
+                        WireBareLogger.error(it)
+                    }
                 }
             }.onFailure {
                 if (it !is CancellationException) {
@@ -106,68 +150,6 @@ internal class PacketDispatcher private constructor(
             }
             // 关闭所有资源
             closeSafely(proxyDescriptor, inputStream, outputStream)
-        }
-        // 启动协程对接收到的输入流进行处理并进行输出
-        launch(Dispatchers.IO) {
-            while (isActive) {
-                var p: Packet? = null
-                while (isActive) {
-                    p = pendingBuffers.poll()
-                    if (p != null) {
-                        break
-                    } else {
-                        // 空闲了，等待 100 毫秒再继续轮询
-                        delay(100L)
-                    }
-                }
-
-                // 这里为空只有一种情况，那就是 isActive == false
-                val packet = p ?: continue
-
-                val ipHeader: IIpHeader
-                when (val ipVersion = IpHeader.readIpVersion(packet, 0)) {
-                    IpHeader.VERSION_4 -> {
-                        if (packet.length < Ipv4Header.MIN_IPV4_LENGTH) {
-                            WireBareLogger.warn("报文长度小于 ${Ipv4Header.MIN_IPV4_LENGTH}")
-                            continue
-                        }
-                        ipHeader = Ipv4Header(packet.packet, 0)
-                    }
-
-                    IpHeader.VERSION_6 -> {
-                        if (packet.length < Ipv6Header.IPV6_STANDARD_LENGTH) {
-                            WireBareLogger.warn("报文长度小于 ${Ipv6Header.IPV6_STANDARD_LENGTH}")
-                            continue
-                        }
-                        ipHeader = Ipv6Header(packet.packet, 0)
-                    }
-
-                    else -> {
-                        WireBareLogger.debug("未知的 ip 版本号 0b${ipVersion.toString(2)}")
-                        continue
-                    }
-                }
-
-                val interceptor = interceptors[Protocol.parse(ipHeader.protocol)]
-                if (interceptor == null) {
-                    WireBareLogger.warn("未知的协议代号 0b${ipHeader.protocol.toString(2)}")
-                    continue
-                }
-
-                kotlin.runCatching {
-                    // 拦截器拦截输入流
-                    when (ipHeader) {
-                        is Ipv4Header -> {
-                            interceptor.intercept(ipHeader, packet, outputStream)
-                        }
-                        is Ipv6Header -> {
-                            interceptor.intercept(ipHeader, packet, outputStream)
-                        }
-                    }
-                }.onFailure {
-                    WireBareLogger.error(it)
-                }
-            }
         }
     }
 

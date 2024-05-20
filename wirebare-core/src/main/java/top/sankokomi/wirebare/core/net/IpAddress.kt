@@ -57,21 +57,12 @@ class IpAddress : Parcelable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-
         other as IpAddress
-
-        if (ipVersion != other.ipVersion) return false
-        if (intIpv4 != other.intIpv4) return false
-        if (intIpv6 != other.intIpv6) return false
         return stringIp == other.stringIp
     }
 
     override fun hashCode(): Int {
-        var result = ipVersion.hashCode()
-        result = 31 * result + intIpv4
-        result = 31 * result + intIpv6.hashCode()
-        result = 31 * result + stringIp.hashCode()
-        return result
+        return stringIp.hashCode()
     }
 
     override fun describeContents(): Int = 0

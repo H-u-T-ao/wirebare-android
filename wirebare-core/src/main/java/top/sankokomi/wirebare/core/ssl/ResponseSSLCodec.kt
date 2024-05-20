@@ -11,7 +11,7 @@ class ResponseSSLCodec(
 
     override fun createSSLEngineWrapper(session: TcpSession, host: String): WireBareSSLEngine? {
         return clientSSLEngineMap[session] ?: let {
-            engineFactory.createClientSSLEngine(host)?.also {
+            engineFactory.createClientSSLEngine(host, session.destinationPort)?.also {
                 clientSSLEngineMap[session] = it
                 it.name = "RSP-$host"
             }

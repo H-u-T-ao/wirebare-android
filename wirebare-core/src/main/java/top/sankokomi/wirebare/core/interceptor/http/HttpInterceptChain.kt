@@ -1,60 +1,97 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.interceptor.tcp.TcpInterceptChain
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import java.nio.ByteBuffer
 
 class HttpInterceptChain(
     private val interceptors: List<HttpInterceptor>
-) : TcpInterceptChain<HttpRequest, HttpResponse>() {
+) {
 
-    private var interceptorIndex = -1
+    private val interceptorIndexMap =
+        hashMapOf<HttpInterceptor, HttpInterceptor?>().also { map ->
+            interceptors.forEachIndexed { index, interceptor ->
+                map[interceptor] = interceptors.getOrNull(index + 1)
+            }
+        }
 
-    override fun newInstanceReqRsp(): Pair<HttpRequest, HttpResponse> {
-        return HttpRequest() to HttpResponse()
+    /**
+     * 处理请求体
+     * */
+    fun processRequestNext(
+        now: HttpInterceptor?,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        nextInterceptor(now)?.onRequest(this, buffer, session, tunnel)
     }
 
-    override fun processRequestNext(buffer: ByteBuffer, session: TcpSession) {
-        interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onRequest(this, buffer, session)
+    /**
+     * 请求体处理完毕
+     * */
+    fun processRequestFinishedNext(
+        now: HttpInterceptor?,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        nextInterceptor(now)?.onRequestFinished(this, session, tunnel)
     }
 
-    override fun processRequestFinishedNext(session: TcpSession) {
-        interceptorIndex++
-        interceptors.getOrNull(
-            interceptorIndex
-        )?.onRequestFinished(this, session)
+    /**
+     * 处理响应体
+     * */
+    fun processResponseNext(
+        now: HttpInterceptor?,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        nextInterceptor(now)?.onResponse(this, buffer, session, tunnel)
     }
 
-    override fun processResponseNext(buffer: ByteBuffer, session: TcpSession) {
-        interceptorIndex++
-        interceptors.getOrNull(interceptorIndex)?.onResponse(this, buffer, session)
+    /**
+     * 响应体处理完毕
+     * */
+    fun processResponseFinishedNext(
+        now: HttpInterceptor?,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        nextInterceptor(now)?.onResponseFinished(this, session, tunnel)
     }
 
-    override fun processResponseFinishedNext(session: TcpSession) {
-        interceptorIndex++
-        interceptors.getOrNull(
-            interceptorIndex
-        )?.onResponseFinished(this, session)
+    internal fun processRequestFirst(
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        processRequestNext(null, buffer, session, tunnel)
     }
 
-    override fun processRequestFirst(buffer: ByteBuffer, session: TcpSession) {
-        interceptorIndex = -1
-        super.processRequestFirst(buffer, session)
+    internal fun processRequestFinishedFirst(
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        processRequestFinishedNext(null, session, tunnel)
     }
 
-    override fun processRequestFinishedFirst(session: TcpSession) {
-        interceptorIndex = -1
-        super.processRequestFinishedFirst(session)
+    internal fun processResponseFirst(
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        processResponseNext(null, buffer, session, tunnel)
     }
 
-    override fun processResponseFirst(buffer: ByteBuffer, session: TcpSession) {
-        interceptorIndex = -1
-        super.processResponseFirst(buffer, session)
+    internal fun processResponseFinishedFirst(
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        processResponseFinishedNext(null, session, tunnel)
     }
 
-    override fun processResponseFinishedFirst(session: TcpSession) {
-        interceptorIndex = -1
-        super.processResponseFinishedFirst(session)
+    private fun nextInterceptor(now: HttpInterceptor?): HttpInterceptor? {
+        now ?: return interceptors.firstOrNull()
+        return interceptorIndexMap[now]
     }
 }

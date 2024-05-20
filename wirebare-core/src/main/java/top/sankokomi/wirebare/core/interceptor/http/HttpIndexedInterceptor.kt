@@ -1,52 +1,92 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
+import top.sankokomi.wirebare.core.util.UnsupportedCall
 import java.nio.ByteBuffer
 
 abstract class HttpIndexedInterceptor : HttpInterceptor {
 
-    private val mapReqIndexed = hashMapOf<TcpSession, Int>()
+    private val reqIndexMap = hashMapOf<HttpSession, Int>()
+    private val rspIndexMap = hashMapOf<HttpSession, Int>()
 
-    private val mapRspIndexed = hashMapOf<TcpSession, Int>()
-
-    open fun onRequest(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession, index: Int) {
-        chain.processRequestNext(buffer, session)
+    open fun onRequest(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel,
+        index: Int
+    ) {
+        chain.processRequestNext(this, buffer, session, tunnel)
     }
 
-    open fun onRequestFinished(chain: HttpInterceptChain, session: TcpSession, index: Int) {
-        chain.processRequestFinishedNext(session)
+    open fun onRequestFinished(
+        chain: HttpInterceptChain,
+        session: HttpSession,
+        tunnel: TcpTunnel,
+        index: Int
+    ) {
+        chain.processRequestFinishedNext(this, session, tunnel)
     }
 
-    open fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession, index: Int) {
-        chain.processResponseNext(buffer, session)
+    open fun onResponse(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel,
+        index: Int
+    ) {
+        chain.processResponseNext(this, buffer, session, tunnel)
     }
 
-    open fun onResponseFinished(chain: HttpInterceptChain, session: TcpSession, index: Int) {
-        chain.processResponseFinishedNext(session)
+    open fun onResponseFinished(
+        chain: HttpInterceptChain,
+        session: HttpSession,
+        tunnel: TcpTunnel,
+        index: Int
+    ) {
+        chain.processResponseFinishedNext(this, session, tunnel)
     }
 
-    final override fun onRequest(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
-        val requestIndex = (mapReqIndexed[session] ?: -1) + 1
-        mapReqIndexed[session] = requestIndex
-        onRequest(chain, buffer, session, requestIndex)
+    @UnsupportedCall
+    final override fun onRequest(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        reqIndexMap.compute(session) { _, value -> (value ?: -1) + 1 }
+        onRequest(chain, buffer, session, tunnel, reqIndexMap[session] ?: return)
     }
 
-    final override fun onRequestFinished(chain: HttpInterceptChain, session: TcpSession) {
-        val requestIndex = mapReqIndexed[session] ?: -1
-        onRequestFinished(chain, session, requestIndex)
-        mapReqIndexed.remove(session)
+    @UnsupportedCall
+    final override fun onRequestFinished(
+        chain: HttpInterceptChain,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        onRequestFinished(chain, session, tunnel, (reqIndexMap[session] ?: return) + 1)
+        reqIndexMap.remove(session)
     }
 
-    final override fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
-        val responseIndex = (mapRspIndexed[session] ?: -1) + 1
-        mapReqIndexed[session] = responseIndex
-        onResponse(chain, buffer, session, responseIndex)
+    @UnsupportedCall
+    final override fun onResponse(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        rspIndexMap.compute(session) { _, value -> (value ?: -1) + 1 }
+        onResponse(chain, buffer, session, tunnel, rspIndexMap[session] ?: return)
     }
 
-    final override fun onResponseFinished(chain: HttpInterceptChain, session: TcpSession) {
-        val responseIndex = mapRspIndexed[session] ?: -1
-        onResponseFinished(chain, session, responseIndex)
-        mapRspIndexed.remove(session)
+    @UnsupportedCall
+    final override fun onResponseFinished(
+        chain: HttpInterceptChain,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        onResponseFinished(chain, session, tunnel, (rspIndexMap[session] ?: return) + 1)
+        rspIndexMap.remove(session)
     }
 
 }

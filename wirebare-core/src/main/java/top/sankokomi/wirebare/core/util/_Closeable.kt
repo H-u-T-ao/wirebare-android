@@ -16,6 +16,6 @@ internal fun Closeable?.closeSafely() {
     kotlin.runCatching {
         close()
     }.onFailure {
-        WireBareLogger.error(it)
+        WireBareLogger.warn(it)
     }
 }

@@ -1,25 +1,24 @@
 package top.sankokomi.wirebare.core.interceptor.tcp
 
-import top.sankokomi.wirebare.core.interceptor.Interceptor
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
 
-interface TcpInterceptor<CHAIN: TcpInterceptChain<*, *>> : Interceptor<CHAIN, TcpSession> {
+interface TcpInterceptor {
 
-    override fun onRequest(chain: CHAIN, buffer: ByteBuffer, session: TcpSession) {
-        chain.processRequestNext(buffer, session)
+    fun onRequest(chain: TcpInterceptChain, buffer: ByteBuffer, session: TcpSession, tunnel: TcpTunnel) {
+        chain.processRequestNext(buffer, session, tunnel)
     }
 
-    override fun onRequestFinished(chain: CHAIN, session: TcpSession) {
-        chain.processRequestFinishedNext(session)
+    fun onRequestFinished(chain: TcpInterceptChain, session: TcpSession, tunnel: TcpTunnel) {
+        chain.processRequestFinishedNext(session, tunnel)
     }
 
-    override fun onResponse(chain: CHAIN, buffer: ByteBuffer, session: TcpSession) {
-        chain.processResponseNext(buffer, session)
+    fun onResponse(chain: TcpInterceptChain, buffer: ByteBuffer, session: TcpSession, tunnel: TcpTunnel) {
+        chain.processResponseNext(buffer, session, tunnel)
     }
 
-    override fun onResponseFinished(chain: CHAIN, session: TcpSession) {
-        chain.processResponseFinishedNext(session)
+    fun onResponseFinished(chain: TcpInterceptChain, session: TcpSession, tunnel: TcpTunnel) {
+        chain.processResponseFinishedNext(session, tunnel)
     }
 
 }

@@ -1,60 +1,57 @@
 package top.sankokomi.wirebare.core.interceptor.ssl
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.BufferDirection
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
-import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.interceptor.http.HttpSession
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.ssl.RequestSSLCodec
 import top.sankokomi.wirebare.core.ssl.ResponseSSLCodec
 import top.sankokomi.wirebare.core.ssl.SSLCallback
 import top.sankokomi.wirebare.core.ssl.SSLEngineFactory
+import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.mergeBuffer
 import java.nio.ByteBuffer
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.LinkedBlockingQueue
 
 class HttpSSLCodecInterceptor(
     configuration: WireBareConfiguration
-) : HttpInterceptor, HttpSSLRefluxReceiver {
+) : HttpInterceptor {
 
     private val factory = SSLEngineFactory(configuration)
 
-    private val requestCodec = RequestSSLCodec(factory)
+    internal val requestCodec = RequestSSLCodec(factory)
 
-    private val responseCodec = ResponseSSLCodec(factory)
+    internal val responseCodec = ResponseSSLCodec(factory)
 
-    private val pendingReqCiphertext = ConcurrentLinkedQueue<ByteBuffer>()
+    private val pendingReqCiphertext = LinkedBlockingQueue<ByteBuffer>()
 
-    private val pendingRspCiphertext = ConcurrentLinkedQueue<ByteBuffer>()
+    private val pendingRspCiphertext = LinkedBlockingQueue<ByteBuffer>()
 
-    override fun onRequest(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
-        val request = chain.curReqRsp(session)?.first ?: return
+    override fun onRequest(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        val (request, _, tcpSession) = session
         if (request.isHttps != true) {
-            super.onRequest(chain, buffer, session)
+            super.onRequest(chain, buffer, session, tunnel)
             return
         }
         val host = request.hostInternal ?: return
-        chain.skipOriginBuffer()
-        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
         responseCodec.handshakeIfNecessary(
-            session,
+            tcpSession,
             host,
             object : SSLCallback {
                 override fun encryptSuccess(target: ByteBuffer) {
-//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
-                    pendingBuffer.offer(target)
+                    tunnel.writeToRemoteServer(target)
                 }
             }
         )
-        chain.processExtraBuffer(
-            pendingBuffer.mergeBuffer(),
-            BufferDirection.RemoteServer
-        )
         pendingReqCiphertext.add(buffer)
-        var direction: BufferDirection? = null
         requestCodec.decode(
-            session,
+            tcpSession,
             host,
             pendingReqCiphertext.mergeBuffer(),
             object : SSLCallback {
@@ -63,47 +60,41 @@ class HttpSSLCodecInterceptor(
                 }
 
                 override fun sslFailed(target: ByteBuffer) {
-                    chain.processRequestFinial(target)
+                    WireBareLogger.warn("SSL 引擎创建失败")
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-//                    chain.processRequestNext(target, session)
-                    pendingBuffer.offer(target)
+                    session.isPlaintext = true
+                    chain.processRequestNext(
+                        this@HttpSSLCodecInterceptor,
+                        target,
+                        session,
+                        tunnel
+                    )
                 }
 
                 override fun encryptSuccess(target: ByteBuffer) {
-//                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
-                    pendingBuffer.offer(target)
-                    direction = BufferDirection.ProxyClient
+                    tunnel.writeToLocalClient(target)
                 }
             }
         )
-        if (direction != null && pendingBuffer.isNotEmpty()) {
-            chain.processExtraBuffer(
-                pendingBuffer.mergeBuffer(false),
-                direction!!
-            )
-        } else if (pendingBuffer.isNotEmpty()) {
-            chain.processRequestNext(
-                pendingBuffer.mergeBuffer(false),
-                session
-            )
-        }
     }
 
-    override fun onResponse(chain: HttpInterceptChain, buffer: ByteBuffer, session: TcpSession) {
-        val response = chain.curReqRsp(session)?.second ?: return
+    override fun onResponse(
+        chain: HttpInterceptChain,
+        buffer: ByteBuffer,
+        session: HttpSession,
+        tunnel: TcpTunnel
+    ) {
+        val (_, response, tcpSession) = session
         if (response.isHttps != true) {
-            super.onResponse(chain, buffer, session)
+            super.onResponse(chain, buffer, session, tunnel)
             return
         }
-        val host = chain.curReqRsp(session)?.second?.hostInternal ?: return
-        chain.skipOriginBuffer()
+        val host = response.hostInternal ?: return
         pendingRspCiphertext.add(buffer)
-        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
-        var direction: BufferDirection? = null
         responseCodec.decode(
-            session,
+            tcpSession,
             host,
             pendingRspCiphertext.mergeBuffer(),
             object : SSLCallback {
@@ -112,83 +103,42 @@ class HttpSSLCodecInterceptor(
                 }
 
                 override fun sslFailed(target: ByteBuffer) {
-                    chain.processResponseFinial(target)
+                    WireBareLogger.warn("SSL 引擎创建失败")
+                    // chain.processRequestNext(buffer, session, tunnel)
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-//                    chain.processResponseNext(target, session)
-                    pendingBuffer.offer(target)
+                    session.isPlaintext = true
+                    chain.processResponseNext(
+                        this@HttpSSLCodecInterceptor,
+                        target,
+                        session,
+                        tunnel
+                    )
                 }
 
                 override fun encryptSuccess(target: ByteBuffer) {
-//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
-                    pendingBuffer.offer(target)
-                    direction = BufferDirection.RemoteServer
+                    tunnel.writeToRemoteServer(target)
                 }
             }
         )
-        if (direction != null && pendingBuffer.isNotEmpty()) {
-            chain.processExtraBuffer(
-                pendingBuffer.mergeBuffer(false),
-                direction!!
-            )
-        } else if (pendingBuffer.isNotEmpty()) {
-            chain.processResponseNext(
-                pendingBuffer.mergeBuffer(false),
-                session
-            )
-        }
     }
 
-    override fun onRequestReflux(
+    override fun onRequestFinished(
         chain: HttpInterceptChain,
-        buffer: ByteBuffer,
-        session: TcpSession
+        session: HttpSession,
+        tunnel: TcpTunnel
     ) {
-        val host = chain.curReqRsp(session)?.first?.hostInternal ?: return
-        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
-        responseCodec.encode(
-            session,
-            host,
-            buffer,
-            object : SSLCallback {
-                override fun encryptSuccess(target: ByteBuffer) {
-//                    chain.processExtraBuffer(target, BufferDirection.RemoteServer)
-                    pendingBuffer.offer(target)
-                }
-            }
-        )
-        if (pendingBuffer.isNotEmpty()) {
-            chain.processExtraBuffer(
-                pendingBuffer.mergeBuffer(false),
-                BufferDirection.RemoteServer
-            )
-        }
+        super.onRequestFinished(chain, session, tunnel)
+        pendingReqCiphertext.clear()
     }
 
-    override fun onResponseReflux(
+    override fun onResponseFinished(
         chain: HttpInterceptChain,
-        buffer: ByteBuffer,
-        session: TcpSession
+        session: HttpSession,
+        tunnel: TcpTunnel
     ) {
-        val host = chain.curReqRsp(session)?.second?.hostInternal ?: return
-        val pendingBuffer = LinkedBlockingQueue<ByteBuffer>()
-        requestCodec.encode(
-            session,
-            host,
-            buffer,
-            object : SSLCallback {
-                override fun encryptSuccess(target: ByteBuffer) {
-//                    chain.processExtraBuffer(target, BufferDirection.ProxyClient)
-                    pendingBuffer.offer(target)
-                }
-            }
-        )
-        if (pendingBuffer.isNotEmpty()) {
-            chain.processExtraBuffer(
-                pendingBuffer.mergeBuffer(false),
-                BufferDirection.ProxyClient
-            )
-        }
+        super.onResponseFinished(chain, session, tunnel)
+        pendingRspCiphertext.clear()
     }
 }

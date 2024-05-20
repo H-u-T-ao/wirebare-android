@@ -12,9 +12,18 @@ internal class TcpSessionStore : SessionStore<Port, TcpSession>() {
         destinationAddress: IpAddress,
         destinationPort: Port
     ): TcpSession {
-        return TcpSession(
-            sourcePort, destinationAddress, destinationPort, this
-        ).also { insertSession(sourcePort, it) }
+        val origin = query(sourcePort)
+        return if (
+            origin != null &&
+            origin.destinationAddress == destinationAddress &&
+            origin.destinationPort == destinationPort
+        ) {
+            origin
+        } else {
+            TcpSession(
+                sourcePort, destinationAddress, destinationPort, this
+            ).also { insertSession(sourcePort, it) }
+        }
     }
 
 }

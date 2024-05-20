@@ -1,15 +1,15 @@
 package top.sankokomi.wirebare.core.tcp
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
-import top.sankokomi.wirebare.core.interceptor.http.HttpVirtualGateway
+import top.sankokomi.wirebare.core.interceptor.tcp.TcpVirtualGateway
 import top.sankokomi.wirebare.core.net.IpAddress
 import top.sankokomi.wirebare.core.net.IpVersion
 import top.sankokomi.wirebare.core.net.Ipv4Header
 import top.sankokomi.wirebare.core.net.Ipv6Header
 import top.sankokomi.wirebare.core.net.Packet
 import top.sankokomi.wirebare.core.net.Port
-import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.net.TcpHeader
+import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.service.PacketInterceptor
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
@@ -58,7 +58,7 @@ internal class TcpPacketInterceptor(
         for (i in 1..configuration.tcpProxyServerCount) {
             val server = TcpProxyServer(
                 sessionStore,
-                HttpVirtualGateway(configuration),
+                TcpVirtualGateway(configuration),
                 configuration,
                 proxyService
             )
@@ -81,16 +81,6 @@ internal class TcpPacketInterceptor(
         val destinationAddress = ipv4Header.destinationAddress
         val destinationPort = tcpHeader.destinationPort
 
-        val logPrefix = if (tcpHeader.syn) {
-            "[IPv4-SYN]"
-        } else if (tcpHeader.fin) {
-            "[IPv4-FIN]"
-        } else if (tcpHeader.ack) {
-            "[IPv4-ACK]"
-        } else {
-            "[IPv4----]"
-        }
-
         if (!ports.contains(sourcePort)) {
             // 来源不是代理服务器，说明该数据包是被代理客户端发出来的请求包
             sessionStore.insert(
@@ -108,15 +98,23 @@ internal class TcpPacketInterceptor(
             ipv4Header.destinationAddress = tunIpv4Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
-                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+            WireBareLogger.info(
+                "[IPv4-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
+                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "flag = ${
+                            tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
+                        } length = ${tcpHeader.dataLength}"
+            )
         } else {
             // 来源是代理服务器，说明该数据包是响应包
-            val session = sessionStore.query(
-                destinationPort
-            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接 端口 $destinationPort")
+            val session = sessionStore.query(destinationPort)
+                ?: throw IllegalStateException(
+                    "发现一个未建立会话但有响应的连接 端口 $destinationPort"
+                )
 
-            session.tryDrop()
+//            if (tcpHeader.fin) {
+//                session.tryDrop()
+//            }
 
             // 将远程服务器的响应包转发给被代理客户端
             ipv4Header.sourceAddress = destinationAddress
@@ -124,8 +122,13 @@ internal class TcpPacketInterceptor(
 
             ipv4Header.destinationAddress = tunIpv4Address
 
-            WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
-                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+            WireBareLogger.info(
+                "[IPv4-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
+                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "flag = ${
+                            tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
+                        } length = ${tcpHeader.dataLength}"
+            )
         }
 
         ipv4Header.notifyCheckSum()
@@ -147,16 +150,6 @@ internal class TcpPacketInterceptor(
         val destinationAddress = ipv6Header.destinationAddress
         val destinationPort = tcpHeader.destinationPort
 
-        val logPrefix = if (tcpHeader.syn) {
-            "[IPv6-SYN]"
-        } else if (tcpHeader.fin) {
-            "[IPv6-FIN]"
-        } else if (tcpHeader.ack) {
-            "[IPv6-ACK]"
-        } else {
-            "[IPv6----]"
-        }
-
         if (!ports.contains(sourcePort)) {
             // 来源不是代理服务器，说明该数据包是被代理客户端发出来的请求包
             sessionStore.insert(
@@ -174,15 +167,23 @@ internal class TcpPacketInterceptor(
             ipv6Header.destinationAddress = tunIpv6Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.verbose("$logPrefix 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
-                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+            WireBareLogger.info(
+                "[IPv6-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
+                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "flag = ${
+                            tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
+                        } length = ${tcpHeader.dataLength}"
+            )
         } else {
             // 来源是代理服务器，说明该数据包是响应包
-            val session = sessionStore.query(
-                destinationPort
-            ) ?: throw IllegalStateException("发现一个未建立会话但有响应的连接 端口 $destinationPort")
+            val session = sessionStore.query(destinationPort)
+                ?: throw IllegalStateException(
+                    "发现一个未建立会话但有响应的连接 端口 $destinationPort"
+                )
 
-            session.tryDrop()
+//            if (tcpHeader.fin) {
+//                session.tryDrop()
+//            }
 
             // 将远程服务器的响应包转发给被代理客户端
             ipv6Header.sourceAddress = destinationAddress
@@ -190,8 +191,13 @@ internal class TcpPacketInterceptor(
 
             ipv6Header.destinationAddress = tunIpv6Address
 
-            WireBareLogger.verbose("$logPrefix 代理服务器 $sourcePort >> 客户端 $destinationPort " +
-                    "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber}")
+            WireBareLogger.info(
+                "[IPv6-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
+                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "flag = ${
+                            tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
+                        } length = ${tcpHeader.dataLength}"
+            )
         }
 
         // ipv4Header.notifyCheckSum()

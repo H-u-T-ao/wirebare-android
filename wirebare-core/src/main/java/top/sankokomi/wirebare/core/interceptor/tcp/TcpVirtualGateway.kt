@@ -1,40 +1,53 @@
 package top.sankokomi.wirebare.core.interceptor.tcp
 
-import top.sankokomi.wirebare.core.interceptor.BufferDirection
-import top.sankokomi.wirebare.core.interceptor.VirtualGateway
+import top.sankokomi.wirebare.core.common.WireBareConfiguration
+import top.sankokomi.wirebare.core.interceptor.http.HttpTcpInterceptor
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
-import java.util.Queue
 
 /**
  * Tcp 虚拟网关
  * */
-abstract class TcpVirtualGateway : VirtualGateway<TcpSession> {
+class TcpVirtualGateway(
+    configuration: WireBareConfiguration
+) {
 
-    protected abstract val interceptorChain: TcpInterceptChain<*, *>
+    private val interceptorChain: TcpInterceptChain
 
-    override fun onRequest(
+    init {
+        val interceptors = mutableListOf<TcpInterceptor>()
+        interceptors.add(HttpTcpInterceptor(configuration))
+        interceptorChain = TcpInterceptChain(interceptors)
+    }
+
+    fun onRequest(
         buffer: ByteBuffer,
-        session: TcpSession
-    ): Queue<Pair<ByteBuffer, BufferDirection>> {
-        interceptorChain.processRequestFirst(buffer, session)
-        return interceptorChain.processResults()
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorChain.processRequestFirst(buffer, session, tunnel)
     }
 
-    override fun onRequestFinished(session: TcpSession) {
-        interceptorChain.processRequestFinishedFirst(session)
+    fun onRequestFinished(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorChain.processRequestFinishedFirst(session, tunnel)
     }
 
-    override fun onResponse(
+    fun onResponse(
         buffer: ByteBuffer,
-        session: TcpSession
-    ): Queue<Pair<ByteBuffer, BufferDirection>> {
-        interceptorChain.processResponseFirst(buffer, session)
-        return interceptorChain.processResults()
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorChain.processResponseFirst(buffer, session, tunnel)
     }
 
-    override fun onResponseFinished(session: TcpSession) {
-        interceptorChain.processResponseFinishedFirst(session)
+    fun onResponseFinished(
+        session: TcpSession,
+        tunnel: TcpTunnel
+    ) {
+        interceptorChain.processResponseFinishedFirst(session, tunnel)
     }
 
 }

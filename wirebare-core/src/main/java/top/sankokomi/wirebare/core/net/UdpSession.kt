@@ -19,10 +19,6 @@ data class UdpSession internal constructor(
 
     override val key: Port = sourcePort
 
-    override fun hashCode(): Int {
-        return sourcePort.port.hashCode()
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -30,8 +26,20 @@ data class UdpSession internal constructor(
         other as UdpSession
 
         if (sourcePort != other.sourcePort) return false
-
-        return true
+        if (destinationAddress != other.destinationAddress) return false
+        return destinationPort == other.destinationPort
     }
 
+    override fun hashCode(): Int {
+        var result = sourcePort.hashCode()
+        result = 31 * result + destinationAddress.hashCode()
+        result = 31 * result + destinationPort.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "{sourcePort = $sourcePort, " +
+                "destinationAddress = $destinationAddress, " +
+                "destinationPort = $destinationPort}"
+    }
 }

@@ -22,11 +22,4 @@ abstract class SessionStore<K, S : Session<K>> {
         return sessions[key]
     }
 
-    /**
-     * 丢弃会话
-     * */
-    internal fun dropSession(key: K): S? {
-        return sessions.remove(key)
-    }
-
 }

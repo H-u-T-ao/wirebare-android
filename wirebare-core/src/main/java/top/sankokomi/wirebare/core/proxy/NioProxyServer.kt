@@ -1,10 +1,10 @@
 package top.sankokomi.wirebare.core.proxy
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.nio.NioCallback
+import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.nio.channels.Selector
 
 /**
@@ -23,12 +23,10 @@ internal abstract class NioProxyServer : ProxyServer() {
     final override suspend fun process() {
         withContext(Dispatchers.IO) {
             var select = 0
-            while(isActive) {
+            while (isActive) {
                 select = selector.selectNow()
                 if (select != 0) {
                     break
-                } else {
-                    delay(50L)
                 }
             }
             if (select == 0) return@withContext
@@ -46,6 +44,7 @@ internal abstract class NioProxyServer : ProxyServer() {
                     else if (key.isReadable) callback.onRead()
                     else if (key.isWritable) callback.onWrite()
                 }.onFailure {
+                    WireBareLogger.error("在 NIO KEY 处理时发生错误", it)
                     callback.onException(it)
                 }
             }
