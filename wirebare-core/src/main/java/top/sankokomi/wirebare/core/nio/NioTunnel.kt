@@ -64,23 +64,22 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
 
     override fun onWrite(): Int {
         if (isClosed) return 0
-        var length = 0
-        var buffer = pendingBuffers.poll()
-        while (buffer != null) {
+        var total = 0
+        while (!pendingBuffers.isEmpty()) {
+            val buffer = pendingBuffers.poll() ?: break
+            val remaining = buffer.remaining()
             // 将放入缓冲队列中的数据包通过套接字写出去
-            val flush = writeByteBuffer(buffer)
-            length += flush
-            if (buffer.remaining() > 0) {
+            val length = writeByteBuffer(buffer)
+            total += length
+            if (length < remaining) {
+                // 等待下一次写
                 pendingBuffers.offer(buffer)
-                return length
+                return total
             }
-            buffer = pendingBuffers.poll()
         }
-//        val buffer = pendingBuffers.mergeBuffer(true)
-//        val length = writeByteBuffer(buffer)
         // 写完了，切为读操作，等待下一次读数据
         interestRead()
-        return length
+        return total
     }
 
     override fun onException(t: Throwable) {
@@ -92,7 +91,7 @@ internal abstract class NioTunnel<SC : AbstractSelectableChannel> : NioCallback,
     internal open fun read(buffer: ByteBuffer): Int {
         buffer.clear()
         val length = readByteBuffer(buffer)
-        if (length >= 0) buffer.flip()
+        if (length > 0) buffer.flip()
         return length
     }
 

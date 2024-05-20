@@ -41,14 +41,18 @@ internal class TcpRealTunnel(
         proxyTunnel = proxy
     }
 
-    internal fun connectRemoteServer(address: String, port: Int) {
+    private val remoteAddress = session.destinationAddress.stringIp
+    private val remotePort = session.destinationPort.port.toInt() and 0xFFFF
+
+    internal fun connectRemoteServer() {
         if (proxyService.protect(channel.socket())) {
             channel.configureBlocking(false)
             channel.register(selector, SelectionKey.OP_CONNECT, this)
+            WireBareLogger.warn("开始连接远程服务器 $remoteAddress:$remotePort")
             runCatching {
-                channel.connect(InetSocketAddress(address, port))
+                channel.connect(InetSocketAddress(remoteAddress, remotePort))
             }.onFailure {
-                reportExceptionWhenConnect(address, port, it)
+                reportExceptionWhenConnect(remoteAddress, remotePort, it)
                 WireBareLogger.error(it)
                 onException(it)
             }
@@ -58,6 +62,7 @@ internal class TcpRealTunnel(
     }
 
     override fun onConnected() {
+        WireBareLogger.warn("远程服务器连接完成 $remoteAddress:$remotePort")
         if (channel.finishConnect()) {
             proxyTunnel.onConnected()
             prepareRead()

@@ -67,6 +67,8 @@ class WireBareConfiguration internal constructor() {
 
     /**
      * TUN 网卡 ipv6 地址以及地址的前缀长度
+     *
+     * 地址请使用全称，不要用 :: 省略
      * */
     var ipv6ProxyAddress: Pair<String, Int>
         get() = ipv6Address to ipv6PrefixLength

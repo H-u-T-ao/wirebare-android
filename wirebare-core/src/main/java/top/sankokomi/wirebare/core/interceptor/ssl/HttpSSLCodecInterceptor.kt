@@ -1,10 +1,11 @@
 package top.sankokomi.wirebare.core.interceptor.ssl
 
-import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpSession
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
+import top.sankokomi.wirebare.core.net.TcpSession
+import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.ssl.RequestSSLCodec
 import top.sankokomi.wirebare.core.ssl.ResponseSSLCodec
 import top.sankokomi.wirebare.core.ssl.SSLCallback
@@ -14,19 +15,19 @@ import top.sankokomi.wirebare.core.util.mergeBuffer
 import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingQueue
 
-class HttpSSLCodecInterceptor(
-    configuration: WireBareConfiguration
-) : HttpInterceptor {
+class HttpSSLCodecInterceptor(jks: JKS) : HttpInterceptor {
 
-    private val factory = SSLEngineFactory(configuration)
+    private val factory = SSLEngineFactory(jks)
 
     internal val requestCodec = RequestSSLCodec(factory)
 
     internal val responseCodec = ResponseSSLCodec(factory)
 
-    private val pendingReqCiphertext = LinkedBlockingQueue<ByteBuffer>()
+    private val pendingReqCiphertextMap =
+        hashMapOf<TcpSession, LinkedBlockingQueue<ByteBuffer>>()
 
-    private val pendingRspCiphertext = LinkedBlockingQueue<ByteBuffer>()
+    private val pendingRspCiphertextMap =
+        hashMapOf<TcpSession, LinkedBlockingQueue<ByteBuffer>>()
 
     override fun onRequest(
         chain: HttpInterceptChain,
@@ -49,6 +50,7 @@ class HttpSSLCodecInterceptor(
                 }
             }
         )
+        val pendingReqCiphertext = pendingReqCiphertext(tcpSession)
         pendingReqCiphertext.add(buffer)
         requestCodec.decode(
             tcpSession,
@@ -92,6 +94,7 @@ class HttpSSLCodecInterceptor(
             return
         }
         val host = response.hostInternal ?: return
+        val pendingRspCiphertext = pendingRspCiphertext(tcpSession)
         pendingRspCiphertext.add(buffer)
         responseCodec.decode(
             tcpSession,
@@ -130,7 +133,7 @@ class HttpSSLCodecInterceptor(
         tunnel: TcpTunnel
     ) {
         super.onRequestFinished(chain, session, tunnel)
-        pendingReqCiphertext.clear()
+        pendingReqCiphertextMap.remove(session.tcpSession)
     }
 
     override fun onResponseFinished(
@@ -139,6 +142,22 @@ class HttpSSLCodecInterceptor(
         tunnel: TcpTunnel
     ) {
         super.onResponseFinished(chain, session, tunnel)
-        pendingRspCiphertext.clear()
+        pendingRspCiphertextMap.remove(session.tcpSession)
+    }
+
+    private fun pendingReqCiphertext(
+        tcpSession: TcpSession
+    ): LinkedBlockingQueue<ByteBuffer> {
+        return pendingReqCiphertextMap.computeIfAbsent(tcpSession) {
+            LinkedBlockingQueue()
+        }
+    }
+
+    private fun pendingRspCiphertext(
+        tcpSession: TcpSession
+    ): LinkedBlockingQueue<ByteBuffer> {
+        return pendingRspCiphertextMap.computeIfAbsent(tcpSession) {
+            LinkedBlockingQueue()
+        }
     }
 }

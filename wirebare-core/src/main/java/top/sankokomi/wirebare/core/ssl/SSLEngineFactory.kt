@@ -1,6 +1,5 @@
 package top.sankokomi.wirebare.core.ssl
 
-import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.net.Port
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -8,9 +7,7 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 
 
-class SSLEngineFactory(
-    private val configuration: WireBareConfiguration
-) {
+class SSLEngineFactory(private val jks: JKS) {
 
     companion object {
         private const val KEY_STORE_TYPE_JKS = "JKS"
@@ -31,6 +28,12 @@ class SSLEngineFactory(
 //            SSL_PROTOCOL_SSL
         )
     }
+
+    private val keyStore: KeyStore = KeyStore.getInstance(jks.type).also {
+        it.load(jks.jksStream(), jks.password)
+    }
+    private val certificate = keyStore.getCertificate(jks.alias)
+    private val privateKey = keyStore.getKey(jks.alias, jks.password) as PrivateKey
 
     fun createClientSSLEngine(host: String, port: Port): WireBareSSLEngine? {
         val engine = requireSSLContext(host)?.createSSLEngine(
@@ -72,18 +75,12 @@ class SSLEngineFactory(
     }
 
     private fun createSSLContext(host: String): SSLContext? {
-        val jks = configuration.jks ?: return null
         return realCreateSSLContext()?.also { context ->
-            val keyStore = KeyStore.getInstance(jks.type).also {
-                it.load(jks.jksStream(), jks.password)
-            }
-            val ca = keyStore.getCertificate(jks.alias)
-            val priKey = keyStore.getKey(jks.alias, jks.password) as PrivateKey
             val kmf = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm()
             ).also {
                 it.init(
-                    CertificateFactory.generateServer(host, jks, ca, priKey),
+                    CertificateFactory.generateServer(host, jks, certificate, privateKey),
                     jks.password
                 )
             }

@@ -25,9 +25,7 @@ object LauncherModel {
         WireBare.startProxy {
             if (ProxyPolicyDataStore.enableSSL.value) {
                 jks = JKS(
-                    {
-                        context.assets.open("wirebare.jks")
-                    },
+                    { context.assets.open("wirebare.jks") },
                     "wirebare",
                     "wirebare".toCharArray(),
                     "PKCS12",

@@ -90,10 +90,7 @@ internal class TcpProxyServer(
         // 将 TcpProxyTunnel 与 TcpReadTunnel 关联并开始连接远程服务器
         proxyTunnel.attachRealChannel(realTunnel)
         realTunnel.attachProxyTunnel(proxyTunnel)
-        realTunnel.connectRemoteServer(
-            proxySocket.inetAddress.hostAddress!!,
-            session.destinationPort.port.convertPortToInt
-        )
+        realTunnel.connectRemoteServer()
     }
 
     override fun onConnected() {

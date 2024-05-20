@@ -3,10 +3,10 @@ package top.sankokomi.wirebare.core.service
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
 import top.sankokomi.wirebare.core.service.PacketDispatcher.Companion.dispatchWith
-import top.sankokomi.wirebare.core.util.WireBareLogger
 
 /**
  * VPN 代理服务的启动器

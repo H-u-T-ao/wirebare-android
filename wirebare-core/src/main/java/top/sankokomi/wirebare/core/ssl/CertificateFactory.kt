@@ -37,11 +37,13 @@ import java.util.Random
 object CertificateFactory {
 
     fun generateServer(
-        commonName: String?, jks: JKS,
-        caCert: Certificate, caPrivKey: PrivateKey
+        commonName: String?,
+        jks: JKS,
+        certificate: Certificate,
+        privateKey: PrivateKey
     ): KeyStore? {
         val keyPair: KeyPair = generateKeyPair()
-        val issuer: X500Name = X509CertificateHolder(caCert.encoded).subject
+        val issuer: X500Name = X509CertificateHolder(certificate.encoded).subject
         val serial = BigInteger.valueOf(randomSerial())
         val name = X500NameBuilder(BCStyle.INSTANCE)
         name.addRDN(BCStyle.CN, commonName)
@@ -72,13 +74,13 @@ object CertificateFactory {
         )
         val cert: X509Certificate = signCertificate(
             builder,
-            caPrivKey
+            privateKey
         )
         cert.checkValidity(Date())
-        cert.verify(caCert.publicKey)
+        cert.verify(certificate.publicKey)
         val result = KeyStore.getInstance(KeyStore.getDefaultType())
         result.load(null, null)
-        val chain = arrayOf(cert, caCert)
+        val chain = arrayOf(cert, certificate)
         result.setKeyEntry(jks.alias, keyPair.private, jks.password, chain)
         return result
     }

@@ -19,8 +19,9 @@ class HttpVirtualGateway internal constructor(
         val interceptors = mutableListOf<HttpInterceptor>()
         // HTTP/HTTPS 嗅探拦截器，用于判断 HTTP/HTTPS
         interceptors.add(HttpSSLSniffInterceptor())
-        if (configuration.jks != null) {
-            val sslDecodeInterceptor = HttpSSLCodecInterceptor(configuration)
+        val jks = configuration.jks
+        if (jks != null) {
+            val sslDecodeInterceptor = HttpSSLCodecInterceptor(jks)
             interceptors.add(sslDecodeInterceptor)
             // HTTP 请求头，响应头格式化拦截器
             interceptors.add(HttpHeaderParserInterceptor())

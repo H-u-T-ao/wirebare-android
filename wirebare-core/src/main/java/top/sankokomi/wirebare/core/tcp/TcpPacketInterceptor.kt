@@ -100,7 +100,7 @@ internal class TcpPacketInterceptor(
 
             WireBareLogger.info(
                 "[IPv4-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
-                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
                             tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
                         } length = ${tcpHeader.dataLength}"
@@ -124,7 +124,7 @@ internal class TcpPacketInterceptor(
 
             WireBareLogger.info(
                 "[IPv4-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
-                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
                             tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
                         } length = ${tcpHeader.dataLength}"
@@ -169,7 +169,7 @@ internal class TcpPacketInterceptor(
 
             WireBareLogger.info(
                 "[IPv6-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
-                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
                             tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
                         } length = ${tcpHeader.dataLength}"
@@ -193,7 +193,7 @@ internal class TcpPacketInterceptor(
 
             WireBareLogger.info(
                 "[IPv6-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
-                        "seq = ${tcpHeader.sequenceNumber} ack = ${tcpHeader.acknowledgmentNumber} " +
+                        "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
                             tcpHeader.flag.toUByte().toString(2).padStart(6, '0')
                         } length = ${tcpHeader.dataLength}"

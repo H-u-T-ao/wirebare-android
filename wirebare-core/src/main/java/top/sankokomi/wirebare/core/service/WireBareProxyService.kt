@@ -58,6 +58,7 @@ abstract class WireBareProxyService : VpnService(),
         return super.onStartCommand(intent, flags, startId)
     }
 
+    @Volatile
     private var fd: ParcelFileDescriptor? = null
 
     private fun startWireBare() {
@@ -68,7 +69,9 @@ abstract class WireBareProxyService : VpnService(),
             startForeground(notificationId, notification())
         }
         val configuration = WireBare.configuration.copy()
-        fd = this launchWith configuration
+        launch(Dispatchers.IO) {
+            fd = this@WireBareProxyService launchWith configuration
+        }
     }
 
     private fun stopWireBare() {
