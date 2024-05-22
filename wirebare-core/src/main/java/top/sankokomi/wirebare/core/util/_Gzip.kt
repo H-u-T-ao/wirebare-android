@@ -8,18 +8,19 @@ import java.util.zip.GZIPInputStream
 
 fun ByteBuffer.unzipGzip(): ByteBuffer {
     val compressedData: ByteBuffer = this
-    // 将ByteBuffer中的数据转换为InputStream
-    val compressedStream = ByteArrayInputStream(compressedData.array())
+    return ByteBuffer.wrap(compressedData.array().unzipGzip())
+}
+
+fun ByteArray.unzipGzip(): ByteArray {
+    val compressedData: ByteArray = this
+    val compressedStream = ByteArrayInputStream(compressedData)
     val gzipStream = GZIPInputStream(compressedStream)
 
-    // 使用ByteArrayOutputStream来收集解压后的数据
     val decompressedOutputStream = ByteArrayOutputStream()
 
-    // 使用缓冲区来读取和解压数据
     val buffer = ByteArray(1024)
     var bytesRead: Int
     try {
-        // 读取和解压数据到输出流
         while (gzipStream.read(buffer).also { bytesRead = it } != -1) {
             decompressedOutputStream.write(buffer, 0, bytesRead)
         }
@@ -32,6 +33,5 @@ fun ByteBuffer.unzipGzip(): ByteBuffer {
         } catch (ignore: IOException) {
         }
     }
-    // 将解压后的数据转换为ByteBuffer
-    return ByteBuffer.wrap(decompressedOutputStream.toByteArray())
+    return decompressedOutputStream.toByteArray()
 }

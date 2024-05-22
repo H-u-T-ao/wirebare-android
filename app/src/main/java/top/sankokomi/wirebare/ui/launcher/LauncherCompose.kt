@@ -77,8 +77,8 @@ fun LauncherUI.WireBareUIPage() {
             pagerState = pagerState,
             navigationItems = listOf(
                 (painterControlRes to "控制中心") to (painterControlRes to "控制中心"),
-                (painterRequestRes to "REQUEST") to (painterRequestRes to "REQUEST"),
-                (painterResponseRes to "RESPONSE") to (painterResponseRes to "RESPONSE")
+                (painterRequestRes to "  请求  ") to (painterRequestRes to "  请求  "),
+                (painterResponseRes to "  响应  ") to (painterResponseRes to "  响应  ")
             )
         )
     }
@@ -365,6 +365,7 @@ private fun LauncherUI.PageProxyRequestResult() {
                                     WireInfoUI::class.java
                                 ).apply {
                                     putExtra("request", request)
+                                    putExtra("session_id", "req_${request.hashCode()}")
                                 }
                             )
                         }
@@ -438,6 +439,7 @@ private fun LauncherUI.PageProxyResponseResult() {
                                     WireInfoUI::class.java
                                 ).apply {
                                     putExtra("response", response)
+                                    putExtra("session_id", "rsp_${response.hashCode()}")
                                 }
                             )
                         }

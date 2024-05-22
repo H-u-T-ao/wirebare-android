@@ -1,10 +1,14 @@
 package top.sankokomi.wirebare.core.ssl
 
 import top.sankokomi.wirebare.core.net.Port
+import java.security.KeyManagementException
 import java.security.KeyStore
 import java.security.PrivateKey
+import java.util.Arrays
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 
 class SSLEngineFactory(private val jks: JKS) {
@@ -35,8 +39,16 @@ class SSLEngineFactory(private val jks: JKS) {
     private val certificate = keyStore.getCertificate(jks.alias)
     private val privateKey = keyStore.getKey(jks.alias, jks.password) as PrivateKey
 
+    fun createServerSSLEngine(host: String): WireBareSSLEngine? {
+        val engine = requireServerSSLContext(host)?.createSSLEngine() ?: return null
+        engine.useClientMode = false
+        engine.wantClientAuth = false
+        engine.needClientAuth = false
+        return WireBareSSLEngine(engine)
+    }
+
     fun createClientSSLEngine(host: String, port: Port): WireBareSSLEngine? {
-        val engine = requireSSLContext(host)?.createSSLEngine(
+        val engine = requireClientSSLContext(host)?.createSSLEngine(
             host, port.port.toInt() and 0xFFFF
         ) ?: return null
         val ciphers = mutableListOf<String>()
@@ -50,31 +62,34 @@ class SSLEngineFactory(private val jks: JKS) {
         }
         engine.enabledCipherSuites = ciphers.toTypedArray()
         engine.useClientMode = true
-        engine.needClientAuth = false
-        return WireBareSSLEngine(engine)
-    }
-
-    fun createServerSSLEngine(host: String): WireBareSSLEngine? {
-        val engine = requireSSLContext(host)?.createSSLEngine() ?: return null
-        engine.useClientMode = false
         engine.wantClientAuth = false
-        engine.needClientAuth = false
         return WireBareSSLEngine(engine)
     }
 
-    private val sslContextMap = hashMapOf<String, SSLContext>()
+    private val serverSSLContextMap = hashMapOf<String, SSLContext>()
+    private val clientSSLContextMap = hashMapOf<String, SSLContext>()
 
-    private fun requireSSLContext(host: String): SSLContext? {
-        val cache = sslContextMap[host]
+    private fun requireServerSSLContext(host: String): SSLContext? {
+        val cache = serverSSLContextMap[host]
         if (cache != null) {
             return cache
         }
-        val context = createSSLContext(host) ?: return null
-        sslContextMap[host] = context
+        val context = createServerSSLContext(host) ?: return null
+        serverSSLContextMap[host] = context
         return context
     }
 
-    private fun createSSLContext(host: String): SSLContext? {
+    private fun requireClientSSLContext(host: String): SSLContext? {
+        val cache = clientSSLContextMap[host]
+        if (cache != null) {
+            return cache
+        }
+        val context = createClientSSLContext() ?: return null
+        clientSSLContextMap[host] = context
+        return context
+    }
+
+    private fun createServerSSLContext(host: String): SSLContext? {
         return realCreateSSLContext()?.also { context ->
             val kmf = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm()
@@ -85,6 +100,22 @@ class SSLEngineFactory(private val jks: JKS) {
                 )
             }
             context.init(kmf.keyManagers, null, null)
+        }
+    }
+
+    private fun createClientSSLContext(): SSLContext? {
+        return realCreateSSLContext()?.also { context ->
+            val tmf = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm()
+            )
+            tmf.init(null as KeyStore?)
+            val trustManagers = tmf.trustManagers
+            if (trustManagers.size != 1 || trustManagers[0] !is X509TrustManager) {
+                throw KeyManagementException(
+                    "无法识别的默认证书链 " + Arrays.toString(trustManagers)
+                )
+            }
+            context.init(null, tmf.trustManagers, null)
         }
     }
 

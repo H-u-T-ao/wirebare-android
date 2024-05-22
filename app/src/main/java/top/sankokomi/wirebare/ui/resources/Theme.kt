@@ -17,6 +17,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import top.sankokomi.wirebare.ui.util.hideNavigationBar
 import top.sankokomi.wirebare.ui.util.hideStatusBar
+import top.sankokomi.wirebare.ui.util.showNavigationBar
+import top.sankokomi.wirebare.ui.util.showStatusBar
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -67,8 +69,8 @@ fun WirebareUITheme(
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
             }
-            if (!isShowStatusBar) window.hideStatusBar()
-            if (!isShowNavigationBar) window.hideNavigationBar()
+            if (!isShowStatusBar) window.hideStatusBar() else window.showStatusBar()
+            if (!isShowNavigationBar) window.hideNavigationBar() else window.showNavigationBar()
             window.statusBarColor = statusBarColor.toArgb()
             window.navigationBarColor = navigationBarColor.toArgb()
         }

@@ -28,6 +28,7 @@ import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
+import top.sankokomi.wirebare.ui.util.deleteDataCache
 import top.sankokomi.wirebare.ui.util.requireAppDataList
 import top.sankokomi.wirebare.ui.util.showToast
 
@@ -124,6 +125,7 @@ class LauncherUI : VpnPrepareActivity() {
                 }
             }
         }
+        deleteDataCache()
     }
 
     override fun onDestroy() {

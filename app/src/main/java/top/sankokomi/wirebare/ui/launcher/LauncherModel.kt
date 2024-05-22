@@ -11,6 +11,7 @@ import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.util.Level
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.wireinfo.WireBareHttpInterceptor
 import java.nio.ByteBuffer
 
 object LauncherModel {
@@ -40,34 +41,8 @@ object LauncherModel {
             ipv6ProxyAddress = "a:a:1:1:a:a:1:1" to 128
             addRoutes("0.0.0.0" to 0, "::" to 0)
             addAllowedApplications(*targetPackageNameArray)
-            setHttpInterceptorFactory {
-                object : HttpIndexedInterceptor() {
-                    override fun onRequest(
-                        chain: HttpInterceptChain,
-                        buffer: ByteBuffer,
-                        session: HttpSession,
-                        tunnel: TcpTunnel,
-                        index: Int
-                    ) {
-                        if (index == 0) {
-                            onRequest(session.request)
-                        }
-                        chain.processRequestNext(this, buffer, session, tunnel)
-                    }
-
-                    override fun onResponse(
-                        chain: HttpInterceptChain,
-                        buffer: ByteBuffer,
-                        session: HttpSession,
-                        tunnel: TcpTunnel,
-                        index: Int
-                    ) {
-                        if (index == 0) {
-                            onResponse(session.response)
-                        }
-                        chain.processResponseNext(this, buffer, session, tunnel)
-                    }
-                }
+            setHttpInterceptorFactory{
+                WireBareHttpInterceptor(onRequest, onResponse)
             }
         }
     }

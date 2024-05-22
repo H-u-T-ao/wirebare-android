@@ -7,30 +7,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
-import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
 
-class WireInfoUI : ComponentActivity() {
+class WireDetailUI : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val request = intent.getSerializableExtra("request") as? HttpRequest
-        val response = intent.getSerializableExtra("response") as? HttpResponse
-        val sessionId = intent.getStringExtra("session_id")
+        val sessionId = intent.getStringExtra("session_id") ?: ""
+        val detailMode = intent.getIntExtra("detail_mode", DetailMode.DirectHtml.ordinal)
         setContent {
             WirebareUITheme(
+                isShowStatusBar = true,
                 isShowNavigationBar = false
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (request != null) {
-                        WireInfoUIPage(request = request, sessionId = sessionId ?: "")
-                    } else if (response != null) {
-                        WireInfoUIPage(response = response, sessionId = sessionId ?: "")
-                    }
+                    LoadDetail(sessionId = sessionId, mode = detailMode)
                 }
             }
         }

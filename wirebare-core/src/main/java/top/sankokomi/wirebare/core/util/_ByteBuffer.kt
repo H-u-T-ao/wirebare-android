@@ -11,7 +11,7 @@ internal fun ByteBuffer.readUnsignedShort(index: Int): Int {
     return getShort(index).toInt() and 0x0FFFF
 }
 
-internal fun ByteBuffer.newString(
+fun ByteBuffer.newString(
     position: Int = position(),
     remaining: Int = remaining()
 ): String {

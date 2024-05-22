@@ -32,6 +32,9 @@
         <activity
             android:name="top.sankokomi.wirebare.ui.wireinfo.WireInfoUI"
             android:exported="false" />
+        <activity
+            android:name="top.sankokomi.wirebare.ui.wireinfo.WireDetailUI"
+            android:exported="false" />
 
         <service
             android:name="top.sankokomi.wirebare.core.service.SimpleWireBareProxyService"
