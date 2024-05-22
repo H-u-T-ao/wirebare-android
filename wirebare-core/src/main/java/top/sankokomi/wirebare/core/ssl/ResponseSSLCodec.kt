@@ -13,7 +13,7 @@ class ResponseSSLCodec(
         return clientSSLEngineMap[session] ?: let {
             engineFactory.createClientSSLEngine(host, session.destinationPort)?.also {
                 clientSSLEngineMap[session] = it
-                it.name = "RSP-$host"
+                it.name = "RSP-$host:${session.destinationPort}"
             }
         }
     }

@@ -1,6 +1,7 @@
 package top.sankokomi.wirebare.core.ssl
 
 import android.os.Build
+import top.sankokomi.wirebare.core.util.WireBareLogger
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingQueue
@@ -88,6 +89,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
+                WireBareLogger.verbose("[$name] 输出加密数据")
                 callback.encryptSuccess(output)
             }
             if (status == SSLEngineResult.Status.BUFFER_OVERFLOW) {
@@ -121,6 +123,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
             output!!.flip()
             val producedSize = output.remaining()
             if (producedSize > 0) {
+                WireBareLogger.verbose("[$name] 输出解密数据")
                 callback.decryptSuccess(output)
                 output = null
             }
@@ -214,6 +217,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
             val status = result.status
             output.flip()
             if (output.hasRemaining()) {
+                WireBareLogger.verbose("[$name] 输出握手加密数据")
                 callback.encryptSuccess(output)
             }
             if (status == SSLEngineResult.Status.BUFFER_OVERFLOW) {
@@ -243,6 +247,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
             output.flip()
             val producedSize = output.remaining()
             if (producedSize > 0) {
+                WireBareLogger.verbose("[$name] 输出握手解密数据")
                 callback.decryptSuccess(output)
             }
             if (status == SSLEngineResult.Status.BUFFER_OVERFLOW) {
@@ -255,7 +260,8 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 if (input.hasRemaining()) {
                     callback.shouldPending(
                         ByteBuffer.wrap(
-                            input.array(), input.position(),
+                            input.array(),
+                            input.position(),
                             input.remaining()
                         )
                     )

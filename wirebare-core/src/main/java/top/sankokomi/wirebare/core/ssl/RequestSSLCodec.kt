@@ -12,7 +12,7 @@ class RequestSSLCodec(
         return serverSSLEngineMap[session] ?: let {
             engineFactory.createServerSSLEngine(host)?.also {
                 serverSSLEngineMap[session] = it
-                it.name = "REQ-$host"
+                it.name = "REQ-$host:${session.destinationPort}"
             }
         }
     }

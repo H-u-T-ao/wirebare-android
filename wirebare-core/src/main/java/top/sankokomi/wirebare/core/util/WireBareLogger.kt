@@ -90,7 +90,6 @@ internal object WireBareLogger {
     }
 
     internal fun inetInfo(session: TcpSession, msg: String) {
-
         info("${tcpPrefix(session)} >> ${session.destinationAddress}:${session.destinationPort} $msg")
     }
 
@@ -104,8 +103,8 @@ internal object WireBareLogger {
 
     private fun tcpPrefix(session: TcpSession): String {
         return when (session.destinationAddress.ipVersion) {
-            IpVersion.IPv4 -> "[IPv4-TCP] ${WireBare.configuration.ipv4Address}:${session.sourcePort}"
-            IpVersion.IPv6 -> "[IPv6-TCP] ${WireBare.configuration.ipv6Address}:${session.sourcePort}"
+            IpVersion.IPv4 -> "[IPv4-TCP] ${session.sourcePort}"
+            IpVersion.IPv6 -> "[IPv6-TCP] ${session.sourcePort}"
         }
     }
 
