@@ -5,6 +5,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpSession
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.ssl.judgeIsHttps
+import top.sankokomi.wirebare.core.util.newString
 import top.sankokomi.wirebare.core.util.readShort
 import java.nio.ByteBuffer
 import java.util.Locale
@@ -45,7 +46,7 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
     private fun ensureHost(isHttps: Boolean?, buffer: ByteBuffer): String? {
         return when (isHttps) {
             true -> {
-                parseHttpsHost(buffer.array(), buffer.position(), buffer.remaining())
+                parseHttpsHost(buffer, buffer.position(), buffer.remaining())
             }
 
             false -> {
@@ -68,7 +69,6 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         }
         for (i in 1 until headers.size) {
             val requestHeader = headers[i]
-            // Reach the header end
             if (requestHeader.isEmpty()) {
                 return null
             }
@@ -89,61 +89,85 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         return null
     }
 
-    private fun parseHttpsHost(buffer: ByteArray, offset: Int, size: Int): String? {
-        var o = offset
-        val limit = o + size
-        // Client Hello
-        if (size <= 43 || buffer[o].toInt() != 0x16) {
+    /**
+     * # 头部需要跳过以下固定的 43 字节：
+     * ## 记录层（5字节）
+     * - 消息类型（1字节），对于握手，则固定为 0x16
+     * - TLS 版本（2字节），对于 TLSv1.2，则固定为 0x0303
+     * - 长度（2字节）
+     *
+     * ## 握手层（38字节）
+     * - 握手类型（2字节），对于 Client Hello，则固定为 0x0001
+     * - 长度（2字节）
+     * - TLS 版本（2字节）
+     * - 随机数（32字节）
+     * */
+    private fun parseHttpsHost(
+        buffer: ByteBuffer,
+        offset: Int,
+        size: Int
+    ): String? {
+        if (size <= 43) {
             return null
         }
-        // Skip 43 byte header
-        o += 43
+        val array = buffer.array()
+        var pointer = offset
+        val limit = pointer + size
+        // 0x16 即十进制 22 ，表示当前是 SSL/TLS 握手
+        if (array[pointer].toInt() != 0x16) {
+            return null
+        }
+        // 跳过固定的 43 字节
+        pointer += 43
 
-        // Read sessionID
-        if (o + 1 > limit) {
+        // 跳过 Session ID
+        if (pointer + 1 > limit) {
             return null
         }
-        val sessionIDLength = buffer[o++].toInt() and 0xFF
-        o += sessionIDLength
+        val sessionIDLength = array[pointer++].toInt() and 0xFF
+        pointer += sessionIDLength
 
-        // Read cipher suites
-        if (o + 2 > limit) {
+        // 跳过加密套件 Cipher Suites
+        if (pointer + 2 > limit) {
             return null
         }
-        val cipherSuitesLength: Int = buffer.readShort(o).toInt() and 0xFFFF
-        o += 2
-        o += cipherSuitesLength
+        val cipherSuitesLength = array.readShort(pointer).toInt() and 0xFFFF
+        pointer += 2
+        pointer += cipherSuitesLength
 
-        // Read Compression method.
-        if (o + 1 > limit) {
+        // 跳过压缩方法 Compression Method
+        if (pointer + 1 > limit) {
             return null
         }
-        val compressionMethodLength = buffer[o++].toInt() and 0xFF
-        o += compressionMethodLength
+        val compressionMethodLength = array[pointer++].toInt() and 0xFF
+        pointer += compressionMethodLength
 
-        // Read Extensions
-        if (o + 2 > limit) {
+        // 拓展 Extensions
+        if (pointer + 2 > limit) {
             return null
         }
-        val extensionsLength: Int = buffer.readShort(o).toInt() and 0xFFFF
-        o += 2
-        if (o + extensionsLength > limit) {
+        val extensionsLength = array.readShort(pointer).toInt() and 0xFFFF
+        pointer += 2
+        if (pointer + extensionsLength > limit) {
             return null
         }
-        while (o + 4 <= limit) {
-            val type0 = buffer[o++].toInt() and 0xFF
-            val type1 = buffer[o++].toInt() and 0xFF
-            var length: Int = buffer.readShort(o).toInt() and 0xFFFF
-            o += 2
-            // Got the SNI info
-            if (type0 == 0x00 && type1 == 0x00 && length > 5) {
-                o += 5
+        while (pointer + 4 <= limit) {
+            val type = array.readShort(pointer).toInt() and 0xFFFF
+            pointer += 2
+            var length = array.readShort(pointer).toInt() and 0xFFFF
+            pointer += 2
+            // Server Name Indication
+            // SNI 拓展的类型代码是 0x00
+            if (type == 0x00 && length > 5) {
+                pointer += 5
                 length -= 5
-                return if (o + length > limit) {
+                return if (pointer + length <= limit) {
+                    buffer.newString(pointer, length)
+                } else {
                     null
-                } else String(buffer, o, length)
+                }
             } else {
-                o += length
+                pointer += length
             }
         }
         return null
