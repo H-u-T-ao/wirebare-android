@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.sankokomi.wirebare.core.util.unzipBrotli
 import top.sankokomi.wirebare.core.util.unzipGzip
 import java.io.BufferedOutputStream
 import java.io.File
@@ -88,6 +89,20 @@ suspend fun decodeGzipBodyBytes(fileName: String): ByteArray? {
     }
 }
 
+suspend fun decodeBrotliBodyBytes(fileName: String): ByteArray? {
+    return withContext(Dispatchers.IO) {
+        runCatching {
+            return@runCatching decodeBodyBytes(fileName)?.unzipBrotli()
+        }.onFailure {
+            Log.e(TAG, "decodeGzipBodyBytes FAILED", it)
+            return@withContext null
+        }.onSuccess {
+            return@withContext it
+        }
+        return@withContext null
+    }
+}
+
 suspend fun decodeBitmap(sessionId: String): Bitmap? {
     runCatching {
         val body = decodeBodyBytes(sessionId) ?: return null
@@ -103,6 +118,18 @@ suspend fun decodeBitmap(sessionId: String): Bitmap? {
 suspend fun decodeGzipBitmap(sessionId: String): Bitmap? {
     runCatching {
         val body = decodeGzipBodyBytes(sessionId) ?: return null
+        return@runCatching BitmapFactory.decodeByteArray(body, 0, body.size)
+    }.onFailure {
+        return null
+    }.onSuccess {
+        return it
+    }
+    return null
+}
+
+suspend fun decodeBrotliBitmap(sessionId: String): Bitmap? {
+    runCatching {
+        val body = decodeBrotliBodyBytes(sessionId) ?: return null
         return@runCatching BitmapFactory.decodeByteArray(body, 0, body.size)
     }.onFailure {
         return null

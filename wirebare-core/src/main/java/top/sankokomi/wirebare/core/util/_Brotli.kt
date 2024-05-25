@@ -1,25 +1,25 @@
 package top.sankokomi.wirebare.core.util
 
+import org.brotli.dec.BrotliInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-import java.util.zip.GZIPInputStream
 
-fun ByteBuffer.unzipGzip(): ByteBuffer {
+fun ByteBuffer.unzipBrotli(): ByteBuffer {
     val compressedData: ByteBuffer = this
-    return ByteBuffer.wrap(compressedData.array().unzipGzip())
+    return ByteBuffer.wrap(compressedData.array().unzipBrotli())
 }
 
-fun ByteArray.unzipGzip(): ByteArray {
+fun ByteArray.unzipBrotli(): ByteArray {
     val compressedData: ByteArray = this
     val compressedStream = ByteArrayInputStream(compressedData)
-    val gzipStream = GZIPInputStream(compressedStream)
+    val brotliStream = BrotliInputStream(compressedStream)
     val outputStream = ByteArrayOutputStream()
     try {
-        gzipStream.copyTo(outputStream)
+        brotliStream.copyTo(outputStream)
     } finally {
         try {
-            gzipStream.close()
+            brotliStream.close()
             compressedStream.close()
         } catch (ignored: Exception) {
         }

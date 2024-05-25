@@ -289,29 +289,6 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
         )
     }
     Spacer(modifier = Modifier.height(16.dp))
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-    ) {
-        LargeColorfulText(
-            mainText = "解析为图片",
-            subText = "将报文作为图片数据进行解析",
-            backgroundColor = Purple80,
-            textColor = Color.Black,
-            onClick = {
-                startActivity(
-                    Intent(
-                        this@DataViewer,
-                        WireDetailUI::class.java
-                    ).apply {
-                        putExtra("detail_mode", DetailMode.DirectImage.ordinal)
-                        putExtra("session_id", sessionId)
-                    }
-                )
-            }
-        )
-    }
-    Spacer(modifier = Modifier.height(16.dp))
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
@@ -335,6 +312,52 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
         )
     }
     Spacer(modifier = Modifier.height(16.dp))
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+    ) {
+        LargeColorfulText(
+            mainText = "brotli 解压缩并解析为 HTML",
+            subText = "将报文作为被 brotli 压缩的 HTML 文本进行解析",
+            backgroundColor = Purple80,
+            textColor = Color.Black,
+            onClick = {
+                startActivity(
+                    Intent(
+                        this@DataViewer,
+                        WireDetailUI::class.java
+                    ).apply {
+                        putExtra("detail_mode", DetailMode.BrotliHtml.ordinal)
+                        putExtra("session_id", sessionId)
+                    }
+                )
+            }
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+    ) {
+        LargeColorfulText(
+            mainText = "解析为图片",
+            subText = "将报文作为图片数据进行解析",
+            backgroundColor = Purple80,
+            textColor = Color.Black,
+            onClick = {
+                startActivity(
+                    Intent(
+                        this@DataViewer,
+                        WireDetailUI::class.java
+                    ).apply {
+                        putExtra("detail_mode", DetailMode.DirectImage.ordinal)
+                        putExtra("session_id", sessionId)
+                    }
+                )
+            }
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
@@ -351,6 +374,29 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
                         WireDetailUI::class.java
                     ).apply {
                         putExtra("detail_mode", DetailMode.GzipImage.ordinal)
+                        putExtra("session_id", sessionId)
+                    }
+                )
+            }
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+    ) {
+        LargeColorfulText(
+            mainText = "brotli 解压缩并解析为图片",
+            subText = "将报文作为被 brotli 压缩的图片数据进行解析",
+            backgroundColor = Purple80,
+            textColor = Color.Black,
+            onClick = {
+                startActivity(
+                    Intent(
+                        this@DataViewer,
+                        WireDetailUI::class.java
+                    ).apply {
+                        putExtra("detail_mode", DetailMode.BrotliImage.ordinal)
                         putExtra("session_id", sessionId)
                     }
                 )

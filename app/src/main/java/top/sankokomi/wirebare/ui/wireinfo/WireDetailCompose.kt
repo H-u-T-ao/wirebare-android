@@ -16,15 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.viewinterop.AndroidView
 import top.sankokomi.wirebare.ui.util.decodeBitmap
+import top.sankokomi.wirebare.ui.util.decodeBodyBytes
+import top.sankokomi.wirebare.ui.util.decodeBrotliBitmap
+import top.sankokomi.wirebare.ui.util.decodeBrotliBodyBytes
 import top.sankokomi.wirebare.ui.util.decodeGzipBitmap
 import top.sankokomi.wirebare.ui.util.decodeGzipBodyBytes
-import top.sankokomi.wirebare.ui.util.decodeBodyBytes
 
 enum class DetailMode {
     DirectHtml,
-    DirectImage,
     GzipHtml,
-    GzipImage
+    BrotliHtml,
+    DirectImage,
+    GzipImage,
+    BrotliImage
 }
 
 @Composable
@@ -38,34 +42,48 @@ fun WireDetailUI.LoadDetail(
                 DirectHtml(sessionId)
             }
 
-            DetailMode.DirectImage.ordinal -> {
-                DirectImage(sessionId)
-            }
-
             DetailMode.GzipHtml.ordinal -> {
                 GzipHtml(sessionId)
             }
 
+            DetailMode.BrotliHtml.ordinal -> {
+                BrotliHtml(sessionId)
+            }
+
+            DetailMode.DirectImage.ordinal -> {
+                DirectImage(sessionId)
+            }
+
             DetailMode.GzipImage.ordinal -> {
                 GzipImage(sessionId)
+            }
+
+            DetailMode.BrotliImage.ordinal -> {
+                BrotliImage(sessionId)
             }
         }
     }
 }
 
 @Composable
-fun WireDetailUI.GzipImage(sessionId: String) {
-    var bitmap: Bitmap? by remember { mutableStateOf(null) }
+fun WireDetailUI.DirectHtml(sessionId: String) {
+    var html by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        bitmap = decodeGzipBitmap(sessionId)
+        val bytes = decodeBodyBytes(sessionId) ?: return@LaunchedEffect
+        html = String(bytes, 0, bytes.size)
     }
-    val b = bitmap
-    if (b != null) {
-        Image(
-            bitmap = b.asImageBitmap(),
+    val text = html
+    if (text.isNotBlank()) {
+        AndroidView(
+            factory = {
+                WebView(it)
+            },
             modifier = Modifier
                 .fillMaxSize(),
-            contentDescription = null
+            update = { web ->
+                web.webViewClient = WebViewClient()
+                web.loadDataWithBaseURL(null, text, "text/html", "UTF-8", null)
+            }
         )
     }
 }
@@ -75,6 +93,29 @@ fun WireDetailUI.GzipHtml(sessionId: String) {
     var html by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         val bytes = decodeGzipBodyBytes(sessionId) ?: return@LaunchedEffect
+        html = String(bytes, 0, bytes.size)
+    }
+    val text = html
+    if (text.isNotBlank()) {
+        AndroidView(
+            factory = {
+                WebView(it)
+            },
+            modifier = Modifier
+                .fillMaxSize(),
+            update = { web ->
+                web.webViewClient = WebViewClient()
+                web.loadDataWithBaseURL(null, text, "text/html", "UTF-8", null)
+            }
+        )
+    }
+}
+
+@Composable
+fun WireDetailUI.BrotliHtml(sessionId: String) {
+    var html by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        val bytes = decodeBrotliBodyBytes(sessionId) ?: return@LaunchedEffect
         html = String(bytes, 0, bytes.size)
     }
     val text = html
@@ -111,24 +152,35 @@ fun WireDetailUI.DirectImage(sessionId: String) {
 }
 
 @Composable
-fun WireDetailUI.DirectHtml(sessionId: String) {
-    var html by remember { mutableStateOf("") }
+fun WireDetailUI.GzipImage(sessionId: String) {
+    var bitmap: Bitmap? by remember { mutableStateOf(null) }
     LaunchedEffect(Unit) {
-        val bytes = decodeBodyBytes(sessionId) ?: return@LaunchedEffect
-        html = String(bytes, 0, bytes.size)
+        bitmap = decodeGzipBitmap(sessionId)
     }
-    val text = html
-    if (text.isNotBlank()) {
-        AndroidView(
-            factory = {
-                WebView(it)
-            },
+    val b = bitmap
+    if (b != null) {
+        Image(
+            bitmap = b.asImageBitmap(),
             modifier = Modifier
                 .fillMaxSize(),
-            update = { web ->
-                web.webViewClient = WebViewClient()
-                web.loadDataWithBaseURL(null, text, "text/html", "UTF-8", null)
-            }
+            contentDescription = null
+        )
+    }
+}
+
+@Composable
+fun WireDetailUI.BrotliImage(sessionId: String) {
+    var bitmap: Bitmap? by remember { mutableStateOf(null) }
+    LaunchedEffect(Unit) {
+        bitmap = decodeBrotliBitmap(sessionId)
+    }
+    val b = bitmap
+    if (b != null) {
+        Image(
+            bitmap = b.asImageBitmap(),
+            modifier = Modifier
+                .fillMaxSize(),
+            contentDescription = null
         )
     }
 }

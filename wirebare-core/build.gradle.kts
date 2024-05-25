@@ -44,4 +44,6 @@ dependencies {
 
     implementation("org.bouncycastle:bcpkix-jdk15on:1.67")
     implementation("org.bouncycastle:bcprov-jdk15on:1.67")
+
+    implementation("org.brotli:dec:0.1.2")
 }
