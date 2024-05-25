@@ -52,6 +52,13 @@ class HttpRequest internal constructor() : Serializable {
     var httpVersion: String? = null
         internal set
 
+    /**
+     * [isHttps] == true 时该值才有效
+     *
+     * true 表示已经完成 SSL/TLS 的握手流程，拦截器中拿到的都是明文
+     * */
+    internal var isPlaintext: Boolean? = null
+
     internal var hostInternal: String? = null
 
     /**

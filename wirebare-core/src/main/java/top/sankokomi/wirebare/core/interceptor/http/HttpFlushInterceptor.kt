@@ -18,7 +18,7 @@ class HttpFlushInterceptor(
         session: HttpSession,
         tunnel: TcpTunnel
     ) {
-        if (session.request.isHttps == true && session.isPlaintext) {
+        if (session.request.isHttps == true && session.request.isPlaintext == true) {
             val (request, _, tcpSession) = session
             val host = request.hostInternal ?: return
             responseCodec?.encode(
@@ -43,7 +43,7 @@ class HttpFlushInterceptor(
         session: HttpSession,
         tunnel: TcpTunnel
     ) {
-        if (session.response.isHttps == true && session.isPlaintext) {
+        if (session.response.isHttps == true && session.response.isPlaintext == true) {
             val (_, response, tcpSession) = session
             val host = response.hostInternal ?: return
             requestCodec?.encode(

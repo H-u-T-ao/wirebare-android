@@ -5,6 +5,5 @@ import top.sankokomi.wirebare.core.net.TcpSession
 data class HttpSession(
     val request: HttpRequest,
     val response: HttpResponse,
-    val tcpSession: TcpSession,
-    var isPlaintext: Boolean = false
+    val tcpSession: TcpSession
 )

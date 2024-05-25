@@ -33,6 +33,7 @@ class HttpResponse internal constructor() : Serializable {
     var formatHead: List<String>? = null
         internal set
     internal var hostInternal: String? = null
+    internal var isPlaintext: Boolean? = null
     var host: String? = null
         internal set
 }

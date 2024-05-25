@@ -17,7 +17,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
         tunnel: TcpTunnel,
         index: Int
     ) {
-        if (index == 0 && session.isPlaintext) {
+        if (index == 0 && session.request.isPlaintext == true) {
             kotlin.runCatching {
                 val (request, _) = session
                 val requestString = buffer.newString()
@@ -51,7 +51,7 @@ class HttpHeaderParserInterceptor : HttpIndexedInterceptor() {
         tunnel: TcpTunnel,
         index: Int
     ) {
-        if (index == 0 && session.isPlaintext) {
+        if (index == 0 && session.response.isPlaintext == true) {
             kotlin.runCatching {
                 val (request, response) = session
                 response.url = request.url

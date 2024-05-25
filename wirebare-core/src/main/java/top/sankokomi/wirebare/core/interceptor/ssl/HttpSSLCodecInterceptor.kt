@@ -66,7 +66,7 @@ class HttpSSLCodecInterceptor(jks: JKS) : HttpInterceptor {
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-                    session.isPlaintext = true
+                    session.request.isPlaintext = true
                     chain.processRequestNext(
                         this@HttpSSLCodecInterceptor,
                         target,
@@ -111,7 +111,7 @@ class HttpSSLCodecInterceptor(jks: JKS) : HttpInterceptor {
                 }
 
                 override fun decryptSuccess(target: ByteBuffer) {
-                    session.isPlaintext = true
+                    session.response.isPlaintext = true
                     chain.processResponseNext(
                         this@HttpSSLCodecInterceptor,
                         target,

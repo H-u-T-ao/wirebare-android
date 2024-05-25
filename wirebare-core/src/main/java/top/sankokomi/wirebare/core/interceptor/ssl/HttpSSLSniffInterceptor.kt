@@ -21,7 +21,7 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         if (index == 0) {
             val (request, _) = session
             request.isHttps = buffer.judgeIsHttps
-            session.isPlaintext = request.isHttps == false
+            session.request.isPlaintext = request.isHttps == false
             request.hostInternal = ensureHost(request.isHttps, buffer)
         }
         super.onRequest(chain, buffer, session, tunnel, index)
@@ -37,7 +37,7 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         if (index == 0) {
             val (request, response) = session
             response.isHttps = request.isHttps
-            session.isPlaintext = request.isHttps == false
+            session.response.isPlaintext = request.isHttps == false
             response.hostInternal = request.hostInternal
         }
         super.onResponse(chain, buffer, session, tunnel, index)
