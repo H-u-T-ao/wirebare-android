@@ -6,7 +6,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.interceptor.http.HttpSession
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
-import top.sankokomi.wirebare.ui.util.appendToDataCache
+import top.sankokomi.wirebare.ui.util.appendBufferToCacheFile
 import java.nio.ByteBuffer
 
 class WireBareHttpInterceptor(
@@ -24,7 +24,7 @@ class WireBareHttpInterceptor(
         if (index == 0) {
             onRequest(session.request)
         }
-        appendToDataCache("req_${session.request.hashCode()}", buffer)
+        appendBufferToCacheFile("req_${session.request.hashCode()}", buffer)
         super.onRequest(chain, buffer, session, tunnel, index)
     }
 
@@ -47,7 +47,7 @@ class WireBareHttpInterceptor(
         if (index == 0) {
             onResponse(session.response)
         }
-        appendToDataCache("rsp_${session.response.hashCode()}", buffer)
+        appendBufferToCacheFile("rsp_${session.response.hashCode()}", buffer)
         super.onResponse(chain, buffer, session, tunnel, index)
     }
 

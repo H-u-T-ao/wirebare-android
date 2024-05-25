@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.sankokomi.wirebare.core.common.EventSynopsis
 import top.sankokomi.wirebare.core.common.IImportantEventListener
 import top.sankokomi.wirebare.core.common.IProxyStatusListener
 import top.sankokomi.wirebare.core.common.ImportantEvent
@@ -28,9 +27,8 @@ import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
-import top.sankokomi.wirebare.ui.util.deleteDataCache
+import top.sankokomi.wirebare.ui.util.deleteCacheFiles
 import top.sankokomi.wirebare.ui.util.requireAppDataList
-import top.sankokomi.wirebare.ui.util.showToast
 
 class LauncherUI : VpnPrepareActivity() {
 
@@ -125,7 +123,9 @@ class LauncherUI : VpnPrepareActivity() {
                 }
             }
         }
-        deleteDataCache()
+        lifecycleScope.launch {
+            deleteCacheFiles()
+        }
     }
 
     override fun onDestroy() {

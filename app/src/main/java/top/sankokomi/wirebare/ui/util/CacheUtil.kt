@@ -4,8 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.util.unzipGzip
 import java.io.BufferedOutputStream
@@ -13,91 +11,61 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 
-fun deleteDataCache() {
-    GlobalScope.launch(Dispatchers.IO) {
+private const val TAG = "CacheUtil"
+
+private val cacheDir by lazy { Global.appContext.externalCacheDir!! }
+
+suspend fun deleteCacheFiles() {
+    withContext(Dispatchers.IO) {
         runCatching {
-            val p = Global.appContext.externalCacheDir!!
-            if (p.exists()) {
-                p.listFiles()?.forEach {
+            if (cacheDir.exists()) {
+                cacheDir.listFiles()?.forEach {
                     it?.delete()
                 }
             }
         }.onFailure {
-            Log.e("deleteDataCache", "FAILED", it)
+            Log.e(TAG, "deleteCacheFiles FAILED", it)
         }
     }
 }
 
-fun appendToDataCache(fileName: String, buffer: ByteBuffer) {
+fun appendBufferToCacheFile(fileName: String, buffer: ByteBuffer) {
     runCatching {
-        val p = Global.appContext.externalCacheDir!!
-        if (!p.exists()) {
-            p.mkdirs()
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
         }
-        val f = File(p, fileName)
+        val f = File(cacheDir, fileName)
         if (!f.exists()) {
             f.createNewFile()
         }
-
-        // 创建一个FileOutputStream来写入文件
         val fileOutputStream = FileOutputStream(f, true)
-
-        // 使用BufferedOutputStream进行缓冲以提高写入效率
         val bufferedOutputStream = BufferedOutputStream(fileOutputStream)
-
-        // 将ByteArray写入到BufferedOutputStream中
         bufferedOutputStream.write(
             buffer.array(),
             buffer.position(),
             buffer.remaining()
         )
-
-        // 刷新并关闭流
         bufferedOutputStream.flush()
         bufferedOutputStream.close()
     }.onFailure {
-        Log.e("writeToDataCache", "FAILED", it)
+        Log.e(TAG, "writeToDataCache FAILED", it)
     }
-}
-
-fun findHttpBody(bytes: ByteArray): ByteArray? {
-    runCatching {
-        var i = -1
-        bytes.forEachIndexed { index, byte ->
-            if (i == -1 &&
-                index + 3 in bytes.indices &&
-                byte == '\r'.code.toByte() &&
-                bytes[index + 1] == '\n'.code.toByte() &&
-                bytes[index + 2] == '\r'.code.toByte() &&
-                bytes[index + 3] == '\n'.code.toByte()
-            ) {
-                i = index + 4
-            }
-        }
-        return@runCatching bytes.copyOfRange(i, bytes.size)
-    }.onFailure {
-        return null
-    }.onSuccess {
-        return it
-    }
-    return null
 }
 
 suspend fun decodeBodyBytes(fileName: String): ByteArray? {
     return withContext(Dispatchers.IO) {
         runCatching {
-            val p = Global.appContext.externalCacheDir!!
-            if (!p.exists()) {
-                p.mkdirs()
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs()
             }
-            val f = File(p, fileName)
+            val f = File(cacheDir, fileName)
             if (!f.exists()) {
                 return@runCatching null
             } else {
-                return@runCatching findHttpBody(f.readBytes())
+                return@runCatching f.readBytes().parseHttpBody()
             }
         }.onFailure {
-            Log.e("getByteData", "FAILED", it)
+            Log.e(TAG, "decodeBodyBytes FAILED", it)
             return@withContext null
         }.onSuccess {
             return@withContext it
@@ -109,18 +77,9 @@ suspend fun decodeBodyBytes(fileName: String): ByteArray? {
 suspend fun decodeGzipBodyBytes(fileName: String): ByteArray? {
     return withContext(Dispatchers.IO) {
         runCatching {
-            val p = Global.appContext.externalCacheDir!!
-            if (!p.exists()) {
-                p.mkdirs()
-            }
-            val f = File(p, fileName)
-            if (!f.exists()) {
-                return@runCatching null
-            } else {
-                return@runCatching findHttpBody(f.readBytes())?.unzipGzip()
-            }
+            return@runCatching decodeBodyBytes(fileName)?.unzipGzip()
         }.onFailure {
-            Log.e("getByteData", "FAILED", it)
+            Log.e(TAG, "decodeGzipBodyBytes FAILED", it)
             return@withContext null
         }.onSuccess {
             return@withContext it
@@ -143,8 +102,32 @@ suspend fun decodeBitmap(sessionId: String): Bitmap? {
 
 suspend fun decodeGzipBitmap(sessionId: String): Bitmap? {
     runCatching {
-        val body = decodeGzipBodyBytes(sessionId)?.unzipGzip() ?: return null
+        val body = decodeGzipBodyBytes(sessionId) ?: return null
         return@runCatching BitmapFactory.decodeByteArray(body, 0, body.size)
+    }.onFailure {
+        return null
+    }.onSuccess {
+        return it
+    }
+    return null
+}
+
+private fun ByteArray.parseHttpBody(): ByteArray? {
+    runCatching {
+        val bytes = this
+        var i = -1
+        for (index in 0..bytes.size - 4) {
+            if (
+                bytes[index] == '\r'.code.toByte() &&
+                bytes[index + 1] == '\n'.code.toByte() &&
+                bytes[index + 2] == '\r'.code.toByte() &&
+                bytes[index + 3] == '\n'.code.toByte()
+            ) {
+                i = index + 4
+                break
+            }
+        }
+        return@runCatching bytes.copyOfRange(i, bytes.size)
     }.onFailure {
         return null
     }.onSuccess {
