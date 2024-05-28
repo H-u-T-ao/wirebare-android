@@ -1,7 +1,9 @@
 package top.sankokomi.wirebare.core.proxy
 
-import kotlinx.coroutines.*
-import top.sankokomi.wirebare.core.util.WireBareLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * 代理服务器，是最简单的抽象，只有负责进行处理数据和释放资源的函数
@@ -24,13 +26,7 @@ internal abstract class ProxyServer : CoroutineScope {
     internal fun dispatch() {
         launch(Dispatchers.IO) {
             while (isActive) {
-                kotlin.runCatching {
-                    process()
-                }.onFailure {
-                    if (it !is CancellationException) {
-                        WireBareLogger.error(it)
-                    }
-                }
+                process()
             }
             release()
         }

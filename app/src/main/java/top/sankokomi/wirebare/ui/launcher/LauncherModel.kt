@@ -29,8 +29,8 @@ object LauncherModel {
                     "WB"
                 )
             }
-            mtu = 7000
-            tcpProxyServerCount = 1
+            mtu = 10 * 1024
+            tcpProxyServerCount = 5
             ipv4ProxyAddress = "10.1.10.1" to 32
             enableIpv6 = ProxyPolicyDataStore.enableIpv6.value
             ipv6ProxyAddress = "a:a:1:1:a:a:1:1" to 128

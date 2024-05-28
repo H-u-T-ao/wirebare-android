@@ -93,8 +93,6 @@ internal class PacketDispatcher private constructor(
                     if (length <= 0) continue
 
                     val packet = Packet(buffer, length)
-                    // 新建新的缓冲区准备接收下一个字节包
-//                    buffer = ByteArray(configuration.mtu)
 
                     val ipHeader: IIpHeader
                     when (val ipVersion = IpHeader.readIpVersion(packet, 0)) {
@@ -144,9 +142,7 @@ internal class PacketDispatcher private constructor(
                     }
                 }
             }.onFailure {
-                if (it !is CancellationException) {
-                    WireBareLogger.error(it)
-                }
+                WireBareLogger.error(it)
             }
             // 关闭所有资源
             closeSafely(proxyDescriptor, inputStream, outputStream)

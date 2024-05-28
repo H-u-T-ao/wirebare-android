@@ -21,32 +21,30 @@ internal abstract class NioProxyServer : ProxyServer() {
     protected abstract val selector: Selector
 
     final override suspend fun process() {
-        withContext(Dispatchers.IO) {
-            var select = 0
-            while (isActive) {
-                select = selector.selectNow()
-                if (select != 0) {
-                    break
-                }
+        var select = 0
+        while (isActive) {
+            select = selector.selectNow()
+            if (select != 0) {
+                break
             }
-            if (select == 0) return@withContext
-            val selectionKeys = selector.selectedKeys()
-            var selectionKey = selectionKeys.firstOrNull()
-            while (selectionKey != null) {
-                val key = selectionKey
-                selectionKeys.remove(key)
-                selectionKey = selectionKeys.firstOrNull()
-                val callback = key.attachment()
-                if (!key.isValid || callback !is NioCallback) continue
-                kotlin.runCatching {
-                    if (key.isAcceptable) callback.onAccept()
-                    else if (key.isConnectable) callback.onConnected()
-                    else if (key.isReadable) callback.onRead()
-                    else if (key.isWritable) callback.onWrite()
-                }.onFailure {
-                    WireBareLogger.error("在 NIO KEY 处理时发生错误", it)
-                    callback.onException(it)
-                }
+        }
+        if (select == 0) return
+        val selectionKeys = selector.selectedKeys()
+        var selectionKey = selectionKeys.firstOrNull()
+        while (selectionKey != null) {
+            val key = selectionKey
+            selectionKeys.remove(key)
+            selectionKey = selectionKeys.firstOrNull()
+            val callback = key.attachment()
+            if (!key.isValid || callback !is NioCallback) continue
+            kotlin.runCatching {
+                if (key.isAcceptable) callback.onAccept()
+                else if (key.isConnectable) callback.onConnected()
+                else if (key.isReadable) callback.onRead()
+                else if (key.isWritable) callback.onWrite()
+            }.onFailure {
+                WireBareLogger.error("在 NIO KEY 处理时发生错误", it)
+                callback.onException(it)
             }
         }
     }

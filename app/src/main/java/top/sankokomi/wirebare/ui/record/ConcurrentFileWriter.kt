@@ -1,13 +1,11 @@
 package top.sankokomi.wirebare.ui.record
 
 import android.util.Log
-import okio.withLock
 import java.io.BufferedOutputStream
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.locks.ReentrantLock
 
 class ConcurrentFileWriter(
     private val file: File
@@ -23,16 +21,13 @@ class ConcurrentFileWriter(
         )
     }
 
-    private val lock = ReentrantLock(true)
-
     fun writeBytes(buffer: ByteBuffer) {
-        lock.withLock {
-            output.write(
-                buffer.array(),
-                buffer.position(),
-                buffer.remaining()
-            )
-        }
+        output.write(
+            buffer.array(),
+            buffer.position(),
+            buffer.remaining()
+        )
+        output.flush()
     }
 
     override fun close() {
