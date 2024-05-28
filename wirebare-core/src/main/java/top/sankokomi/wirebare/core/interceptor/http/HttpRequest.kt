@@ -9,6 +9,9 @@ import java.io.Serializable
  * */
 class HttpRequest internal constructor() : Serializable {
 
+    var requestTime: Long? = null
+        internal set
+
     /**
      * 来源端口号
      * */

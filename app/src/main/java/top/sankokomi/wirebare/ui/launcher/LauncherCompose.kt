@@ -42,6 +42,7 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.R
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.record.id
 import top.sankokomi.wirebare.ui.resources.AppNavigationBar
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
 import top.sankokomi.wirebare.ui.resources.ImageButton
@@ -365,7 +366,7 @@ private fun LauncherUI.PageProxyRequestResult() {
                                     WireInfoUI::class.java
                                 ).apply {
                                     putExtra("request", request)
-                                    putExtra("session_id", "req_${request.hashCode()}")
+                                    putExtra("session_id", request.id)
                                 }
                             )
                         }
@@ -439,7 +440,7 @@ private fun LauncherUI.PageProxyResponseResult() {
                                     WireInfoUI::class.java
                                 ).apply {
                                     putExtra("response", response)
-                                    putExtra("session_id", "rsp_${response.hashCode()}")
+                                    putExtra("session_id", response.id)
                                 }
                             )
                         }

@@ -3,6 +3,10 @@ package top.sankokomi.wirebare.core.interceptor.http
 import java.io.Serializable
 
 class HttpResponse internal constructor() : Serializable {
+
+    var requestTime: Long? = null
+        internal set
+
     /**
      * 来源端口号
      * */

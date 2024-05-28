@@ -15,12 +15,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.viewinterop.AndroidView
-import top.sankokomi.wirebare.ui.util.decodeBitmap
-import top.sankokomi.wirebare.ui.util.decodeBodyBytes
-import top.sankokomi.wirebare.ui.util.decodeBrotliBitmap
-import top.sankokomi.wirebare.ui.util.decodeBrotliBodyBytes
-import top.sankokomi.wirebare.ui.util.decodeGzipBitmap
-import top.sankokomi.wirebare.ui.util.decodeGzipBodyBytes
+import top.sankokomi.wirebare.ui.record.decodeBitmap
+import top.sankokomi.wirebare.ui.record.decodeBrotliBitmap
+import top.sankokomi.wirebare.ui.record.decodeBrotliHttpBody
+import top.sankokomi.wirebare.ui.record.decodeGzipBitmap
+import top.sankokomi.wirebare.ui.record.decodeGzipHttpBody
+import top.sankokomi.wirebare.ui.record.decodeHttpBody
 
 enum class DetailMode {
     DirectHtml,
@@ -69,7 +69,7 @@ fun WireDetailUI.LoadDetail(
 fun WireDetailUI.DirectHtml(sessionId: String) {
     var html by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        val bytes = decodeBodyBytes(sessionId) ?: return@LaunchedEffect
+        val bytes = decodeHttpBody(sessionId) ?: return@LaunchedEffect
         html = String(bytes, 0, bytes.size)
     }
     val text = html
@@ -92,7 +92,7 @@ fun WireDetailUI.DirectHtml(sessionId: String) {
 fun WireDetailUI.GzipHtml(sessionId: String) {
     var html by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        val bytes = decodeGzipBodyBytes(sessionId) ?: return@LaunchedEffect
+        val bytes = decodeGzipHttpBody(sessionId) ?: return@LaunchedEffect
         html = String(bytes, 0, bytes.size)
     }
     val text = html
@@ -115,7 +115,7 @@ fun WireDetailUI.GzipHtml(sessionId: String) {
 fun WireDetailUI.BrotliHtml(sessionId: String) {
     var html by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        val bytes = decodeBrotliBodyBytes(sessionId) ?: return@LaunchedEffect
+        val bytes = decodeBrotliHttpBody(sessionId) ?: return@LaunchedEffect
         html = String(bytes, 0, bytes.size)
     }
     val text = html

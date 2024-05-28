@@ -1,7 +1,7 @@
 package top.sankokomi.wirebare.core.common
 
+import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpInterceptorFactory
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptorFactory
-import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
 import top.sankokomi.wirebare.core.ssl.JKS
 
 class WireBareConfiguration internal constructor() {
@@ -81,6 +81,8 @@ class WireBareConfiguration internal constructor() {
      * 增加路由地址，增加路由地址可以对 ip 包进行过滤，只允许指定路由地址列表中的流量通过代理
      *
      * 若希望代理全部流量，设置为 0.0.0.0/0 即可
+     *
+     * 注意：IPv6 需要再额外设置一个 ::/0
      * */
     fun addRoutes(vararg route: Pair<String, Int>) {
         routes.addAll(route)
@@ -115,30 +117,20 @@ class WireBareConfiguration internal constructor() {
         disallowedApplications.addAll(packageName)
     }
 
-    fun setHttpInterceptorFactories(factories: List<HttpInterceptorFactory>) {
+    fun clearAsyncHttpInterceptor() {
+        asyncHttpInterceptorFactories.clear()
+    }
+
+    fun addAsyncHttpInterceptor(factories: List<AsyncHttpInterceptorFactory>) {
+        asyncHttpInterceptorFactories.addAll(factories)
+    }
+
+    fun clearHttpInterceptor() {
         httpInterceptorFactories.clear()
+    }
+
+    fun addHttpInterceptor(factories: List<HttpInterceptorFactory>) {
         httpInterceptorFactories.addAll(factories)
-    }
-
-    fun setHttpInterceptorFactories(vararg factories: HttpInterceptorFactory) {
-        httpInterceptorFactories.clear()
-        httpInterceptorFactories.addAll(factories)
-    }
-
-    fun setHttpInterceptorFactory(factory: HttpInterceptorFactory) {
-        httpInterceptorFactories.clear()
-        httpInterceptorFactories.add(factory)
-    }
-
-    fun setHttpInterceptorFactory(factory: () -> HttpInterceptor) {
-        httpInterceptorFactories.clear()
-        httpInterceptorFactories.add(
-            object : HttpInterceptorFactory {
-                override fun create(): HttpInterceptor {
-                    return factory()
-                }
-            }
-        )
     }
 
     internal val routes: MutableSet<Pair<String, Int>> = hashSetOf()
@@ -149,7 +141,11 @@ class WireBareConfiguration internal constructor() {
 
     internal val disallowedApplications: MutableSet<String> = hashSetOf()
 
-    internal val httpInterceptorFactories: MutableList<HttpInterceptorFactory> = mutableListOf()
+    internal val asyncHttpInterceptorFactories: MutableList<AsyncHttpInterceptorFactory> =
+        mutableListOf()
+
+    internal val httpInterceptorFactories: MutableList<HttpInterceptorFactory> =
+        mutableListOf()
 
     internal fun copy(): WireBareConfiguration {
         return WireBareConfiguration().also {
@@ -166,6 +162,7 @@ class WireBareConfiguration internal constructor() {
             it.dnsServers.addAll(dnsServers)
             it.allowedApplications.addAll(allowedApplications)
             it.disallowedApplications.addAll(disallowedApplications)
+            it.asyncHttpInterceptorFactories.addAll(asyncHttpInterceptorFactories)
             it.httpInterceptorFactories.addAll(httpInterceptorFactories)
         }
     }

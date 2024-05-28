@@ -44,7 +44,6 @@ internal fun Queue<ByteBuffer>.mergeBuffer(clear: Boolean = true): ByteBuffer {
     return ByteBuffer.allocate(0)
 }
 
-internal fun ByteBuffer.clearAndPut(src: ByteBuffer) {
-    clear()
-    put(src)
+internal fun ByteBuffer.deepCopy(): ByteBuffer {
+    return ByteBuffer.wrap(array().copyOfRange(position(), remaining()))
 }

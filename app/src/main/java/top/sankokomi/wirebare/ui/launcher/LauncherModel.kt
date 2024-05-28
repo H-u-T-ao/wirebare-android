@@ -2,17 +2,12 @@ package top.sankokomi.wirebare.ui.launcher
 
 import android.content.Context
 import top.sankokomi.wirebare.core.common.WireBare
-import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
-import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
-import top.sankokomi.wirebare.core.interceptor.http.HttpSession
-import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.ssl.JKS
 import top.sankokomi.wirebare.core.util.Level
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
 import top.sankokomi.wirebare.ui.wireinfo.WireBareHttpInterceptor
-import java.nio.ByteBuffer
 
 object LauncherModel {
 
@@ -41,9 +36,11 @@ object LauncherModel {
             ipv6ProxyAddress = "a:a:1:1:a:a:1:1" to 128
             addRoutes("0.0.0.0" to 0, "::" to 0)
             addAllowedApplications(*targetPackageNameArray)
-            setHttpInterceptorFactory{
-                WireBareHttpInterceptor(onRequest, onResponse)
-            }
+            addAsyncHttpInterceptor(
+                listOf(
+                    WireBareHttpInterceptor.Factory(onRequest, onResponse)
+                )
+            )
         }
     }
 

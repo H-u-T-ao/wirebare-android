@@ -23,12 +23,7 @@ class HttpVirtualGateway internal constructor(
         if (jks != null) {
             val sslDecodeInterceptor = HttpSSLCodecInterceptor(jks)
             interceptors.add(sslDecodeInterceptor)
-            // HTTP 请求头，响应头格式化拦截器
-            interceptors.add(HttpHeaderParserInterceptor())
-            // 自定义拦截器
-            interceptors.addAll(
-                configuration.httpInterceptorFactories.map { it.create() }
-            )
+            interceptors.addNormalInterceptors(configuration)
             interceptors.add(
                 HttpFlushInterceptor(
                     sslDecodeInterceptor.requestCodec,
@@ -36,15 +31,28 @@ class HttpVirtualGateway internal constructor(
                 )
             )
         } else {
-            // HTTP 请求头，响应头格式化拦截器
-            interceptors.add(HttpHeaderParserInterceptor())
-            // 自定义拦截器
-            interceptors.addAll(
-                configuration.httpInterceptorFactories.map { it.create() }
-            )
+            interceptors.addNormalInterceptors(configuration)
             interceptors.add(HttpFlushInterceptor())
         }
         interceptorChain = HttpInterceptChain(interceptors)
+    }
+
+    private fun MutableList<HttpInterceptor>.addNormalInterceptors(
+        configuration: WireBareConfiguration,
+    ) {
+        val interceptors = this@addNormalInterceptors
+        // 自定义拦截器
+        interceptors.addAll(
+            configuration.httpInterceptorFactories.map { it.create() }
+        )
+        interceptors.add(
+            AsyncHttpInterceptChain(
+                configuration.asyncHttpInterceptorFactories.mapTo(
+                    // HTTP 请求头，响应头格式化拦截器
+                    mutableListOf(AsyncHttpHeaderParserInterceptor())
+                ) { it.create() }
+            )
+        )
     }
 
     fun onRequest(

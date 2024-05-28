@@ -25,9 +25,9 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.datastore.AccessControlDataStore
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.record.HttpRecorder
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.WirebareUITheme
-import top.sankokomi.wirebare.ui.util.deleteCacheFiles
 import top.sankokomi.wirebare.ui.util.requireAppDataList
 
 class LauncherUI : VpnPrepareActivity() {
@@ -124,7 +124,7 @@ class LauncherUI : VpnPrepareActivity() {
             }
         }
         lifecycleScope.launch {
-            deleteCacheFiles()
+            HttpRecorder.clearRewards()
         }
     }
 

@@ -228,8 +228,8 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
-                    mainText = "INTERNAL SESSION ID",
-                    subText = sessionId,
+                    mainText = "HTTP 响应状态码",
+                    subText = response.rspStatus ?: "",
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )
@@ -240,8 +240,8 @@ fun WireInfoUI.WireInfoUIPage(
                     .clip(RoundedCornerShape(6.dp))
             ) {
                 LargeColorfulText(
-                    mainText = "HTTP 响应状态码",
-                    subText = response.rspStatus ?: "",
+                    mainText = "INTERNAL SESSION ID",
+                    subText = sessionId,
                     backgroundColor = Purple80,
                     textColor = Color.Black
                 )

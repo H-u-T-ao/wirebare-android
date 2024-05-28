@@ -54,12 +54,15 @@ class HttpTcpInterceptor(
 
     private fun takeHttpSession(tcpSession: TcpSession): HttpSession {
         return sessionMap.computeIfAbsent(tcpSession) {
+            val requestTime = System.currentTimeMillis()
             val request = HttpRequest().also {
+                it.requestTime = requestTime
                 it.sourcePort = tcpSession.sourcePort.port
                 it.destinationAddress = tcpSession.destinationAddress.stringIp
                 it.destinationPort = tcpSession.destinationPort.port
             }
             val response = HttpResponse().also {
+                it.requestTime = requestTime
                 it.sourcePort = tcpSession.sourcePort.port
                 it.destinationAddress = tcpSession.destinationAddress.stringIp
                 it.destinationPort = tcpSession.destinationPort.port
