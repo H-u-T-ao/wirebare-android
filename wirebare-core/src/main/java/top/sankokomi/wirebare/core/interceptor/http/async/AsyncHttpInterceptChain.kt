@@ -1,9 +1,12 @@
-package top.sankokomi.wirebare.core.interceptor.http
+package top.sankokomi.wirebare.core.interceptor.http.async
 
 import kotlinx.coroutines.runBlocking
 import top.sankokomi.wirebare.core.common.IProxyStatusListener
 import top.sankokomi.wirebare.core.common.ProxyStatus
 import top.sankokomi.wirebare.core.common.WireBare
+import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
+import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.HttpSession
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.util.deepCopy
 import java.nio.ByteBuffer

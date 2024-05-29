@@ -252,6 +252,8 @@ fun SmallColorfulText(
     ) {
         Text(
             text = mainText,
+            modifier = Modifier
+                .fillMaxWidth(),
             color = textColor,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
@@ -262,11 +264,13 @@ fun SmallColorfulText(
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = subText,
+            modifier = Modifier
+                .fillMaxWidth(),
             color = textColor,
             fontSize = 12.sp,
             lineHeight = 13.sp,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 2
+            maxLines = 3
         )
     }
 }

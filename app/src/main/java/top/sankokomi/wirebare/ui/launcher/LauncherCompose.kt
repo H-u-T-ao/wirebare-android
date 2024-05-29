@@ -42,15 +42,16 @@ import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.ui.R
 import top.sankokomi.wirebare.ui.accesscontrol.AccessControlUI
 import top.sankokomi.wirebare.ui.datastore.ProxyPolicyDataStore
+import top.sankokomi.wirebare.ui.record.HttpRecorder
 import top.sankokomi.wirebare.ui.record.id
 import top.sankokomi.wirebare.ui.resources.AppNavigationBar
 import top.sankokomi.wirebare.ui.resources.AppTitleBar
+import top.sankokomi.wirebare.ui.resources.DeepPureRed
 import top.sankokomi.wirebare.ui.resources.ImageButton
 import top.sankokomi.wirebare.ui.resources.LargeColorfulText
 import top.sankokomi.wirebare.ui.resources.Purple40
 import top.sankokomi.wirebare.ui.resources.Purple80
 import top.sankokomi.wirebare.ui.resources.PurpleGrey40
-import top.sankokomi.wirebare.ui.resources.DeepPureRed
 import top.sankokomi.wirebare.ui.resources.SmallColorfulText
 import top.sankokomi.wirebare.ui.wireinfo.WireInfoUI
 
@@ -447,7 +448,11 @@ private fun LauncherUI.PageProxyResponseResult() {
                 ) {
                     SmallColorfulText(
                         mainText = response.url ?: response.destinationAddress ?: "",
-                        subText = response.formatHead?.getOrNull(0) ?: "",
+                        subText = (response.formatHead?.getOrNull(0) ?: "") +
+                                System.lineSeparator() +
+                                (response.contentType ?: "") +
+                                System.lineSeparator() +
+                                (response.contentEncoding ?: "identity"),
                         backgroundColor = Purple80,
                         textColor = Color.Black
                     )
@@ -465,6 +470,7 @@ private fun LauncherUI.PageProxyResponseResult() {
                 .shadow(1.dp, RoundedCornerShape(6.dp), true)
                 .background(Purple80)
                 .clickable {
+                    HttpRecorder.clearRewardsAsync()
                     responseList.clear()
                 }
                 .padding(horizontal = 12.dp, vertical = 4.dp)

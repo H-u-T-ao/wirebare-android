@@ -40,4 +40,8 @@ class HttpResponse internal constructor() : Serializable {
     internal var isPlaintext: Boolean? = null
     var host: String? = null
         internal set
+    var contentType: String? = null
+        internal set
+    var contentEncoding: String? = null
+        internal set
 }

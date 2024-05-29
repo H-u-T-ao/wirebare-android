@@ -1,9 +1,9 @@
 package top.sankokomi.wirebare.ui.wireinfo
 
-import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpIndexedInterceptor
-import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpInterceptChain
-import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpInterceptor
-import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpInterceptorFactory
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpIndexedInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptChain
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptorFactory
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
 import top.sankokomi.wirebare.core.interceptor.http.HttpSession

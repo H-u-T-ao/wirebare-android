@@ -1,6 +1,8 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
 import top.sankokomi.wirebare.core.common.WireBareConfiguration
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpHeaderParserInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptChain
 import top.sankokomi.wirebare.core.interceptor.ssl.HttpSSLCodecInterceptor
 import top.sankokomi.wirebare.core.interceptor.ssl.HttpSSLSniffInterceptor
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel

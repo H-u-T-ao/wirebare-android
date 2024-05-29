@@ -1,6 +1,9 @@
 package top.sankokomi.wirebare.core.common
 
-import top.sankokomi.wirebare.core.interceptor.http.AsyncHttpInterceptorFactory
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpHeaderParserInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptorFactory
+import top.sankokomi.wirebare.core.interceptor.http.HttpHeaderParserInterceptor
+import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptor
 import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptorFactory
 import top.sankokomi.wirebare.core.ssl.JKS
 
@@ -121,6 +124,12 @@ class WireBareConfiguration internal constructor() {
         asyncHttpInterceptorFactories.clear()
     }
 
+    /**
+     * HTTP 异步拦截器，如果不需要对要报文做出修改（例如只解析），建议使用这种拦截器，可以节约响应的时间
+     *
+     * 此类拦截器在 [HttpInterceptor] 之后执行，在默认情况下，有
+     * [AsyncHttpHeaderParserInterceptor] 来解析请求头和响应头
+     * */
     fun addAsyncHttpInterceptor(factories: List<AsyncHttpInterceptorFactory>) {
         asyncHttpInterceptorFactories.addAll(factories)
     }
@@ -129,6 +138,11 @@ class WireBareConfiguration internal constructor() {
         httpInterceptorFactories.clear()
     }
 
+    /**
+     * HTTP 阻塞拦截器，支持对报文进行修改，但会延长响应的耗时
+     *
+     * 如果期望对请求头和响应头做解析，可以加入 [HttpHeaderParserInterceptor] 来辅助解析
+     * */
     fun addHttpInterceptor(factories: List<HttpInterceptorFactory>) {
         httpInterceptorFactories.addAll(factories)
     }

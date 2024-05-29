@@ -1,5 +1,6 @@
-package top.sankokomi.wirebare.core.interceptor.http
+package top.sankokomi.wirebare.core.interceptor.http.async
 
+import top.sankokomi.wirebare.core.interceptor.http.HttpSession
 import java.nio.ByteBuffer
 
 interface AsyncHttpInterceptor {

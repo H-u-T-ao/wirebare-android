@@ -1,7 +1,10 @@
 package top.sankokomi.wirebare.ui.record
 
 import android.util.Log
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.sankokomi.wirebare.core.interceptor.http.HttpRequest
 import top.sankokomi.wirebare.core.interceptor.http.HttpResponse
@@ -80,6 +83,17 @@ object HttpRecorder {
 
     suspend fun clearRewards() {
         withContext(Dispatchers.IO) {
+            runCatching {
+                recordDir.listFiles()?.forEach(File::delete)
+            }.onFailure {
+                Log.e(TAG, "clearHttpRewards FAILED", it)
+            }
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun clearRewardsAsync() {
+        GlobalScope.launch(Dispatchers.IO) {
             runCatching {
                 recordDir.listFiles()?.forEach(File::delete)
             }.onFailure {
