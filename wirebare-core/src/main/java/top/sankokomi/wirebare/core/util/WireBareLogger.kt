@@ -31,6 +31,7 @@ internal object WireBareLogger {
     private const val TAG = "WireBare"
 
     @LogLevel
+    @Volatile
     internal var LOG_LEVEL: Int = Level.VERBOSE
 
     internal fun verbose(msg: String) {

@@ -1,8 +1,14 @@
 package top.sankokomi.wirebare.core.interceptor.http
 
+import top.sankokomi.wirebare.core.interceptor.http.async.AsyncHttpInterceptor
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import java.nio.ByteBuffer
 
+/**
+ * HTTP 阻塞拦截器，支持对报文进行修改，但会延长响应的耗时
+ *
+ * @see [AsyncHttpInterceptor]
+ * */
 interface HttpInterceptor {
     fun onRequest(
         chain: HttpInterceptChain,
