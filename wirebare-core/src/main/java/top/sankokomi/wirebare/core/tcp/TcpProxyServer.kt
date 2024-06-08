@@ -9,7 +9,6 @@ import top.sankokomi.wirebare.core.nio.NioCallback
 import top.sankokomi.wirebare.core.proxy.NioProxyServer
 import top.sankokomi.wirebare.core.service.WireBareProxyService
 import top.sankokomi.wirebare.core.util.WireBareLogger
-import top.sankokomi.wirebare.core.util.convertPortToInt
 import java.net.InetSocketAddress
 import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
@@ -42,9 +41,9 @@ internal class TcpProxyServer(
     private val tcpVirtualGateway: TcpVirtualGateway,
     private val configuration: WireBareConfiguration,
     private val proxyService: WireBareProxyService
-) : NioProxyServer(), NioCallback, CoroutineScope by proxyService {
+) : NioProxyServer(), NioCallback, ITcpServer, CoroutineScope by proxyService {
 
-    internal val proxyServerPort: Port
+    override val port: Port
 
     override val selector: Selector = Selector.open()
 
@@ -52,7 +51,11 @@ internal class TcpProxyServer(
         configureBlocking(false)
         socket().bind(InetSocketAddress(0))
         register(selector, SelectionKey.OP_ACCEPT, this@TcpProxyServer)
-        proxyServerPort = Port(socket().localPort.toShort())
+        port = Port(socket().localPort.toShort())
+    }
+
+    override fun start() {
+        dispatch()
     }
 
     override fun onAccept() {
@@ -66,14 +69,14 @@ internal class TcpProxyServer(
 
         WireBareLogger.inetDebug(
             session,
-            "代理服务器 $proxyServerPort 代理开始"
+            "代理服务器 $port 代理开始"
         )
 
         // 接收到被代理客户端的请求后开始代理
         val proxyTunnel = TcpProxyTunnel(
             proxySocketChannel,
             selector,
-            proxyServerPort,
+            port,
             session,
             tcpVirtualGateway,
             configuration

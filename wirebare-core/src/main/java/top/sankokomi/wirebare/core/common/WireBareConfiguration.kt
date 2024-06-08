@@ -11,6 +11,8 @@ class WireBareConfiguration internal constructor() {
 
     var jks: JKS? = null
 
+    var useNettyMode: Boolean = false
+
     /**
      * 代理服务的传输单元大小，默认 4096 字节，建议不要设置得太小
      * */
@@ -164,6 +166,7 @@ class WireBareConfiguration internal constructor() {
     internal fun copy(): WireBareConfiguration {
         return WireBareConfiguration().also {
             it.jks = jks
+            it.useNettyMode = useNettyMode
             it.mtu = mtu
             it.ipv4Address = ipv4Address
             it.ipv4PrefixLength = ipv4PrefixLength

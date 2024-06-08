@@ -12,6 +12,7 @@ import top.sankokomi.wirebare.core.net.TcpHeader
 import top.sankokomi.wirebare.core.net.TcpSessionStore
 import top.sankokomi.wirebare.core.service.PacketInterceptor
 import top.sankokomi.wirebare.core.service.WireBareProxyService
+import top.sankokomi.wirebare.core.tcp.netty.NettyProxyServer
 import top.sankokomi.wirebare.core.util.WireBareLogger
 import top.sankokomi.wirebare.core.util.convertPortToInt
 import java.io.OutputStream
@@ -54,16 +55,25 @@ internal class TcpPacketInterceptor(
     /**
      * 代理服务器
      * */
-    private val servers = mutableListOf<TcpProxyServer>().apply {
+    private val servers = mutableListOf<ITcpServer>().apply {
         for (i in 1..configuration.tcpProxyServerCount) {
-            val server = TcpProxyServer(
-                sessionStore,
-                TcpVirtualGateway(configuration),
-                configuration,
-                proxyService
-            )
-            server.dispatch()
-            ports.add(server.proxyServerPort)
+            val server = if (!configuration.useNettyMode) {
+                TcpProxyServer(
+                    sessionStore,
+                    TcpVirtualGateway(configuration),
+                    configuration,
+                    proxyService
+                )
+            } else {
+                NettyProxyServer(
+                    sessionStore,
+                    TcpVirtualGateway(configuration),
+                    configuration,
+                    proxyService
+                )
+            }
+            server.start()
+            ports.add(server.port)
             add(server)
         }
     }
@@ -90,7 +100,7 @@ internal class TcpPacketInterceptor(
             // 根据端口号分配给固定的服务器
             val proxyServerPort = servers[
                 sourcePort.port.convertPortToInt % servers.size
-            ].proxyServerPort
+            ].port
 
             // 将被代理客户端的请求数据包转发给代理服务器
             ipv4Header.sourceAddress = destinationAddress
@@ -159,7 +169,7 @@ internal class TcpPacketInterceptor(
             // 根据端口号分配给固定的服务器
             val proxyServerPort = servers[
                 sourcePort.port.convertPortToInt % servers.size
-            ].proxyServerPort
+            ].port
 
             // 将被代理客户端的请求数据包转发给代理服务器
             ipv6Header.sourceAddress = destinationAddress

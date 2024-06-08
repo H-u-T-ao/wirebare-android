@@ -29,6 +29,7 @@ object LauncherModel {
                     "WB"
                 )
             }
+            useNettyMode = true
             mtu = 10 * 1024
             tcpProxyServerCount = 5
             ipv4ProxyAddress = "10.1.10.1" to 32

@@ -2,6 +2,13 @@ package top.sankokomi.wirebare.core.util
 
 import java.math.BigInteger
 
+internal fun ByteArray.newString(
+    position: Int = 0,
+    remaining: Int = this.size
+): String {
+    return String(this, position, remaining)
+}
+
 internal fun ByteArray.readByte(offset: Int): Byte {
     return this[offset]
 }

@@ -128,6 +128,7 @@ class AsyncHttpInterceptChain(
         buffer: ByteBuffer,
         session: HttpSession
     ) {
+        if (executorPool.isShutdown) return
         val buf = buffer.deepCopy()
         executorPool.execute {
             runBlocking {
@@ -139,6 +140,7 @@ class AsyncHttpInterceptChain(
     private fun processRequestFinishedFirst(
         session: HttpSession
     ) {
+        if (executorPool.isShutdown) return
         executorPool.execute {
             runBlocking {
                 processRequestFinishedNext(null, session)
@@ -150,6 +152,7 @@ class AsyncHttpInterceptChain(
         buffer: ByteBuffer,
         session: HttpSession
     ) {
+        if (executorPool.isShutdown) return
         val buf = buffer.deepCopy()
         executorPool.execute {
             runBlocking {
@@ -161,6 +164,7 @@ class AsyncHttpInterceptChain(
     private fun processResponseFinishedFirst(
         session: HttpSession
     ) {
+        if (executorPool.isShutdown) return
         executorPool.execute {
             runBlocking {
                 processResponseFinishedNext(null, session)
