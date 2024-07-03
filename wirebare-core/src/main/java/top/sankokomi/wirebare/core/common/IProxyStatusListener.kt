@@ -5,6 +5,6 @@ import androidx.annotation.MainThread
 interface IProxyStatusListener {
 
     @MainThread
-    fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus)
+    fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus): Boolean
 
 }

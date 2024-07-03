@@ -1,46 +1,48 @@
-package top.sankokomi.wirebare.core.interceptor.ssl
+package top.sankokomi.wirebare.core.interceptor.netty.ssl
 
-import top.sankokomi.wirebare.core.interceptor.http.HttpIndexedInterceptor
-import top.sankokomi.wirebare.core.interceptor.http.HttpInterceptChain
-import top.sankokomi.wirebare.core.interceptor.http.HttpSession
-import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
+import io.netty.channel.ChannelDuplexHandler
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
+import top.sankokomi.wirebare.core.interceptor.netty.NettyWireContext
 import top.sankokomi.wirebare.core.ssl.judgeIsHttps
 import top.sankokomi.wirebare.core.util.newString
 import top.sankokomi.wirebare.core.util.readShort
 import java.nio.ByteBuffer
 import java.util.Locale
 
-class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
-    override fun onRequest(
-        chain: HttpInterceptChain,
-        buffer: ByteBuffer,
-        session: HttpSession,
-        tunnel: TcpTunnel,
-        index: Int
-    ) {
-        if (index == 0) {
+internal class NettyHttpSSLSniffHandler : ChannelDuplexHandler() {
+
+    private var encodeIndex = -1
+    private var decodeIndex = -1
+
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg !is NettyWireContext) {
+            super.channelRead(ctx, msg)
+            return
+        }
+        val (buffer, session) = msg
+        if (++decodeIndex == 0) {
             val (request, _) = session
             request.isHttps = buffer.judgeIsHttps
             session.request.isPlaintext = request.isHttps == false
             request.hostInternal = ensureHost(request.isHttps, buffer)
         }
-        super.onRequest(chain, buffer, session, tunnel, index)
+        super.channelRead(ctx, msg)
     }
 
-    override fun onResponse(
-        chain: HttpInterceptChain,
-        buffer: ByteBuffer,
-        session: HttpSession,
-        tunnel: TcpTunnel,
-        index: Int
-    ) {
-        if (index == 0) {
+    override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise?) {
+        if (msg !is NettyWireContext) {
+            super.write(ctx, msg, promise)
+            return
+        }
+        val (_, session) = msg
+        if (++encodeIndex == 0) {
             val (request, response) = session
             response.isHttps = request.isHttps
             session.response.isPlaintext = request.isHttps == false
             response.hostInternal = request.hostInternal
         }
-        super.onResponse(chain, buffer, session, tunnel, index)
+        super.write(ctx, msg, promise)
     }
 
     private fun ensureHost(isHttps: Boolean?, buffer: ByteBuffer): String? {
@@ -59,8 +61,8 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         }
     }
 
-    private fun parseHttpHost(buffer: ByteBuffer, offset: Int, size: Int): String? {
-        val header = buffer.newString(offset, size)
+    private fun parseHttpHost(buffer: ByteBuffer, start: Int, size: Int): String? {
+        val header = buffer.newString(start, size)
         val headers = header.split("\r\n").dropLastWhile {
             it.isEmpty()
         }.toTypedArray()
@@ -104,14 +106,14 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
      * */
     private fun parseHttpsHost(
         buffer: ByteBuffer,
-        offset: Int,
+        start: Int,
         size: Int
     ): String? {
         if (size <= 43) {
             return null
         }
         val array = buffer.array()
-        var pointer = offset
+        var pointer = start
         val limit = pointer + size
         // 0x16 即十进制 22 ，表示当前是 SSL/TLS 握手
         if (array[pointer].toInt() != 0x16) {
@@ -172,5 +174,4 @@ class HttpSSLSniffInterceptor : HttpIndexedInterceptor() {
         }
         return null
     }
-
 }

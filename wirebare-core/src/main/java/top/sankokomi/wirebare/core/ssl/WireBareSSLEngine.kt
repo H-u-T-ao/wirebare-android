@@ -98,6 +98,7 @@ class WireBareSSLEngine(private val engine: SSLEngine) {
                 if (status == SSLEngineResult.Status.CLOSED) {
                     phase = EnginePhase.Closed
                 }
+                /*if (status == SSLEngineResult.Status.OK)*/
                 break
             }
         }

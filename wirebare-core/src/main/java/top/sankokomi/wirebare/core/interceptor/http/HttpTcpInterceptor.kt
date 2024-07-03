@@ -6,13 +6,12 @@ import top.sankokomi.wirebare.core.interceptor.tcp.TcpInterceptor
 import top.sankokomi.wirebare.core.interceptor.tcp.TcpTunnel
 import top.sankokomi.wirebare.core.net.TcpSession
 import java.nio.ByteBuffer
-import java.util.concurrent.ConcurrentHashMap
 
 class HttpTcpInterceptor(
     configuration: WireBareConfiguration
 ) : TcpInterceptor {
     private val httpVirtualGateway = HttpVirtualGateway(configuration)
-    private val sessionMap = ConcurrentHashMap<TcpSession, HttpSession>()
+    private val sessionMap = hashMapOf<TcpSession, HttpSession>()
     override fun onRequest(
         chain: TcpInterceptChain,
         buffer: ByteBuffer,

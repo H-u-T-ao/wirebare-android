@@ -17,7 +17,7 @@ object LauncherModel {
         onRequest: (HttpRequest) -> Unit,
         onResponse: (HttpResponse) -> Unit
     ) {
-        WireBare.logLevel = Level.VERBOSE
+        WireBare.logLevel = Level.DEBUG
         WireBare.startProxy {
             if (ProxyPolicyDataStore.enableSSL.value) {
                 jks = JKS(

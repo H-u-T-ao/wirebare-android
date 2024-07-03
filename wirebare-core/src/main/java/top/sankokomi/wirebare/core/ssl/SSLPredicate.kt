@@ -1,5 +1,6 @@
 package top.sankokomi.wirebare.core.ssl
 
+import io.netty.buffer.ByteBuf
 import java.nio.ByteBuffer
 
 object SSLPredicate {
@@ -24,6 +25,32 @@ internal val ByteBuffer.judgeIsHttps: Boolean?
     get() {
         if (!hasRemaining()) return null
         return when (get(position()).toInt()) {
+            SSLPredicate.HTTP_METHOD_GET,/* GET */
+            SSLPredicate.HTTP_METHOD_HEAD,/* HEAD */
+            SSLPredicate.HTTP_METHOD_POST_PUT_PATCH,/* POST, PUT, PATCH */
+            SSLPredicate.HTTP_METHOD_DELETE,/* DELETE */
+            SSLPredicate.HTTP_METHOD_OPTIONS,/* OPTIONS */
+            SSLPredicate.HTTP_METHOD_TRACE,/* TRACE */
+            SSLPredicate.HTTP_METHOD_CONNECT/* CONNECT */ -> false
+
+            /* HTTPS */
+            SSLPredicate.SSL_CONTENT_TYPE_CHANGE_CIPHER_SPEC,
+            SSLPredicate.SSL_CONTENT_TYPE_ALERT,
+            SSLPredicate.SSL_CONTENT_TYPE_HANDSHAKE,
+            SSLPredicate.SSL_CONTENT_TYPE_APPLICATION_DATA,
+            SSLPredicate.SSL_CONTENT_TYPE_EXTENSION_HEARTBEAT -> true
+
+            else -> null
+        }
+    }
+
+internal val ByteBuf.judgeIsHttps: Boolean?
+    get() {
+        val remaining = readableBytes() > 0
+        if (!remaining) return null
+        val firstByte = readByte().toInt()
+        readerIndex(0)
+        return when (firstByte) {
             SSLPredicate.HTTP_METHOD_GET,/* GET */
             SSLPredicate.HTTP_METHOD_HEAD,/* HEAD */
             SSLPredicate.HTTP_METHOD_POST_PUT_PATCH,/* POST, PUT, PATCH */

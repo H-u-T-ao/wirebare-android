@@ -108,7 +108,7 @@ internal class TcpPacketInterceptor(
             ipv4Header.destinationAddress = tunIpv4Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.info(
+            WireBareLogger.verbose(
                 "[IPv4-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
                         "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
@@ -132,7 +132,7 @@ internal class TcpPacketInterceptor(
 
             ipv4Header.destinationAddress = tunIpv4Address
 
-            WireBareLogger.info(
+            WireBareLogger.verbose(
                 "[IPv4-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
                         "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
@@ -177,7 +177,7 @@ internal class TcpPacketInterceptor(
             ipv6Header.destinationAddress = tunIpv6Address
             tcpHeader.destinationPort = proxyServerPort
 
-            WireBareLogger.info(
+            WireBareLogger.verbose(
                 "[IPv6-TCP] 客户端 $sourcePort >> 代理服务器 $proxyServerPort " +
                         "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${
@@ -201,7 +201,7 @@ internal class TcpPacketInterceptor(
 
             ipv6Header.destinationAddress = tunIpv6Address
 
-            WireBareLogger.info(
+            WireBareLogger.verbose(
                 "[IPv6-TCP] 客户端 $destinationPort << 代理服务器 $sourcePort " +
                         "seq = ${tcpHeader.sequenceNumber.toUInt()} ack = ${tcpHeader.acknowledgmentNumber.toUInt()} " +
                         "flag = ${

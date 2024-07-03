@@ -1,5 +1,7 @@
 package top.sankokomi.wirebare.core.util
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import java.nio.ByteBuffer
 import java.util.Queue
 
@@ -46,4 +48,8 @@ internal fun Queue<ByteBuffer>.mergeBuffer(clear: Boolean = true): ByteBuffer {
 
 internal fun ByteBuffer.deepCopy(): ByteBuffer {
     return ByteBuffer.wrap(array().copyOfRange(position(), remaining()))
+}
+
+internal fun ByteBuffer.toByteBuf(): ByteBuf {
+    return Unpooled.wrappedBuffer(this)
 }

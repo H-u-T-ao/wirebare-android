@@ -130,7 +130,7 @@ object WireBare {
             if (newStatus == proxyStatus) return@post
             val oldStatus = proxyStatus
             proxyStatus = newStatus
-            listeners.forEach { listener ->
+            listeners.removeAll { listener ->
                 listener.onVpnStatusChanged(oldStatus, newStatus)
             }
         }
