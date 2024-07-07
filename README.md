@@ -6,6 +6,7 @@ WireBare 是一个基于 Andoird VPN Service 开发的 Android 抓包框架
 
 在高版本的 Android 系统中的 HTTPS 的拦截抓包功能需要先安装代理服务器根证书到 Android 系统的根证书目录下
 
+证书相关文件和使用说明在项目根目录的 certificate 目录下
 
 
 ### 功能概览
