@@ -294,7 +294,7 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
             .clip(RoundedCornerShape(6.dp))
     ) {
         LargeColorfulText(
-            mainText = "gzip 解压缩并解析为 HTML",
+            mainText = "gzip 解压缩并解析为 HTML（TESTING）",
             subText = "将报文作为被 gzip 压缩的 HTML 文本进行解析",
             backgroundColor = Purple80,
             textColor = Color.Black,
@@ -317,7 +317,7 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
             .clip(RoundedCornerShape(6.dp))
     ) {
         LargeColorfulText(
-            mainText = "brotli 解压缩并解析为 HTML",
+            mainText = "brotli 解压缩并解析为 HTML（TESTING）",
             subText = "将报文作为被 brotli 压缩的 HTML 文本进行解析",
             backgroundColor = Purple80,
             textColor = Color.Black,
@@ -363,7 +363,7 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
             .clip(RoundedCornerShape(6.dp))
     ) {
         LargeColorfulText(
-            mainText = "gzip 解压缩并解析为图片",
+            mainText = "gzip 解压缩并解析为图片（TESTING）",
             subText = "将报文作为被 gzip 压缩的图片数据进行解析",
             backgroundColor = Purple80,
             textColor = Color.Black,
@@ -386,8 +386,8 @@ private fun WireInfoUI.DataViewer(sessionId: String) {
             .clip(RoundedCornerShape(6.dp))
     ) {
         LargeColorfulText(
-            mainText = "brotli 解压缩并解析为图片",
-            subText = "将报文作为被 brotli 压缩的图片数据进行解析",
+            mainText = "brotli 解压缩并解析为图片（TESTING）",
+            subText = "将报文作为被 brotli 压缩的图片数据进行解析（测试中）",
             backgroundColor = Purple80,
             textColor = Color.Black,
             onClick = {
