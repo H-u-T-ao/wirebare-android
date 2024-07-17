@@ -93,8 +93,9 @@ class LauncherUI : VpnPrepareActivity() {
     }
 
     private val wireBareStatusListener = object : IProxyStatusListener {
-        override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus) {
+        override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus): Boolean {
             _proxyStatusFlow.value = newStatus
+            return false
         }
     }
 

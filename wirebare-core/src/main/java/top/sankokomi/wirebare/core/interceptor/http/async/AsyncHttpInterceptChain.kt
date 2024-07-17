@@ -114,11 +114,12 @@ class AsyncHttpInterceptChain(
     ).also {
         WireBare.addVpnProxyStatusListener(
             object : IProxyStatusListener {
-                override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus) {
+                override fun onVpnStatusChanged(oldStatus: ProxyStatus, newStatus: ProxyStatus): Boolean {
                     if (newStatus == ProxyStatus.DEAD) {
                         it.shutdown()
-                        WireBare.removeVpnProxyStatusListener(this)
+                        return true
                     }
+                    return false
                 }
             }
         )
